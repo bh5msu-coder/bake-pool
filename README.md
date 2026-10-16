@@ -88,12 +88,17 @@ npm run sheet -- lines --apply                # apply it
 npm run sheet -- import --csv path/to/csvs    # same, from CSV exports named Picks.csv, Summary.csv, …
 ```
 
-## Deploy to Vercel
+## Deployment
 
-1. Push this repo to GitHub and import it in Vercel. Set **Root Directory** to `app`.
-2. Add the environment variables above.
-3. Deploy. `vercel.json` registers the daily cron (13:00 UTC). On the Hobby plan, crons run at most once a day.
-4. Do step 5 of One-time setup with the production URL.
+- **Live:** https://bake-pool.vercel.app (Vercel project `bake-pool`, team bh5msu-coder's projects)
+- **Code:** https://github.com/bh5msu-coder/bake-pool (private). Pushing to `main` deploys automatically, as long as
+  the commit's author email is one Vercel knows (your GitHub email); otherwise the deploy shows "Blocked".
+- **Env vars in Vercel:** the Supabase URL and publishable key, `SHEET_ID` and `CRON_SECRET` are set.
+  `SUPABASE_SECRET_KEY` must be added by hand (Settings → Environment Variables, Production, Sensitive), then redeploy.
+  Until it's there, sign-in, lines sync and import all refuse to run.
+- **Supabase auth URLs:** Authentication → URL Configuration → Site URL `https://bake-pool.vercel.app`;
+  Redirect URLs `https://bake-pool.vercel.app/auth/callback` and `http://localhost:3000/auth/callback`.
+- **Cron:** `vercel.json` runs `/api/lines/sync` daily at 13:00 UTC (8 AM CT).
 
 ## Project layout
 
