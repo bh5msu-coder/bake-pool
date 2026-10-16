@@ -1,5 +1,6 @@
 "use client";
 import { elimSummary, elimTeam, humans, isOpen, labelOf, usedElimTeams, type Week } from "@/lib/scoring";
+import { chipClass, colorOf, cvar } from "@/lib/players";
 import { spreadFor, teamVars } from "@/lib/teams";
 import { Header } from "./ui";
 import { useApp } from "./store";
@@ -35,12 +36,14 @@ export function ElimTab() {
   const tied = !team && votes > 0;
 
   return (<>
-    <Header title="Eliminator" sub={`${labelOf(week).toUpperCase()} · ${sum.alive ? `${sum.livesLeft} ${sum.livesLeft === 1 ? "LIFE" : "LIVES"} LEFT` : "ELIMINATED"}`} right={nav} />
+    <Header title="Eliminator" sub={`${labelOf(week)} · ${sum.alive ? `${sum.livesLeft} ${sum.livesLeft === 1 ? "life" : "lives"} left` : "Eliminated"}`} right={nav} />
     <main className="wrap">
+      <div className="elim-layout">
+      <div>
       <section>
         <div className="ticket" style={teamVars(team)}>
           <div className="face">
-            <div className="kicker">{labelOf(week).toUpperCase()} · GROUP PICK TO LOSE</div>
+            <div className="kicker">{labelOf(week)} · group pick to lose</div>
             <div className="team">{team ?? (tied ? "Tied vote" : "No pick yet")}</div>
             <div className="vs">{cand ? `${cand.opp} · ${cand.line}` : tied ? "Brad breaks the tie below" : `${votes}/${ids.length} votes in`}</div>
           </div>
@@ -49,14 +52,14 @@ export function ElimTab() {
             <span className="lives" aria-label={`${sum.livesLeft} of ${sum.lives} lives left`}>
               {Array.from({ length: sum.lives }, (_, i) => <i key={i} className={i < sum.livesLeft ? "on" : ""} />)}
             </span>
-            <span>{week.elim.outcome === "survived" ? "SURVIVED" : week.elim.outcome === "died" ? "THEY WON · LIFE LOST" : open ? "VOTING OPEN" : "LOCKED"}</span>
+            <span>{week.elim.outcome === "survived" ? "Survived" : week.elim.outcome === "died" ? "They won · life lost" : open ? "Voting open" : "Locked"}</span>
           </div>
         </div>
         <p className="hint">Pick an NFL team you think loses outright. If they win, the group loses a life. Each team can only be used once.
           {" "}The group starts with 1 life; each buy-back adds one for ${season.elimBuybackCost}.</p>
         {isAdmin && (
           <div className="row" style={{ marginTop: 12 }}>
-            <span className="mono" style={{ fontSize: ".72rem", color: "var(--faint)" }}>BUY-BACKS · ${season.elimBuybackCost} EACH</span>
+            <span style={{ fontSize: ".85rem", color: "var(--muted)" }}>Buy-backs (${season.elimBuybackCost} each)</span>
             <span className="spacer" />
             <button className="iconbtn" aria-label="Remove a buy-back" disabled={season.elimBuybacks <= 0}
               onClick={() => run("setSetting", "elim_buybacks", season.elimBuybacks - 1)}>−</button>
@@ -71,40 +74,42 @@ export function ElimTab() {
         <p className="eyebrow">Votes</p>
         <div className="progress">
           {humans(season.players).map((p) => (
-            <div key={p.id} className={week.elim.picks[p.id] ? "done" : ""}><span>{p.name.toUpperCase()}</span>{week.elim.picks[p.id] ?? "—"}</div>
+            <div key={p.id} className={week.elim.picks[p.id] ? "done" : ""}><i className="dot" style={cvar(p.id)} /><span>{p.name}</span><b>{week.elim.picks[p.id] ?? "—"}</b></div>
           ))}
         </div>
       </section>
-
+      <SeasonSoFar />
+      </div>
+      <div>
       {(open || isAdmin) && week.id && (
         <section>
-          <p className="eyebrow">{open ? "Your vote · biggest underdogs first" : "Fix the group pick"}</p>
+          <p className="eyebrow">{open ? "Your vote: biggest underdogs first" : "Fix the group pick"}</p>
           <div className="games">
             {cands.map((c) => {
               const burned = used.has(c.team);
               const mine = week.elim.picks[me] === c.team;
               const backers = humans(season.players).filter((p) => week.elim.picks[p.id] === c.team);
               return (
-                <button key={c.team} className={`cand${mine ? " mine" : ""}`} style={{ ...teamVars(c.team), opacity: burned ? 0.45 : 1 }}
+                <button key={c.team} className={`cand${mine ? " mine" : ""}`} style={{ opacity: burned ? 0.45 : 1 }}
                   disabled={burned || !open}
                   onClick={() => run("setElimPick", week.id!, me, mine ? null : c.team)}>
                   <span><span className="t" style={burned ? { textDecoration: "line-through" } : undefined}>{c.team}</span>
                     <span className="o" style={{ display: "block" }}>{c.opp} · {c.line}{burned ? " · already used" : ""}</span></span>
-                  <span className="row" style={{ gap: 3 }}>{backers.map((p) => <span key={p.id} className={`chip${p.id === me ? " me" : ""}`}>{p.initial}</span>)}</span>
+                  <span className="row" style={{ gap: 3 }}>{backers.map((p) => <span key={p.id} className={`chip${chipClass(p.id)}${p.id === me ? " me" : ""}`} style={{ background: colorOf(p.id) }}>{p.initial}</span>)}</span>
                 </button>
               );
             })}
             {!cands.length && <p className="hint">No NFL games on this week&apos;s slate.</p>}
           </div>
           {isAdmin && (<>
-            <p className="eyebrow" style={{ marginTop: 18 }}>Admin · group pick</p>
+            <p className="eyebrow" style={{ marginTop: 18 }}>Admin: group pick</p>
             <div className="field" style={{ marginTop: 0 }}>
               <select value={week.elim.override ?? ""} onChange={(e) => run("setElimWeek", week.id!, { override_team: e.target.value || null })}>
                 <option value="">Follow the vote</option>
                 {cands.filter((c) => !used.has(c.team)).map((c) => <option key={c.team} value={c.team}>Force {c.team}</option>)}
               </select>
             </div>
-            <p className="eyebrow" style={{ marginTop: 14 }}>Admin · outcome</p>
+            <p className="eyebrow" style={{ marginTop: 14 }}>Admin: outcome</p>
             <div className="pills">
               {(["survived", "died"] as const).map((o) => (
                 <button key={o} className="pill" aria-pressed={week.elim.outcome === o}
@@ -117,25 +122,34 @@ export function ElimTab() {
         </section>
       )}
 
+      </div>
+      </div>
+    </main>
+  </>);
+}
+
+function SeasonSoFar() {
+  const { season } = useApp();
+  const sum = elimSummary(season);
+  return (
       <section>
         <p className="eyebrow">Season so far</p>
         <div className="list">
           {sum.rows.filter((r) => r.team).map((r) => (
-            <div key={r.week} className="st" style={teamVars(r.team)}>
-              <span className="rk num">{r.short}</span>
+            <div key={r.week} className="st" >
+              <span className="rk">{r.short}</span>
               <span className="nm">{r.team}</span>
               <span />
               <span className={`tag ${r.outcome === "died" ? "loss" : r.outcome === "survived" ? "win" : ""}`} style={{ justifySelf: "end" }}>
-                {r.outcome === "died" ? "LIFE LOST" : r.outcome === "survived" ? "SURVIVED" : "PENDING"}
+                {r.outcome === "died" ? "Life lost" : r.outcome === "survived" ? "Survived" : "Pending"}
               </span>
             </div>
           ))}
         </div>
         {sum.burned.length > 0 && (<>
-          <p className="eyebrow" style={{ marginTop: 18 }}>Used · can&apos;t pick again</p>
+          <p className="eyebrow" style={{ marginTop: 18 }}>Used: can&apos;t pick again</p>
           <div className="burned">{sum.burned.map((b) => <span key={b.team}>{b.team} · {b.short}</span>)}</div>
         </>)}
       </section>
-    </main>
-  </>);
+  );
 }

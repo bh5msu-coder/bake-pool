@@ -1,156 +1,192 @@
 "use client";
 import { useState } from "react";
+import { categoryGrid, consensus, headToHeadGrid, pickers, soloRecords, trajectory, weeklyGrid } from "@/lib/analytics";
+import { cvar } from "@/lib/players";
 import {
-  band, BANDS, ENTRY, shortLabel, fmtPct, fmtRec, headToHead, humans, MAJORITY, money, pct, pickOf, record, side, soloPicker, split,
+  band, BANDS, ENTRY, elimSummary, fmtPct, fmtRec, humans, MAJORITY, money, pct, pickOf, record, shortLabel, side, soloPicker, split,
   type Game, type Rec,
 } from "@/lib/scoring";
+import { ChartCard, Heatmap, HeatTable, Legend, LineChart, WinBars } from "./charts";
 import { Header } from "./ui";
 import { emptyFilter, useApp, type ExploreFilter } from "./store";
 
 const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 export function PoolTab() {
-  const { season, me, setTab, setFilter } = useApp();
+  const { season, me } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const done = season.weeks.flatMap((w) => w.games).filter((g) => g.result);
   const gradedWeeks = season.weeks.filter((w) => w.games.some((g) => g.result));
-  const lastWeek = gradedWeeks.at(-1);
-  const [who, setWho] = useState(me);
-  const m = money(season);
 
+  if (!done.length) {
+    return (<>
+      <Header title="Pool" sub="Standings & stats" />
+      <main className="wrap"><div className="empty"><b>No results yet</b>Standings appear once the first games are graded.</div></main>
+    </>);
+  }
+
+  const lastWeek = gradedWeeks.at(-1)!;
   const standings = season.players
-    .map((p) => ({ p, r: record(done, p.id, ids), wk: lastWeek ? record(lastWeek.games, p.id, ids) : null }))
+    .map((p) => ({ p, r: record(done, p.id, ids), wk: record(lastWeek.games, p.id, ids) }))
     .sort((a, b) => (pct(b.r) ?? 0) - (pct(a.r) ?? 0) || b.r.w - a.r.w);
+  const entry = record(done, ENTRY, ids);
+  const m = money(season);
+  const elim = elimSummary(season);
+  const leader = standings[0];
+  const traj = trajectory(season);
+  const weekly = weeklyGrid(season);
+  const cats = categoryGrid(season);
+  const h2h = headToHeadGrid(season);
+  const cons = consensus(season);
+  const solo = soloRecords(season);
 
+  return (<>
+    <Header title="Pool" sub={`${done.length} games graded · through ${shortLabel(lastWeek)}`} />
+    <main className="wrap">
+      <div className="dash">
+        <div className="kpis">
+          <div className="kpi hero"><div className="l">Entry record</div><div className="v">{fmtRec(entry)}</div><div className="d">{fmtPct(entry)} against the spread</div></div>
+          <div className="kpi"><div className="l"><i className="dot" style={cvar(leader.p.id)} />Leader</div><div className="v">{leader.p.name}</div><div className="d">{fmtRec(leader.r)} · {fmtPct(leader.r)}</div></div>
+          <div className="kpi"><div className="l">{shortLabel(lastWeek)} entry</div><div className="v">{fmtRec(record(lastWeek.games, ENTRY, ids))}</div><div className="d">{lastWeek.winnings ? `Won ${usd(lastWeek.winnings)}` : "No payout"}</div></div>
+          <div className="kpi"><div className="l">Net each</div><div className={`v ${m.each < 0 ? "neg" : "pos"}`}>{usd(m.each)}</div><div className="d">{usd(m.won)} won of {usd(m.fees)} in</div></div>
+          <div className="kpi"><div className="l">Eliminator</div><div className="v">{elim.alive ? `${elim.livesLeft} ${elim.livesLeft === 1 ? "life" : "lives"}` : "Out"}</div><div className="d">{elim.burned.length} teams used</div></div>
+        </div>
+
+        <div className="chart-card s5">
+          <div className="chart-head"><div><h3>Standings</h3><p>Season record against the spread</p></div></div>
+          <div className="list">
+            {standings.map(({ p, r, wk }, i) => (
+              <div key={p.id} className={`st${p.id === me ? " me" : ""}`}>
+                <span className="rk">{i + 1}</span>
+                <span className="nm"><i className="dot" style={cvar(p.id)} /><span>{p.name}<small>{shortLabel(lastWeek)}: {fmtRec(wk)}</small></span></span>
+                <span className="rc">{fmtRec(r)}</span>
+                <span className="pc">{fmtPct(r)}</span>
+              </div>
+            ))}
+            {([[ENTRY, "Entry", "what was submitted"], [MAJORITY, "Majority", "games with 3+ agreeing"]] as const).map(([id, n, sub]) => {
+              const r = record(done, id, ids);
+              return (
+                <div key={id} className="st bench">
+                  <span className="rk" /><span className="nm"><i className="dot" style={cvar(id)} /><span>{n}<small>{sub}</small></span></span>
+                  <span className="rc">{fmtRec(r)}</span><span className="pc">{fmtPct(r)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <ChartCard className="s7" title="Season race" sub="Games over .500 after each week (wins minus losses)"
+          legend={<Legend items={traj.series} />}
+          table={<table className="grid"><thead><tr><th>Picker</th>{traj.labels.slice(1).map((l) => <th key={l}>{l}</th>)}</tr></thead>
+            <tbody>{traj.series.map((s) => <tr key={s.id}><td>{s.name}</td>{s.values.slice(1).map((v, i) => <td key={i}>{v > 0 ? `+${v}` : v}</td>)}</tr>)}</tbody></table>}>
+          <LineChart labels={traj.labels} series={traj.series} highlight={[ENTRY, me]} />
+        </ChartCard>
+
+        <ChartCard className="s6" title="Week by week" sub="Win % each week · hover or tap a cell for the record"
+          table={<HeatTable cols={weekly.cols} rows={weekly.rows} />}>
+          <Heatmap cols={weekly.cols} rows={weekly.rows} minCol={40} rowHead={78} />
+        </ChartCard>
+
+        <ChartCard className="s6" title="Head to head" sub="Row player's win % on games where the two picked differently"
+          table={<HeatTable cols={h2h.cols} rows={h2h.rows} />}>
+          <Heatmap cols={h2h.cols} rows={h2h.rows} minCol={58} />
+        </ChartCard>
+
+        <ChartCard className="s8" title="Where each picker wins" sub="Win % by type of game · Favourites/Underdogs follow each picker's own side"
+          table={<HeatTable cols={cats.cols} rows={cats.rows} />}>
+          <Heatmap cols={cats.cols} rows={cats.rows} minCol={60} />
+        </ChartCard>
+
+        <ChartCard className="s4" title="Does agreement pay?" sub="Entry win % by how the four of you split"
+          table={<table className="grid"><thead><tr><th>Split</th><th>Record</th><th>Win %</th></tr></thead>
+            <tbody>{cons.map((c) => <tr key={c.key}><td>{c.label}</td><td>{fmtRec(c.rec)}</td><td>{fmtPct(c.rec)}</td></tr>)}</tbody></table>}>
+          <WinBars items={cons.map((c) => ({ id: c.key, label: c.key, sub: c.label, rec: c.rec, pct: c.pct }))} />
+          <p className="hint">Solo picks, alone against the other three:</p>
+          <WinBars items={solo.map((x) => ({ id: x.id, label: x.name, rec: x.rec, pct: x.pct, color: `var(--p-${x.id})` }))} />
+        </ChartCard>
+
+        <MoneyAndWeeks />
+        <Breakdown />
+      </div>
+    </main>
+  </>);
+}
+
+function MoneyAndWeeks() {
+  const { season } = useApp();
+  const ids = humans(season.players).map((p) => p.id);
+  const gradedWeeks = season.weeks.filter((w) => w.games.some((g) => g.result));
+  const m = money(season);
+  const ps = pickers(season);
+  return (
+    <div className="chart-card s8">
+      <div className="chart-head"><div><h3>Money &amp; weekly records</h3><p>The week&apos;s best player is in bold</p></div></div>
+      <div className="money" style={{ marginBottom: 14 }}>
+        <div><span>Paid in</span><b>{usd(m.fees)}</b></div>
+        <div><span>Won</span><b className="pos">{usd(m.won)}</b></div>
+        <div><span>Group net</span><b className={m.net < 0 ? "neg" : "pos"}>{usd(m.net)}</b></div>
+      </div>
+      <div className="tablewrap">
+        <table className="grid">
+          <thead><tr><th>Week</th>{ps.map((p) => <th key={p.id}><span className="row" style={{ gap: 5, justifyContent: "center" }}><i className="dot" style={cvar(p.id)} />{p.name}</span></th>)}<th>$</th></tr></thead>
+          <tbody>
+            {gradedWeeks.map((w) => {
+              const recs = ps.map((p) => record(w.games, p.id, ids));
+              const best = Math.max(...recs.slice(0, -1).map((r) => r.w));
+              return (
+                <tr key={w.week}>
+                  <td>{shortLabel(w)}</td>
+                  {recs.map((r, i) => <td key={i} style={{ fontWeight: i < recs.length - 1 && r.w === best ? 700 : 400 }}>{fmtRec(r)}</td>)}
+                  <td className={w.winnings ? "pos" : ""}>{w.winnings ? usd(w.winnings) : "·"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="hint">{usd(season.seasonFee)} season entry{m.buybacks ? ` + ${usd(m.buybacks)} eliminator buy-back` : ""}{m.other ? ` ${m.other < 0 ? "+" : "−"} ${usd(Math.abs(m.other))} other` : ""}, split four ways.</p>
+    </div>
+  );
+}
+
+function Breakdown() {
+  const { season, me, setTab, setFilter } = useApp();
+  const ids = humans(season.players).map((p) => p.id);
+  const done = season.weeks.flatMap((w) => w.games).filter((g) => g.result);
+  const [who, setWho] = useState(me);
   const open = (f: Partial<ExploreFilter>) => {
     setFilter({ ...emptyFilter(who), ...f, picker: who });
     setTab("explore");
     window.scrollTo({ top: 0 });
   };
-
-  if (!done.length) {
-    return (<>
-      <Header title="Pool" sub="SEASON STANDINGS" />
-      <main className="wrap"><div className="empty"><b>No results yet</b>Standings appear once the first games are graded.</div></main>
-    </>);
-  }
-
-  const slices = diagnostics(done, who, ids);
-  const whoName = season.players.find((p) => p.id === who)?.name ?? who;
-
-  return (<>
-    <Header title="Pool" sub={`${done.length} GAMES GRADED · ${gradedWeeks.length} WEEKS`} />
-    <main className="wrap">
-      <section>
-        <p className="eyebrow">Season standings</p>
-        <div className="list">
-          {standings.map(({ p, r, wk }, i) => (
-            <div key={p.id} className={`st${p.id === me ? " me" : ""}`}>
-              <span className="rk num">{i + 1}</span>
-              <span className="nm">{p.name}{wk && <small>{shortLabel(lastWeek!)}: {fmtRec(wk)}</small>}</span>
-              <span className="rc num">{fmtRec(r)}</span>
-              <span className="pc num">{fmtPct(r)}</span>
-            </div>
-          ))}
-          {([[ENTRY, "Entry", "what was submitted"], [MAJORITY, "Majority", "only games with 3+ agreeing"]] as const).map(([id, n, sub]) => {
-            const r = record(done, id, ids);
-            return (
-              <div key={id} className="st bench">
-                <span className="rk" /><span className="nm">{n}<small>{sub}</small></span>
-                <span className="rc num">{fmtRec(r)}</span><span className="pc num">{fmtPct(r)}</span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section>
-        <p className="eyebrow">Money · season</p>
-        <div className="money">
-          <div><span>PAID IN</span><b className="num">{usd(m.fees)}</b></div>
-          <div><span>WON</span><b className="num pos">{usd(m.won)}</b></div>
-          <div><span>NET · EACH</span><b className={`num ${m.net < 0 ? "neg" : "pos"}`}>{usd(m.each)}</b></div>
-        </div>
-        <p className="hint">
-          {usd(m.weekly)} season entry{m.buybacks ? ` + ${usd(m.buybacks)} eliminator buy-back${season.elimBuybacks > 1 ? "s" : ""}` : ""}
-          {season.ledger.map((e) => ` ${e.amount < 0 ? "+" : "−"} ${usd(Math.abs(e.amount))} ${e.label}`).join("")}
-          {" "}· group net {usd(m.net)}.
-        </p>
-      </section>
-
-      <section>
-        <p className="eyebrow">Week by week</p>
-        <div className="tablewrap">
-          <table className="grid">
-            <thead><tr><th>WK</th>{season.players.map((p) => <th key={p.id}>{p.initial}</th>)}<th>ENTRY</th><th>$</th></tr></thead>
-            <tbody>
-              {gradedWeeks.map((w) => {
-                const recs = season.players.map((p) => record(w.games, p.id, ids));
-                const best = Math.max(...recs.map((r) => r.w));
-                return (
-                  <tr key={w.week}>
-                    <td>{shortLabel(w)}</td>
-                    {recs.map((r, i) => <td key={i} className={r.w === best ? "best" : ""}>{r.w}</td>)}
-                    <td>{fmtRec(record(w.games, ENTRY, ids))}</td>
-                    <td className={w.winnings ? "pos" : ""}>{w.winnings ? usd(w.winnings) : "·"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p className="hint">Wins per week out of the games graded. Green marks the week&apos;s best.</p>
-      </section>
-
-      <section>
-        <div className="row" style={{ marginBottom: 6 }}>
-          <p className="eyebrow" style={{ margin: 0 }}>Breakdown for</p>
-          <div className="rail" style={{ marginLeft: "auto" }}>
-            {season.players.map((p) => <button key={p.id} className="pill" aria-pressed={who === p.id} onClick={() => setWho(p.id)}>{p.name}</button>)}
-          </div>
-        </div>
-        <div className="list">
-          {slices.map((s) => (
-            <button key={s.k} className="slice" onClick={() => s.f && open(s.f)} disabled={!s.f}>
-              <span className="k">{s.k}<small>{s.sub}</small></span>
-              <span className="r num">{fmtRec(s.r)} &nbsp;{fmtPct(s.r)}</span>
-              <span className="go">{s.f ? "›" : ""}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <p className="eyebrow">{whoName} head to head · disagreements only</p>
-        <div className="list">
-          {season.players.filter((p) => p.id !== who).map((p) => {
-            const h = headToHead(done, who, p.id, ids);
-            return (
-              <div key={p.id} className="st">
-                <span className="rk" />
-                <span className="nm">vs {p.name}<small>{h.games} games apart</small></span>
-                <span className="rc num">{h.a}-{h.b}</span>
-                <span className="pc num">{h.games ? (h.a > h.b ? "AHEAD" : h.a < h.b ? "BEHIND" : "EVEN") : "—"}</span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </main>
-  </>);
-}
-
-function diagnostics(games: Game[], who: string, ids: string[]) {
-  const rec = (pred: (g: Game) => boolean) => record(games.filter(pred), who, ids);
+  const rec = (pred: (g: Game) => boolean) => record(done.filter(pred), who, ids);
   const picked = (g: Game) => pickOf(g, who, ids);
-  const out: { k: string; sub: string; r: Rec; f?: Partial<ExploreFilter> }[] = [
-    { k: "Underdogs", sub: "when taking the points", r: rec((g) => side(g, picked(g)) === "Dog"), f: { side: new Set(["Dog"]) } },
-    { k: "Favourites", sub: "when laying the points", r: rec((g) => side(g, picked(g)) === "Fav"), f: { side: new Set(["Fav"]) } },
-    { k: "2-2 splits", sub: "no majority, Claude decides the entry", r: rec((g) => split(g, ids) === "2-2"), f: { split: new Set(["2-2"]) } },
-    { k: "NFL", sub: "pro games", r: rec((g) => g.league === "NFL"), f: { league: new Set(["NFL"]) } },
-    { k: "College", sub: "NCAA games", r: rec((g) => g.league === "NCAA"), f: { league: new Set(["NCAA"]) } },
-    ...BANDS.map((b) => ({ k: `Spread ${b}`, sub: b === ">14" ? "big lines" : b === "0-3" ? "coin flips" : "points", r: rec((g) => band(g.spread) === b), f: { band: new Set([b]) } })),
+  const slices: { k: string; r: Rec; f?: Partial<ExploreFilter> }[] = [
+    { k: "Underdogs", r: rec((g) => side(g, picked(g)) === "Dog"), f: { side: new Set(["Dog"]) } },
+    { k: "Favourites", r: rec((g) => side(g, picked(g)) === "Fav"), f: { side: new Set(["Fav"]) } },
+    { k: "2-2 splits", r: rec((g) => split(g, ids) === "2-2"), f: { split: new Set(["2-2"]) } },
+    { k: "NFL", r: rec((g) => g.league === "NFL"), f: { league: new Set(["NFL"]) } },
+    { k: "College", r: rec((g) => g.league === "NCAA"), f: { league: new Set(["NCAA"]) } },
+    ...BANDS.map((b) => ({ k: `Spread ${b}`, r: rec((g) => band(g.spread) === b), f: { band: new Set([b]) } })),
   ];
-  if (ids.includes(who)) out.push({ k: "Solo picks", sub: "alone against the other three", r: rec((g) => soloPicker(g, ids) === who) });
-  return out;
+  if (ids.includes(who)) slices.push({ k: "Solo picks", r: rec((g) => soloPicker(g, ids) === who) });
+  return (
+    <div className="chart-card s4">
+      <div className="chart-head"><div><h3>Drill into games</h3><p>Tap a row to open those games in Explore</p></div></div>
+      <div className="rail" style={{ marginBottom: 6 }}>
+        {season.players.map((p) => (
+          <button key={p.id} className="pill" aria-pressed={who === p.id} onClick={() => setWho(p.id)}><i className="dot" style={cvar(p.id)} />{p.name}</button>
+        ))}
+      </div>
+      <div className="list">
+        {slices.map((s) => (
+          <button key={s.k} className="slice" onClick={() => s.f && open(s.f)} disabled={!s.f}>
+            <span className="k">{s.k}</span>
+            <span className="r">{fmtRec(s.r)} · {fmtPct(s.r)}</span>
+            <span className="go">{s.f ? "›" : ""}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }

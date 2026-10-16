@@ -24,7 +24,7 @@ export function Login({ error }: { error?: string | null }) {
           <p style={{ lineHeight: 1.5 }}>Check <b>{email}</b> for a sign-in link. Open it on this device. You&apos;ll stay signed in after that.</p>
         ) : (
           <form onSubmit={submit}>
-            <div className="field"><label htmlFor="email">YOUR EMAIL</label>
+            <div className="field"><label htmlFor="email">Your email</label>
               <input id="email" type="email" required autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
             {msg && <p className="warn err" style={{ marginTop: 12 }}>{msg}</p>}
             <button className="cta" style={{ marginTop: 14 }} disabled={state === "sending"}>{state === "sending" ? "Sending…" : "Email me a sign-in link"}</button>

@@ -29,8 +29,8 @@ export function Menu() {
   const p = season.players.find((x) => x.id === me);
   return (
     <Sheet title="Menu" onClose={() => setMenu(false)}>
-      <div className="kv"><span className="lab">SIGNED IN</span><span>{p?.name ?? me}{demo && " (demo)"}</span>
-        <button className="link" onClick={signOut}>SIGN OUT</button></div>
+      <div className="kv"><span className="lab">Signed in</span><span>{p?.name ?? me}{demo && " (demo)"}</span>
+        <button className="link" onClick={signOut}>Sign out</button></div>
       {isAdmin && <AdminTools />}
       <p className="hint">Tip: on iPhone, tap Share → Add to Home Screen to use this like an app.</p>
     </Sheet>
@@ -91,24 +91,24 @@ function AdminTools() {
 
     {week?.id && (<>
       <p className="eyebrow" style={{ marginTop: 22 }}>{labelOf(week)} settings</p>
-      <div className="field"><label htmlFor="dl">DEADLINE (YOUR TIME)</label>
+      <div className="field"><label htmlFor="dl">Deadline (your time)</label>
         <input id="dl" type="datetime-local" defaultValue={toLocalInput(week.deadline)} key={`dl${week.id}`}
           onBlur={(e) => e.target.value && run("updateWeek", week.id!, { deadline: new Date(e.target.value).toISOString() })} /></div>
       <div className="row" style={{ gap: 10 }}>
-        <div className="field" style={{ flex: 1 }}><label htmlFor="won">WON $</label>
+        <div className="field" style={{ flex: 1 }}><label htmlFor="won">Won $</label>
           <input id="won" type="number" inputMode="decimal" min={0} defaultValue={week.winnings} key={`w${week.id}`}
             onBlur={(e) => run("updateWeek", week.id!, { winnings: Math.max(0, Number(e.target.value) || 0) })} /></div>
       </div>
     </>)}
 
-    <div className="field" style={{ marginTop: 22 }}><label htmlFor="sfee">SEASON ENTRY $ (PAID UP FRONT)</label>
+    <div className="field" style={{ marginTop: 22 }}><label htmlFor="sfee">Season entry $ (paid up front)</label>
       <input id="sfee" type="number" inputMode="decimal" min={0} defaultValue={season.seasonFee}
         onBlur={(e) => run("setSetting", "season_fee", Math.max(0, Number(e.target.value) || 0))} /></div>
     <Ledger />
 
     <p className="eyebrow" style={{ marginTop: 22 }}>Sign-in emails</p>
     {season.players.filter((p) => p.kind === "human").map((p) => (
-      <div className="field" key={p.id}><label htmlFor={`em-${p.id}`}>{p.name.toUpperCase()}</label>
+      <div className="field" key={p.id}><label htmlFor={`em-${p.id}`}>{p.name}</label>
         <input id={`em-${p.id}`} type="email" autoComplete="off" placeholder="name@example.com" value={emails[p.id] ?? ""}
           onChange={(e) => setEmails({ ...emails, [p.id]: e.target.value })}
           onBlur={(e) => e.target.value && run("setPlayerEmail", p.id, e.target.value).then((ok) => ok && toast(`Saved ${p.name}'s email`))} />
@@ -138,13 +138,13 @@ function Ledger() {
     <p className="eyebrow" style={{ marginTop: 22 }}>Other money</p>
     {season.ledger.map((e, i) => (
       <div className="kv" key={i}>
-        <span className="lab">{e.amount < 0 ? "PAID" : "WON"}</span>
+        <span className="lab">{e.amount < 0 ? "Paid" : "Won"}</span>
         <span>{e.label} · ${Math.abs(e.amount)}</span>
-        <button className="link" onClick={() => run("setSetting", "ledger", season.ledger.filter((_, j) => j !== i))}>REMOVE</button>
+        <button className="link" onClick={() => run("setSetting", "ledger", season.ledger.filter((_, j) => j !== i))}>Remove</button>
       </div>
     ))}
     <div className="row" style={{ gap: 8, alignItems: "end" }}>
-      <div className="field" style={{ flex: 2 }}><label htmlFor="lg-l">WHAT</label>
+      <div className="field" style={{ flex: 2 }}><label htmlFor="lg-l">What</label>
         <input id="lg-l" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Eliminator buy-in" /></div>
       <div className="field" style={{ flex: 1 }}><label htmlFor="lg-a">$</label>
         <input id="lg-a" type="number" inputMode="decimal" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} /></div>

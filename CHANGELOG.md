@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 — 2026-10-16 · redesign + desktop analytics
+**Design (mobile and desktop share one system)**
+- New colour system: warm-neutral surfaces, ink text, one navy accent for "you / selected".
+- Fixed colour per picker, used in every chip, legend, chart and table: Brad blue, Andrew orange, Kevin aqua,
+  Eric yellow, Claude pink; the Entry is ink. Validated for colour-blind separation in light and dark
+  (dataviz validator: all checks pass; three light colours sit under 3:1, so every chart has a legend,
+  direct labels and a table view).
+- One typeface (IBM Plex Sans) instead of three; tabular figures only where numbers line up; sentence-case labels.
+- Mobile: game cards about 40% shorter (no team-colour stripes, spread inline), clearer countdown with a
+  progress meter, icon tab bar.
+
+**Desktop (1024px and wider)**
+- Left sidebar with a running season summary; Week shows games in two columns beside a sticky status rail.
+- Pool becomes a dashboard: stat tiles, standings, a "season race" line chart (games over .500 per week, with
+  crosshair tooltip), heatmaps for week-by-week win %, head to head and win % by type of game (blue above .500,
+  red below, grey at even), agreement and solo-pick bars, money and weekly records, and drill-down into Explore.
+- Eliminator and Explore get two-column layouts; Explore's filters are always visible.
+- Every chart has a Chart/Table toggle.
+
 ## 0.2.1 — 2026-10-16
 - Sign-in emails set for Brad (admin), Andrew, Kevin and Eric.
 - Confirmed: Week 2's 2-2 games were decided by Claude (Entry 16-14). The sheet's Summary shows 12-18 because its

@@ -11,7 +11,7 @@ import { Login } from "./Login";
 import { Menu } from "./Menu";
 import { PoolTab } from "./Pool";
 import { AppProvider, useApp } from "./store";
-import { TabBar } from "./ui";
+import { SideNav, TabBar } from "./ui";
 import { WeekTab } from "./Week";
 
 const noop = async () => {};
@@ -38,10 +38,13 @@ function Screens() {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, [reload]);
   return (<>
-    {tab === "week" && <WeekTab />}
-    {tab === "pool" && <PoolTab />}
-    {tab === "elim" && <ElimTab />}
-    {tab === "explore" && <ExploreTab />}
+    <SideNav />
+    <div className="shell">
+      {tab === "week" && <WeekTab />}
+      {tab === "pool" && <PoolTab />}
+      {tab === "elim" && <ElimTab />}
+      {tab === "explore" && <ExploreTab />}
+    </div>
     <TabBar />
     {menu && <Menu />}
   </>);

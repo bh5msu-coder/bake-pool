@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { band, BANDS, ENTRY, shortLabel, fmtPct, fmtRec, grade, humans, pickOf, record, side, split, type Game, type Week } from "@/lib/scoring";
+import { cvar } from "@/lib/players";
 import { Header, Sheet } from "./ui";
 import { GameSheet } from "./Week";
 import { emptyFilter, useApp, type ExploreFilter } from "./store";
@@ -47,43 +48,79 @@ export function ExploreTab() {
   const live = detail && season.weeks.find((w) => w.week === detail.w.week);
 
   return (<>
-    <Header title="Explore" sub={`${all.length} GAMES ON FILE`}
-      right={active ? <button className="link" onClick={() => setFilter(emptyFilter(F.picker))}>CLEAR</button> : undefined} />
+    <Header title="Explore" sub={`${all.length} games on file`}
+      right={active ? <button className="link" onClick={() => setFilter(emptyFilter(F.picker))}>Clear filters</button> : undefined} />
     <main className="wrap">
-      <div className="rail" style={{ paddingBlock: 10 }}>
-        <button className="pill" aria-pressed onClick={() => setFacet("picker")}>
-          {pickerName}{F.result !== "any" && ` · ${F.result === "W" ? "wins" : "losses"}`}
-        </button>
-        {FACETS.map((f) => (
-          <button key={f.k} className="pill" aria-pressed={F[f.k].size > 0} onClick={() => setFacet(f.k)}>
-            {f.lab}{F[f.k].size > 0 && <small>{[...F[f.k]].map((v) => show(f.k, v)).join(", ")}</small>}
-          </button>
-        ))}
-      </div>
-      <div className="tally">
-        <span>{games.length} games</span>
-        <span>{pickerName} {fmtRec(record(games, F.picker, ids))} {fmtPct(record(games, F.picker, ids))}</span>
-        {F.picker !== ENTRY && <span className="q">Entry {fmtRec(record(games, ENTRY, ids))}</span>}
-      </div>
-      <p className="hint" style={{ marginTop: 8 }}>&quot;Side&quot; and wins/losses follow {pickerName}&apos;s pick.</p>
-      <div className="cells" style={{ gridTemplateColumns: `repeat(${cols.length}, 1fr)`, marginTop: 10 }} aria-hidden>
-        {cols.map((c) => <span key={c.id} className="cell" style={{ background: "none" }}>{c.id === ENTRY ? "ENTRY" : c.i}</span>)}
-      </div>
-      <div className="list">
-        {rows.map(({ g, w }) => (
-          <button key={`${w.week}-${g.num}`} className="xg" onClick={() => setDetail({ g, w })}>
-            <span className="l1"><span className="num">{shortLabel(w)} G{String(g.num).padStart(2, "0")}</span><span>{g.league}</span><span>{g.line}</span>
-              {split(g, ids) && <span className={`tag${split(g, ids) === "2-2" ? " signal" : ""}`}>{split(g, ids)}</span>}</span>
-            <span className="mu" style={{ display: "block" }}>{g.away} at {g.home}</span>
-            <span className="cells" style={{ gridTemplateColumns: `repeat(${cols.length}, 1fr)` }}>
-              {cols.map((c) => {
-                const v = grade(pickOf(g, c.id, ids), g.result);
-                return <span key={c.id} className={`cell ${v ?? ""}`}>{v ?? (pickOf(g, c.id, ids) ? c.i : "·")}</span>;
-              })}
-            </span>
-          </button>
-        ))}
-        {!rows.length && <div className="empty"><b>No games match</b>Loosen a filter.</div>}
+      <div className="explore-layout">
+        <aside className="filters desk-only" aria-label="Filters">
+          <div>
+            <p className="eyebrow">Whose picks</p>
+            <div className="pills">
+              {[...season.players.map((p) => [p.id, p.name]), [ENTRY, "Entry"]].map(([id, n]) => (
+                <button key={id} className="pill" aria-pressed={F.picker === id} onClick={() => setFilter({ ...F, picker: id })}>
+                  <i className="dot" style={cvar(id)} />{n}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="eyebrow">Result</p>
+            <div className="pills">
+              {(["any", "W", "L"] as const).map((r) => (
+                <button key={r} className="pill" aria-pressed={F.result === r} onClick={() => setFilter({ ...F, result: r })}>
+                  {r === "any" ? "Any" : r === "W" ? "Wins" : "Losses"}
+                </button>
+              ))}
+            </div>
+          </div>
+          {FACETS.map((f) => (
+            <div key={f.k}>
+              <p className="eyebrow">{f.lab}</p>
+              <div className="pills">
+                {f.values(season.weeks).map((v) => (
+                  <button key={v} className="pill" aria-pressed={(F[f.k] as Set<string | number>).has(v)} onClick={() => toggle(f.k, v)}>{show(f.k, v)}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </aside>
+        <div>
+          <div className="rail mob-only" style={{ paddingBlock: 10 }}>
+            <button className="pill" aria-pressed onClick={() => setFacet("picker")}>
+              <i className="dot" style={cvar(F.picker)} />{pickerName}{F.result !== "any" && ` · ${F.result === "W" ? "wins" : "losses"}`}
+            </button>
+            {FACETS.map((f) => (
+              <button key={f.k} className="pill" aria-pressed={F[f.k].size > 0} onClick={() => setFacet(f.k)}>
+                {f.lab}{F[f.k].size > 0 && <small>{[...F[f.k]].map((v) => show(f.k, v)).join(", ")}</small>}
+              </button>
+            ))}
+          </div>
+          <div className="tally">
+            <span>{games.length} games</span>
+            <span>{pickerName} {fmtRec(record(games, F.picker, ids))} · {fmtPct(record(games, F.picker, ids))}</span>
+            {F.picker !== ENTRY && <span className="q">Entry {fmtRec(record(games, ENTRY, ids))}</span>}
+          </div>
+          <p className="hint" style={{ marginTop: 8 }}>&quot;Side&quot; and wins/losses follow {pickerName}&apos;s pick. Each row shows every picker&apos;s result:</p>
+          <div className="legend" style={{ marginTop: 6 }}>
+            {cols.map((c) => <span key={c.id}><i className="dot" style={cvar(c.id)} />{c.i} {c.id === ENTRY ? "Entry" : season.players.find((p) => p.id === c.id)?.name}</span>)}
+          </div>
+          <div className="results">
+            {rows.map(({ g, w }) => (
+              <button key={`${w.week}-${g.num}`} className="xg" onClick={() => setDetail({ g, w })}>
+                <span className="l1"><span className="num">{shortLabel(w)} · {String(g.num).padStart(2, "0")}</span><span>{g.league}</span><span>{g.line}</span>
+                  {split(g, ids) && <span className={`tag${split(g, ids) === "2-2" ? " signal" : ""}`}>{split(g, ids)}</span>}</span>
+                <span className="mu" style={{ display: "block" }}>{g.away} at {g.home}</span>
+                <span className="cells" style={{ gridTemplateColumns: `repeat(${cols.length}, 1fr)` }}>
+                  {cols.map((c) => {
+                    const v = grade(pickOf(g, c.id, ids), g.result);
+                    return <span key={c.id} className={`cell ${v ?? ""}`} title={c.id}>{c.i}{v ? ` ${v}` : ""}</span>;
+                  })}
+                </span>
+              </button>
+            ))}
+            {!rows.length && <div className="empty"><b>No games match</b>Loosen a filter.</div>}
+          </div>
+        </div>
       </div>
     </main>
 
@@ -108,7 +145,7 @@ export function ExploreTab() {
       const f = FACETS.find((x) => x.k === facet)!;
       return (
         <Sheet title={f.lab} onClose={() => setFacet(null)}
-          action={F[f.k].size ? <button className="link" onClick={() => setFilter({ ...F, [f.k]: new Set() } as ExploreFilter)}>CLEAR</button> : undefined}>
+          action={F[f.k].size ? <button className="link" onClick={() => setFilter({ ...F, [f.k]: new Set() } as ExploreFilter)}>Clear</button> : undefined}>
           <div className="pills">
             {f.values(season.weeks).map((v) => (
               <button key={v} className="pill" aria-pressed={(F[f.k] as Set<string | number>).has(v)} onClick={() => toggle(f.k, v)}>{show(f.k, v)}</button>
