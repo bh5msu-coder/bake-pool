@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 — 2026-10-17 · live scores
+- Live scores from ESPN's public scoreboard: game cards show the score, clock (pulsing red while live), and which
+  side is covering the spread right now; the locked-week summary shows a live Entry record.
+  Refreshes every minute while the app is open during a week's games.
+- Finished games are graded automatically every 10 minutes (Supabase timer → `/api/scores/sync`): final score
+  vs the spread decides who covered. Never overwrites a result that was entered by hand. Any new results are
+  then written to the Google Sheet.
+- Team names are matched sheet → ESPN (NFL by abbreviation; college by school name with the sheet's "U" prefix
+  and aliases like Pitt, UNC, Cal, Miami (FL)). All 30 Week 6 games match.
+
 ## 0.4.1 — 2026-10-17
 - Removed "Import weeks from the sheet" (menu button, `/api/import-history` route and `npm run sheet -- import`).
   The app is now the source of truth and writes to the sheet; importing could have overwritten picks made in the app.

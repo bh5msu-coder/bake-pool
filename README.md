@@ -97,6 +97,14 @@ Writing needs a Google service account ("robot account"):
 3. Share the sheet with the service account's email (ends in `iam.gserviceaccount.com`) as **Editor**.
 4. Put the whole JSON file's contents in `GOOGLE_SERVICE_ACCOUNT_KEY` (Vercel: Production, Sensitive; and `.env.local`).
 
+## Live scores
+
+- `/api/scores?weekId=` (signed-in members) returns live scores and who's covering for a week, from ESPN's public
+  scoreboard (`site.api.espn.com`, NFL + FBS, one day per request, cached 30s). The Week tab polls it every minute.
+- A Supabase timer (`scores-sync`, every 10 minutes) calls `/api/scores/sync`, which records the cover winner for
+  every finished game with no result yet, then writes to the sheet. Manual results are never overwritten.
+- ESPN's feed is unofficial and could change; if it stops, results can still be entered from each game's ⋯ menu.
+
 ## Command-line jobs
 
 ```bash

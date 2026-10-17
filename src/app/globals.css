@@ -160,6 +160,12 @@ section + section { border-top: 1px solid var(--rule); }
 .side .tn .sp { font: 500 .78rem var(--body); color: var(--faint); font-variant-numeric: tabular-nums; margin-left: auto; }
 .side.mine { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 .side.covered::after { content: "✓ covered"; position: absolute; right: 8px; bottom: 7px; font: 600 .68rem var(--body); color: var(--win); }
+.side.covering::after { content: "▲ covering"; position: absolute; right: 8px; bottom: 7px; font: 600 .68rem var(--body); color: var(--accent); }
+.side .score { font-variant-numeric: tabular-nums; margin-left: 6px; }
+.tag.live { background: var(--loss-soft); color: var(--loss); display: inline-flex; align-items: center; gap: 5px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--loss-fill); display: inline-block; animation: pulse 1.6s ease-in-out infinite; margin-right: 2px; }
+@keyframes pulse { 50% { opacity: .35; } }
+.game .meta .kick { color: var(--faint); font-size: .72rem; }
 .side:disabled { opacity: 1; }
 .side .who { display: flex; flex-wrap: wrap; gap: 3px; min-height: 18px; }
 .chip {
