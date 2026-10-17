@@ -29,7 +29,7 @@ export function fixtureSeason(): Season {
     ledger: [],
     weeks: r.weeks.map((w) => ({
       week: w.week,
-      deadline: nextDeadline(new Date(Date.parse("2026-09-09T17:00:00Z") + (w.week - 1) * 7 * 864e5)).toISOString(),
+      deadline: nextDeadline(new Date(Date.parse("2026-09-09T17:00:00Z") + (w.week - 1) * 7 * 864e5), 4, 12, 0).toISOString(),
       entryFee: 0,
       winnings: r.winnings[w.week] ?? 0,
       games: w.games.map(({ expect: _e, ...g }) => ({ ...g, league: g.league as Game["league"], entryOverride: null })),

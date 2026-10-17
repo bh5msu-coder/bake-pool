@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminClient, requireAdmin } from "@/lib/supabase/server";
 import { publicSheet } from "@/lib/sheet";
+import { pushDue } from "@/lib/push";
 import { applyLinesSync, planLinesSync } from "@/lib/sync";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,11 @@ export async function GET(req: Request) {
     const sb = adminClient();
     const plan = await planLinesSync(sb, sheet());
     if (plan.action === "create" || plan.action === "update") await applyLinesSync(sb, plan);
-    return NextResponse.json({ action: plan.action, message: plan.message });
+    // Safety net for the deadline write, and picks up results entered since.
+    const pushed = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+      ? await pushDue(sb, process.env.SHEET_ID!).catch((e: Error) => ({ error: e.message }))
+      : "skipped (no Google key)";
+    return NextResponse.json({ action: plan.action, message: plan.message, pushed });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }

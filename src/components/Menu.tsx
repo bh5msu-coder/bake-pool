@@ -44,6 +44,7 @@ function AdminTools() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [report, setReport] = useState<string[] | null>(null);
   const [emails, setEmails] = useState<Record<string, string>>({});
+  const [pushed, setPushed] = useState<string | null>(null);
 
   async function act(label: string, fn: () => Promise<void>) {
     if (demo) return toast("Not available in demo mode.", true);
@@ -57,6 +58,10 @@ function AdminTools() {
     toast(plan!.action === "create" ? `${plan!.label} created` : "Lines updated");
     setPlan(null);
     await reload();
+  });
+  const pushNow = () => act("push", async () => {
+    const r = (await post<{ pushed: { week: string; cells: number; games: number; unmatched: string[] }[] }>("/api/sheet/push", { weekId: week!.id })).pushed[0];
+    setPushed(`${r.week}: wrote ${r.cells} cells for ${r.games} games.` + (r.unmatched.length ? ` Couldn't find on the sheet: ${r.unmatched.join(", ")}.` : ""));
   });
   const importAll = () => act("import", async () => {
     if (!confirm("Copy every week from the sheet's Picks, Eliminator and Summary tabs? This overwrites those weeks in the app.")) return;
@@ -87,7 +92,13 @@ function AdminTools() {
           <button className="cta danger" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0} onClick={() => apply(true)}>Replace {plan.label}</button>}
       </div>
     )}
-    <p className="hint">The app also checks the Converter tab automatically once a day. New weeks get a Thursday 12:00 PM CT deadline.</p>
+    <p className="hint">The app also checks the Converter tab automatically once a day. New weeks get a Thursday 2:30 PM CT deadline.</p>
+
+    <p className="eyebrow" style={{ marginTop: 22 }}>Write to the Google Sheet</p>
+    {week?.id && <button className="cta ghost" onClick={pushNow} disabled={!!busy}>{busy === "push" ? "Writing…" : `Push ${labelOf(week)} to sheet now`}</button>}
+    {pushed && <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>{pushed}</div>}
+    <p className="hint">Happens automatically 5 minutes after each Thursday 2:30 PM CT deadline. Picks, eliminator votes and results go into
+      that week&apos;s rows; the sheet&apos;s own formulas are left alone.</p>
 
     {week?.id && (<>
       <p className="eyebrow" style={{ marginTop: 22 }}>{labelOf(week)} settings</p>

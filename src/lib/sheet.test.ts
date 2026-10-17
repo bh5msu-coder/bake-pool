@@ -83,7 +83,7 @@ describe("history tabs", () => {
     expect(e.get(1)).toEqual({ picks: { brad: "New Orleans", andrew: "New Orleans", kevin: "Arizona", eric: "New Orleans" }, majority: "New Orleans" });
     const s = parseSummaryTab([["Total:", "-$1,050"], ["Week", "Entry", "$ Won", "Line Start", "Line End"], ["5", "$60", "$200.00", "136", "165"],
       ["Bowl", "$60", "$0", "479", "513"], ["Total", "$1250", "$200"]]);
-    expect(s.periods).toEqual([{ order: 1, label: "Week 5", games: 30, winnings: 200 }, { order: 2, label: "Bowl", games: 35, winnings: 0 }]);
+    expect(s.periods).toEqual([{ order: 1, label: "Week 5", games: 30, winnings: 200, start: 136 }, { order: 2, label: "Bowl", games: 35, winnings: 0, start: 479 }]);
     expect(s.seasonFee).toBe(1250);
   });
 });

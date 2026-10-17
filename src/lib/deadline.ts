@@ -1,4 +1,4 @@
-// Deadlines are Thursday 12:00 PM US Central, whatever the server's timezone.
+// Deadlines are Thursday 2:30 PM US Central (CDT or CST, following the clock change), whatever the server's timezone.
 const TZ = "America/Chicago";
 
 /** Offset of America/Chicago from UTC at a given instant, in minutes (e.g. -300 for CDT). */
@@ -11,10 +11,12 @@ function tzOffset(at: Date) {
   return Math.round((asUtc - at.getTime()) / 60000);
 }
 
-/** The first Thursday noon Central strictly after `from`. */
-export function nextDeadline(from = new Date(), weekday = 4, hour = 12): Date {
+export const DEADLINE = { weekday: 4, hour: 14, minute: 30 } as const;
+
+/** The first deadline (default Thursday 2:30 PM Central) strictly after `from`. */
+export function nextDeadline(from = new Date(), weekday: number = DEADLINE.weekday, hour: number = DEADLINE.hour, minute: number = DEADLINE.minute): Date {
   const local = new Date(from.getTime() + tzOffset(from) * 60000); // wall clock as UTC fields
-  const d = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), hour));
+  const d = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), hour, minute));
   d.setUTCDate(d.getUTCDate() + ((weekday - d.getUTCDay() + 7) % 7));
   if (d.getTime() <= local.getTime()) d.setUTCDate(d.getUTCDate() + 7);
   return new Date(d.getTime() - tzOffset(d) * 60000);

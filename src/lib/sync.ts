@@ -94,9 +94,9 @@ export async function applyLinesSync(sb: SupabaseClient, plan: LinesPlan, opts: 
   }
 }
 
-/** Deadline for a past period: Thursday noon Central, counting one period per week from Thu 10 Sep 2026. */
+/** Deadline for a past period: the old Thursday-noon Central deadline, one period per week from Thu 10 Sep 2026. */
 const historicDeadline = (order: number) =>
-  nextDeadline(new Date(Date.parse("2026-09-09T17:00:00Z") + (order - 1) * 7 * 864e5)).toISOString();
+  nextDeadline(new Date(Date.parse("2026-09-09T17:00:00Z") + (order - 1) * 7 * 864e5), 4, 12, 0).toISOString();
 
 /** Copies weeks, games, picks, results, eliminator votes, winnings and the season fee from the sheet. Overwrites those weeks. */
 export async function importHistory(sb: SupabaseClient, read: TabReader) {

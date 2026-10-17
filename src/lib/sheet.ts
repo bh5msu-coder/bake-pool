@@ -214,7 +214,7 @@ const dollars = (s: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export interface Period { order: number; label: string; games: number; winnings: number }
+export interface Period { order: number; label: string; games: number; winnings: number; start?: number } // start = first game row on the Picks tab
 
 /**
  * Summary tab: Week | Entry | $ Won | Line Start | Line End, one row per period in season order
@@ -232,6 +232,7 @@ export function parseSummaryTab(grid: Grid) {
       order: periods.length + 1, label: normLabel(/^\d+$/.test(a) ? `Week ${a}` : a),
       games: Number.isFinite(start) && Number.isFinite(end) ? end - start + 1 : GAMES_PER_WEEK,
       winnings: dollars(row[2] ?? ""),
+      ...(Number.isFinite(start) ? { start } : {}),
     });
   }
   return { periods, seasonFee };

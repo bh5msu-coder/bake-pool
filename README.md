@@ -51,6 +51,7 @@ from the sheet, with Week 6 reopened so you can try picking. Demo mode is off in
 | `SUPABASE_SECRET_KEY` | Supabase → API Keys → secret key | **yes**, server only |
 | `SHEET_ID` | the long ID in the sheet's URL | no |
 | `CRON_SECRET` | any long random string (`openssl rand -hex 32`) | **yes** |
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | the JSON key of a Google service account that is an **Editor** on the sheet (see below) | **yes** |
 
 The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The schema is in `supabase/migrations/` and is already applied.
 
@@ -72,12 +73,29 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
 
 1. John's lines go into the sheet's **Converter** tab as usual (row 1 away, row 2 home, row 3 favourite, row 4 spread,
    row 5 printed line, one game per column; the first 30 columns are the slate).
-2. Once a day the cron (`/api/lines/sync`) checks that tab. A new slate becomes the next week, with a Thursday 12:00 PM CT
+2. Once a day the cron (`/api/lines/sync`) checks that tab. A new slate becomes the next week, with a Thursday 2:30 PM CT
    deadline. Moved lines are updated as long as the game has no result. An open week is never replaced automatically.
    Brad can also tap **Refresh lines** in the menu to preview and apply right away.
 3. Everyone picks until the deadline. Brad enters Claude's picks with the **AS** selector.
 4. Copy the entry from the Week tab and submit it.
 5. After the games, Brad taps **⋯** on each game to record who covered, and sets the week's winnings in the menu.
+
+## Writing picks back to the Google Sheet
+
+Five minutes after each deadline (Thursday 2:30 PM Central), a Supabase timer (`pg_cron`) calls `/api/sheet/push`.
+It writes each person's picks into that week's block on the **Picks** tab (columns G–J for Brad/Andrew/Kevin/Eric, L for
+Claude, N for an entry override, O for results), plus eliminator votes on the **Eliminator** tab.
+- The block's rows come from the Summary tab's Line Start/End. An empty block also gets the games and lines (A–C).
+- If the sheet already lists the games, each one is matched by team names, so the row order doesn't matter.
+- Only non-empty values are written, and formula columns (Majority, Win/Loss, …) are never touched.
+- The daily 8 AM job repeats the write for any week locked in the last 9 days, which picks up results entered later.
+- Brad can also use **Menu → Push to sheet now**.
+
+Writing needs a Google service account ("robot account"):
+1. [console.cloud.google.com](https://console.cloud.google.com) → create a project → enable the **Google Sheets API**.
+2. IAM & Admin → Service Accounts → Create; then Keys → Add key → JSON (a file downloads).
+3. Share the sheet with the service account's email (ends in `iam.gserviceaccount.com`) as **Editor**.
+4. Put the whole JSON file's contents in `GOOGLE_SERVICE_ACCOUNT_KEY` (Vercel: Production, Sensitive; and `.env.local`).
 
 ## Command-line jobs
 

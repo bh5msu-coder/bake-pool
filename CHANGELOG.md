@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-10-16 · deadline + write-back
+- Deadline is now **Thursday 2:30 PM Central** (follows the CDT/CST change). Past weeks keep their old noon deadline.
+- Picks, eliminator votes, overrides and results are written into the Google Sheet 5 minutes after each deadline
+  (Supabase timer), again by the daily job (catches results), or on demand from the menu. Matches rows by team names;
+  fills an empty week block with games and lines; never blanks a cell or touches formula columns.
+- Needs a Google service account with Editor access to the sheet (`GOOGLE_SERVICE_ACCOUNT_KEY`).
+
 ## 0.3.0 — 2026-10-16 · redesign + desktop analytics
 **Design (mobile and desktop share one system)**
 - New colour system: warm-neutral surfaces, ink text, one navy accent for "you / selected".
