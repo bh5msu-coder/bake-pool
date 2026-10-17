@@ -57,7 +57,7 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
 
 ## One-time setup
 
-1. **Share the sheet** "Anyone with the link → Viewer". Without this, lines and history can't be read.
+1. **Share the sheet** "Anyone with the link → Viewer". Without this, the lines can't be read.
 2. **Paste the secret key** into `app/.env.local` as `SUPABASE_SECRET_KEY`.
 3. **Sign-in emails.** Done: Brad (admin), Andrew, Kevin and Eric are set. Change them from the app menu
    (tap your initial, top right).
@@ -66,8 +66,8 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
    [Resend](https://resend.com) has a free tier that works.
 5. **Redirect URL.** Supabase → Authentication → URL Configuration: set Site URL to your Vercel URL and add
    `https://<your-app>.vercel.app/auth/callback` and `http://localhost:3000/auth/callback` to Redirect URLs.
-6. **Import history.** Done for Weeks 1–6 (re-run any time from the menu or `npm run sheet -- import`; it overwrites
-   those weeks from the sheet). Eliminator outcomes for Weeks 1–5 are recorded.
+6. **History.** Weeks 1–6 were imported once from the sheet on 16 Oct 2026. The app is now the source of truth;
+   picks flow from the app into the sheet, not the other way.
 
 ## Weekly flow
 
@@ -100,10 +100,9 @@ Writing needs a Google service account ("robot account"):
 ## Command-line jobs
 
 ```bash
-npm run sheet -- import                       # copy weeks/picks/results from the sheet (needs link sharing)
 npm run sheet -- lines                        # preview the lines sync
 npm run sheet -- lines --apply                # apply it
-npm run sheet -- import --csv path/to/csvs    # same, from CSV exports named Picks.csv, Summary.csv, …
+npm run sheet -- lines --csv path/to/csvs     # same, from CSV exports named Converter.csv, Summary.csv
 ```
 
 ## Deployment
@@ -113,7 +112,7 @@ npm run sheet -- import --csv path/to/csvs    # same, from CSV exports named Pic
   the commit's author email is one Vercel knows (your GitHub email); otherwise the deploy shows "Blocked".
 - **Env vars in Vercel:** the Supabase URL and publishable key, `SHEET_ID` and `CRON_SECRET` are set.
   `SUPABASE_SECRET_KEY` must be added by hand (Settings → Environment Variables, Production, Sensitive), then redeploy.
-  Until it's there, sign-in, lines sync and import all refuse to run.
+  Until it's there, sign-in and the lines sync refuse to run.
 - **Supabase auth URLs:** Authentication → URL Configuration → Site URL `https://bake-pool.vercel.app`;
   Redirect URLs `https://bake-pool.vercel.app/auth/callback` and `http://localhost:3000/auth/callback`.
 - **Cron:** `vercel.json` runs `/api/lines/sync` daily at 13:00 UTC (8 AM CT).
@@ -122,11 +121,12 @@ npm run sheet -- import --csv path/to/csvs    # same, from CSV exports named Pic
 
 ```
 app/
-  src/app/                 pages, layout, manifest, API routes (login, lines sync, history import, auth callback)
+  src/app/                 pages, layout, manifest, API routes (login, lines sync, sheet write-back, auth callback)
   src/components/          Week, Pool, Elim, Explore tabs; Menu (admin tools); shared UI and state
   src/lib/scoring.ts       all pool math (pure, tested)
   src/lib/sheet.ts         Google Sheet CSV parsing (tested)
-  src/lib/sync.ts          lines sync + history import (server only)
+  src/lib/sync.ts          lines sync (server only)
+  src/lib/push.ts          writes picks back to the sheet (server only)
   src/lib/data.ts          Supabase reads/writes
   supabase/migrations/     database schema and security rules
 ```

@@ -1,14 +1,9 @@
 import "server-only";
-// Server-side jobs that read the Google Sheet and write to Supabase with the
-// secret key: the weekly lines sync and the history import.
+// Server-side job that reads John's lines from the Google Sheet and writes them to Supabase with the secret key.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { nextDeadline } from "./deadline";
-import { elimTeam, entryPick } from "./scoring";
-import {
-  GAMES_PER_WEEK, parseConverter, parseEliminatorTab, parsePicksTab, parseSummaryTab, type ParsedGame, type Period, type TabReader,
-} from "./sheet";
+import { GAMES_PER_WEEK, parseConverter, parseSummaryTab, type ParsedGame, type Period, type TabReader } from "./sheet";
 
-const HUMANS = ["brad", "andrew", "kevin", "eric"];
 const key = (g: { away: string; home: string }) => `${g.away}|${g.home}`;
 
 async function currentSeason(sb: SupabaseClient) {
@@ -92,60 +87,4 @@ export async function applyLinesSync(sb: SupabaseClient, plan: LinesPlan, opts: 
     if (ins.error) throw new Error(ins.error.message);
     await sb.from("weeks").update({ lines_synced_at: now }).eq("id", plan.weekId);
   }
-}
-
-/** Deadline for a past period: the old Thursday-noon Central deadline, one period per week from Thu 10 Sep 2026. */
-const historicDeadline = (order: number) =>
-  nextDeadline(new Date(Date.parse("2026-09-09T17:00:00Z") + (order - 1) * 7 * 864e5), 4, 12, 0).toISOString();
-
-/** Copies weeks, games, picks, results, eliminator votes, winnings and the season fee from the sheet. Overwrites those weeks. */
-export async function importHistory(sb: SupabaseClient, read: TabReader) {
-  const [picksTab, elimTab, summaryTab] = await Promise.all([read("Picks"), read("Eliminator"), read("Summary")]);
-  const blocks = parsePicksTab(picksTab), elim = parseEliminatorTab(elimTab), summary = parseSummaryTab(summaryTab);
-  const season = await currentSeason(sb);
-  const report: string[] = [];
-
-  if (summary.seasonFee) {
-    await sb.from("settings").upsert({ key: "season_fee", value: summary.seasonFee });
-    report.push(`Season fee: $${summary.seasonFee}`);
-  }
-
-  for (const p of summary.periods) {
-    const games = blocks.get(p.label);
-    if (!games?.length) continue;
-    const { data: w, error } = await sb.from("weeks").upsert(
-      { season, week: p.order, label: p.label, deadline: historicDeadline(p.order), entry_fee: 0, winnings: p.winnings },
-      { onConflict: "season,week" },
-    ).select("id").single();
-    if (error) throw new Error(`${p.label}: ${error.message}`);
-
-    await sb.from("games").delete().eq("week_id", w.id);
-    const { data: inserted, error: gErr } = await sb.from("games").insert(games.map((g) => ({
-      week_id: w.id, num: g.num, league: g.league, away: g.away, home: g.home, fav: g.fav, spread: g.spread,
-      line: g.line, result: g.result, entry_override: g.override,
-    }))).select("id,num");
-    if (gErr) throw new Error(`${p.label} games: ${gErr.message}`);
-    const idByNum = new Map(inserted.map((r) => [r.num, r.id]));
-    const pickRows = games.flatMap((g) => Object.entries(g.picks).map(([player_id, team]) => ({ game_id: idByNum.get(g.num), player_id, team })));
-    if (pickRows.length) {
-      const { error: pErr } = await sb.from("picks").insert(pickRows);
-      if (pErr) throw new Error(`${p.label} picks: ${pErr.message}`);
-    }
-    // The sheet's "Majority" column already includes Claude's 2-2 tiebreak, i.e. it is the app's entry pick.
-    const mismatched = games.filter((g) => g.sheetMajority && g.sheetMajority !== entryPick({ ...g, entryOverride: g.override } as never, HUMANS)).length;
-    const flagged = games.filter((g) => g.problem).length;
-    report.push(`${p.label}: ${games.length} games, ${pickRows.length} picks, ${games.filter((g) => g.result).length} results` +
-      (flagged ? `, ${flagged} with an unclear favourite` : "") + (mismatched ? `, ${mismatched} entry picks that differ from the sheet` : ""));
-
-    const num = /^Week (\d+)$/.exec(p.label);
-    const e = num ? elim.get(+num[1]) : undefined;
-    if (e) {
-      await sb.from("elim_picks").delete().eq("week_id", w.id);
-      const rows = Object.entries(e.picks).map(([player_id, team]) => ({ week_id: w.id, player_id, team }));
-      if (rows.length) await sb.from("elim_picks").insert(rows);
-      const computed = elimTeam({ picks: e.picks }, HUMANS);
-      await sb.from("elim_weeks").upsert({ week_id: w.id, override_team: e.majority && e.majority !== computed ? e.majority : null });
-    }
-  }
-  return report;
 }

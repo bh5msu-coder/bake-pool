@@ -42,7 +42,6 @@ function AdminTools() {
   const week = season.weeks[weekIdx];
   const [busy, setBusy] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
-  const [report, setReport] = useState<string[] | null>(null);
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [pushed, setPushed] = useState<string | null>(null);
 
@@ -62,11 +61,6 @@ function AdminTools() {
   const pushNow = () => act("push", async () => {
     const r = (await post<{ pushed: { week: string; cells: number; games: number; unmatched: string[] }[] }>("/api/sheet/push", { weekId: week!.id })).pushed[0];
     setPushed(`${r.week}: wrote ${r.cells} cells for ${r.games} games.` + (r.unmatched.length ? ` Couldn't find on the sheet: ${r.unmatched.join(", ")}.` : ""));
-  });
-  const importAll = () => act("import", async () => {
-    if (!confirm("Copy every week from the sheet's Picks, Eliminator and Summary tabs? This overwrites those weeks in the app.")) return;
-    setReport((await post<{ report: string[] }>("/api/import-history")).report);
-    await reload();
   });
 
   const problems = plan?.games.filter((g) => g.problem) ?? [];
@@ -126,10 +120,6 @@ function AdminTools() {
       </div>
     ))}
     <p className="hint">Only these emails can sign in. Saved emails aren&apos;t shown here; type one to replace it.</p>
-
-    <p className="eyebrow" style={{ marginTop: 22 }}>Season history</p>
-    <button className="cta ghost" onClick={importAll} disabled={!!busy}>{busy === "import" ? "Importing…" : "Import weeks from the sheet"}</button>
-    {report && <div className="card mono" style={{ marginTop: 10, fontSize: ".74rem" }}>{report.map((r) => <div key={r}>{r}</div>)}</div>}
   </>);
 }
 

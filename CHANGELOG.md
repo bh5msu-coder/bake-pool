@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 — 2026-10-17
+- Removed "Import weeks from the sheet" (menu button, `/api/import-history` route and `npm run sheet -- import`).
+  The app is now the source of truth and writes to the sheet; importing could have overwritten picks made in the app.
+
 ## 0.4.0 — 2026-10-16 · deadline + write-back
 - Deadline is now **Thursday 2:30 PM Central** (follows the CDT/CST change). Past weeks keep their old noon deadline.
 - Picks, eliminator votes, overrides and results are written into the Google Sheet 5 minutes after each deadline
