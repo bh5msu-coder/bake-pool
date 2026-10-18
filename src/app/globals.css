@@ -204,7 +204,7 @@ section + section { border-top: 1px solid var(--rule); }
 .sec-h { display: flex; align-items: center; gap: 8px; margin: 20px 2px 8px; font: 700 .82rem var(--body); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .sec-h .n { color: var(--faint); font-weight: 600; }
 .sec-h.live { color: var(--loss); }
-.sb { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; display: grid; grid-template-columns: 82px minmax(0, 1fr); overflow: hidden; }
+.sb { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; display: grid; grid-template-columns: 74px minmax(0, 1fr); overflow: hidden; }
 .sb .stat {
   border: 0; border-right: 1px solid var(--rule); background: var(--sunk); padding: 8px 6px 8px 10px; text-align: left;
   display: flex; flex-direction: column; justify-content: center; gap: 3px; font: 700 .82rem/1.2 var(--body); color: var(--ink); min-width: 0;
@@ -216,7 +216,7 @@ section + section { border-top: 1px solid var(--rule); }
 .sb .stat .fin { color: var(--muted); text-transform: uppercase; font-size: .76rem; letter-spacing: .03em; }
 .sb .stat .res { margin-top: 2px; }
 .sb .team {
-  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 46px; align-items: center; gap: 8px;
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 46px; align-items: center; gap: 6px; --row: var(--surface);
   min-height: 50px; padding: 4px 10px 4px 14px; border: 0; background: transparent; text-align: left; width: 100%;
 }
 .sb .team + .team { border-top: 1px solid var(--rule); }
@@ -224,18 +224,25 @@ section + section { border-top: 1px solid var(--rule); }
 .sb .team:disabled { cursor: default; opacity: 1; }
 .sb .team::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 4px; border-radius: 0 3px 3px 0; background: transparent; }
 .sb .team.cover::before { background: var(--win-fill); }
-.sb .team.mine { background: var(--accent-soft); }
-.sb .team.mine .nm::before { content: "✓"; color: var(--accent); font-weight: 800; margin-right: 2px; }
+.sb .team.mine { background: var(--accent-soft); --row: var(--accent-soft); }
+.entry-ck { font-weight: 800; color: var(--ink); margin-right: 4px; }
+.sb .team .who .chip.mine-tag { padding: 0 7px; font-size: .66rem; letter-spacing: .01em; }
 .sb .team .nm { font: 600 1rem/1.2 var(--body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .sb .team .nm .at { color: var(--faint); font-weight: 500; margin-right: 3px; }
 .sb .team.out .nm, .sb .team.out .sc { color: var(--faint); }
-.sb .team .who { display: flex; gap: 2px; align-items: center; }
+.sb .team .who { display: flex; align-items: center; }
+/* Backers overlap like an avatar stack so team names keep their room on phones. */
+.sb .team .who .chip { box-shadow: 0 0 0 1.5px var(--row); }
+.sb .team .who .chip + .chip { margin-left: -4px; }
+.sb .team .who .chip.me { box-shadow: 0 0 0 1.5px var(--row), 0 0 0 3px var(--accent); z-index: 1; margin-right: 2px; }
+.sb .team .who .chip + .chip.me { margin-left: 1px; }
 .sb .team .who .chip { min-width: 17px; height: 17px; line-height: 17px; font-size: .62rem; padding: 0 3px; }
 .sb .team .sc { font: 800 1.2rem/1 var(--body); font-variant-numeric: tabular-nums; min-width: 22px; text-align: right; }
 .sb .team .ln { font: 600 .84rem var(--body); color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
-.entry-pill { font: 800 .64rem/1 var(--body); background: var(--ink); color: var(--surface); border-radius: 4px; padding: 3px 4px; min-width: 17px; height: 17px; display: inline-grid; place-items: center; margin-right: 2px; }
 .cover-key { display: flex; gap: 14px; flex-wrap: wrap; font: 500 .8rem var(--body); color: var(--muted); margin: 4px 2px 0; }
 .cover-key span { display: inline-flex; align-items: center; gap: 6px; }
+.cover-key u { width: 14px; height: 14px; border-radius: 3px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.cover-key .entry-ck { margin: 0; }
 .cover-key i { width: 4px; height: 14px; border-radius: 2px; background: var(--win-fill); }
 
 /* ---------- tables / lists ---------- */

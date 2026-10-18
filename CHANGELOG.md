@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.1 — 2026-10-18 · Clearer game rows
+- **✓ now means the group entry** (it replaces the black "E" box), shown before the team name once picks are revealed.
+- **Your pick is the tinted row.** While everyone else's picks are hidden, it also carries a "Your pick" label; after
+  the reveal your chip is ringed among the others.
+- Pick chips overlap like an avatar stack and the left column is narrower, so team names keep more room on phones.
+- The key above the games is always shown and lists only what's on screen.
+
 ## 0.8.0 — 2026-10-18 · Personal locks and hidden picks
 - **Lock my picks**: once you've picked every game you can lock. Until then, and until you lock, you can change
   anything. You can unlock again while others are still picking.

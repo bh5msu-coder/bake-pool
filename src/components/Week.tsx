@@ -219,9 +219,11 @@ export function WeekTab() {
                 )}
               </div>
             )}
-            {live.size > 0 && (
-              <div className="cover-key"><span><i />Covering the spread</span><span><b style={{ color: "var(--accent)" }}>✓</b> Your pick</span>{visible && <span><span className="entry-pill" style={{ marginLeft: 0 }}>E</span> Group entry</span>}</div>
-            )}
+            <div className="cover-key">
+              <span><u />{as === me ? "Your pick" : `${season.players.find((p) => p.id === as)?.name}'s pick`}</span>
+              {visible && <span><b className="entry-ck">✓</b>Group entry</span>}
+              {live.size > 0 && <span><i />Covering the spread</span>}
+            </div>
             {secs.map((sec) => (
               <div key={sec.key}>
                 <h2 className={`sec-h${sec.live ? " live" : ""}`}>
@@ -438,6 +440,7 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
   const team = (t: string, isHome: boolean) => {
     const backers = season.players.filter((p) => g.picks[p.id] === t);
     const mine = g.picks[as] === t;
+    const pickerName = season.players.find((p) => p.id === as)?.name;
     const score = started ? (isHome ? live!.homeScore : live!.awayScore) : null;
     const cls = ["team", mine && "mine", coverTeam === t && "cover", finished && coverTeam && coverTeam !== "PUSH" && coverTeam !== t && "out"].filter(Boolean).join(" ");
     return (
@@ -448,11 +451,15 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
           const wasBlank = !g.picks[as];
           if (await run("setPick", g.id, as, t) && wasBlank) onPicked();
         }}>
-        <span className="nm">{isHome && <span className="at">@</span>}{t}</span>
+        <span className="nm">
+          {entry === t && <b className="entry-ck" title="Group entry">✓</b>}
+          {isHome && <span className="at">@</span>}{t}
+        </span>
         <span className="who">
-          {entry === t && <span className="entry-pill" title="Group entry">E</span>}
-          {backers.map((p) => (
-            <span key={p.id} className={`chip${chipClass(p.id)}`} style={{ background: colorOf(p.id) }} title={p.name}>{p.initial}</span>
+          {/* While others are hidden, your pick gets a label instead of a lone chip. */}
+          {hidden && mine && <span className={`chip mine-tag${chipClass(as)}`} style={{ background: colorOf(as) }}>{as === me ? "Your pick" : `${pickerName}'s pick`}</span>}
+          {backers.filter((p) => !(hidden && p.id === as)).map((p) => (
+            <span key={p.id} className={`chip${chipClass(p.id)}${p.id === as ? " me" : ""}`} style={{ background: colorOf(p.id) }} title={p.name}>{p.initial}</span>
           ))}
         </span>
         <span className="sc">{score ?? ""}</span>
