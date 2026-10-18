@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1 — 2026-10-18 · Cleaner weekly picks
+- Phones: the open week no longer repeats the deadline three times; the header carries it, and the progress card
+  is a slim meter plus one line of everyone's pick counts.
+- "Copy entry" is now Brad-only on the desktop rail (the sheet write at the deadline does the job); the rules
+  paragraph is shorter and desktop-only.
+- "To pick" is the default while you have blanks, and a game stays in the list after you pick it, so rows don't
+  jump out from under your thumb. Shows "All picked" when done.
+- Brad's "Picking as" selector moved into the progress card, freeing a row above the games.
+
 ## 0.7.0 — 2026-10-17 · The Pool league page
 - New **League** tab: THE POOL (45 entries) from BAKE's point of view, read from the league's Google Sheet
   (Champ, Money and Elim tabs via CSV export, cached 10 minutes).

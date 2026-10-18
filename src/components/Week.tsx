@@ -96,9 +96,22 @@ export function WeekTab() {
   const live = useLive(week, demo);
   const [as, setAs] = useState(me);
   const [show, setShow] = useState<Show>("all");
+  // "To pick" holds on to the games that were blank when it was chosen, so a row doesn't vanish the moment you pick it.
+  const [todo, setTodo] = useState<Set<number>>(new Set());
   const [detail, setDetail] = useState<Game | null>(null);
   const [picker, setPicker] = useState(false);
   const ids = humans(season.players).map((p) => p.id);
+  const blanks = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
+  const pickShow = (s: Show) => { if (s === "todo") setTodo(new Set(blanks)); setShow(s); };
+
+  // Land on "To pick" when a week opens with games left to pick, otherwise on everything.
+  const weekKey = week?.id ?? week?.week, weekOpen = !!week && isOpen(week);
+  useEffect(() => {
+    const left = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
+    setTodo(new Set(left));
+    setShow(weekOpen && left.length ? "todo" : "all");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekKey, weekOpen, as]);
 
   const nav = (
     <div className="wknav">
@@ -119,8 +132,9 @@ export function WeekTab() {
   const open = isOpen(week);
   const graded = isGraded(week);
   const final = week.games.every((g) => g.result);
+  const view: Show = open ? show : "all";
   const filtered = week.games.filter((g) =>
-    show === "todo" ? !g.picks[as] : show === "ties" ? split(g, ids) === "2-2" : true);
+    view === "todo" ? todo.has(g.num) : view === "ties" ? split(g, ids) === "2-2" : true);
   const secs = sections(filtered, live);
   const playing = week.games.filter((g) => !g.result && live.get(g.num)?.state === "in").length;
   const proj = projected(week, live);
@@ -152,28 +166,20 @@ export function WeekTab() {
     <main className="wrap">
       <div className="week-layout">
         <div>
-          {open && <div className="mob-only"><Status week={week} as={as} /></div>}
+          {open && <div className="mob-only"><Status week={week} as={as} setAs={setAs} compact /></div>}
           <section style={{ paddingTop: open ? 4 : 14 }}>
             {(open || isAdmin) && (
               <div className="row" style={{ marginBottom: 4, flexWrap: "wrap" }}>
                 {open && (
                   <div className="pills" role="group" aria-label="Show">
                     {(["all", "todo", "ties"] as Show[]).map((s) => (
-                      <button key={s} className="pill" aria-pressed={show === s} onClick={() => setShow(s)}>
+                      <button key={s} className="pill" aria-pressed={show === s} onClick={() => pickShow(s)}>
                         {s === "all" ? "All games" : s === "todo" ? "To pick" : "2-2 splits"}
-                        <small>{s === "all" ? week.games.length : s === "todo" ? week.games.filter((g) => !g.picks[as]).length
+                        <small>{s === "all" ? week.games.length : s === "todo" ? blanks.length
                           : week.games.filter((g) => split(g, ids) === "2-2").length}</small>
                       </button>
                     ))}
                   </div>
-                )}
-                {isAdmin && open && (
-                  <label className="row" style={{ fontSize: ".84rem", color: "var(--muted)", marginLeft: "auto", gap: 6 }}>
-                    Picking as
-                    <select value={as} onChange={(e) => setAs(e.target.value)} className="btn" style={{ minHeight: 36 }}>
-                      {season.players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </label>
                 )}
               </div>
             )}
@@ -190,12 +196,13 @@ export function WeekTab() {
                 </div>
               </div>
             ))}
-            {!filtered.length && <div className="empty"><b>Nothing here</b>{show === "todo" ? "Every game is picked." : "No 2-2 splits this week."}</div>}
+            {view === "todo" && !blanks.length && filtered.length > 0 && <p className="hint" style={{ textAlign: "center" }}>All {week.games.length} picked. You can change any pick until the deadline.</p>}
+            {!filtered.length && <div className="empty"><b>{view === "todo" ? "All picked" : "Nothing here"}</b>{view === "todo" ? "Every game has your pick. Tap All games to review or change them." : "No 2-2 splits this week."}</div>}
           </section>
           {!open && graded && <div className="mob-only card" style={{ marginBottom: 16 }}><WeekStandings week={week} games={proj} /></div>}
         </div>
         <aside className="rail-col desk-only" style={{ paddingTop: 18 }}>
-          {open && <div className="card"><Status week={week} as={as} /></div>}
+          {open && <div className="card"><Status week={week} as={as} setAs={setAs} /></div>}
           {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
         </aside>
       </div>
@@ -229,8 +236,9 @@ function WeekPicker({ onClose }: { onClose(): void }) {
   );
 }
 
-function Status({ week, as }: { week: Week; as: string }) {
-  const { season, toast } = useApp();
+/** Pick progress. Compact (phones) drops the countdown, which the header already shows. */
+function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id: string): void; compact?: boolean }) {
+  const { season, me, isAdmin, toast } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const left = week.deadline ? timeLeft(week.deadline) : null;
   const mine = week.games.filter((g) => g.picks[as]).length;
@@ -247,14 +255,21 @@ function Status({ week, as }: { week: Week; as: string }) {
   }
 
   return (
-    <section className="status" style={{ paddingTop: 16 }}>
-      <div>
+    <section className={`status${compact ? " compact" : ""}`} style={{ paddingTop: compact ? 12 : 16 }}>
+      {!compact && <div>
         <div className="lock"><span className="big">{left ?? "—"}</span><span className="lab">{left ? "until picks lock" : week.deadline ? "Locked" : "No deadline set"}</span></div>
         {week.deadline && <div className="lab" style={{ marginTop: 4 }}>{fmtDeadline(week.deadline)}</div>}
-      </div>
+      </div>}
       <div>
         <div className="row" style={{ marginBottom: 6 }}>
-          <span className="lab">{as === "claude" ? "Claude's picks" : "Your picks"}</span>
+          {isAdmin ? (
+            <label className="lab row" style={{ gap: 6 }}>
+              Picking as
+              <select value={as} onChange={(e) => setAs(e.target.value)} className="btn" style={{ minHeight: 32, padding: "0 8px" }}>
+                {season.players.map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
+              </select>
+            </label>
+          ) : <span className="lab">Your picks</span>}
           <span className="spacer" />
           <b className="num">{mine} / {week.games.length}</b>
         </div>
@@ -272,13 +287,18 @@ function Status({ week, as }: { week: Week; as: string }) {
           );
         })}
       </div>
-      <button className={`cta${missing ? " ghost" : ""}`} onClick={copy} disabled={entry.blanks > 0}>
-        {entry.blanks ? `${entry.blanks} game${entry.blanks > 1 ? "s" : ""} still blank`
-          : missing ? `Copy entry anyway · ${missing} picks missing` : `Copy entry · ${entry.lines.length} lines`}
-      </button>
-      <p className="hint" style={{ margin: 0 }}>
-        The entry follows the majority (3 of 4). On a 2-2 split, Claude&apos;s pick decides. Brad can override any game.
-      </p>
+      {/* The entry writes itself to the sheet at the deadline; copying is a manual fallback for Brad. */}
+      {isAdmin && !compact && (
+        <button className="btn" onClick={copy} disabled={entry.blanks > 0}>
+          {entry.blanks ? `${entry.blanks} game${entry.blanks > 1 ? "s" : ""} still blank`
+            : missing ? `Copy entry · ${missing} picks missing` : `Copy entry · ${entry.lines.length} lines`}
+        </button>
+      )}
+      {!compact && (
+        <p className="hint" style={{ margin: 0 }}>
+          Majority (3 of 4) makes the entry; Claude breaks 2-2 splits. It goes into the sheet automatically when picks lock.
+        </p>
+      )}
     </section>
   );
 }

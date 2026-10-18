@@ -159,6 +159,10 @@ section + section { border-top: 1px solid var(--rule); }
 .progress div span { font-weight: 500; color: var(--muted); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .progress div.done { border-color: color-mix(in srgb, var(--win-fill) 45%, transparent); }
 .progress div.done b { color: var(--win); }
+.status.compact { gap: 8px; }
+.status.compact .progress { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.status.compact .progress div { background: none; border: 0; padding: 0; gap: 5px; font-size: .8rem; }
+.status.compact .progress div span { flex: none; }
 
 /* ---------- game card ---------- */
 .games { display: grid; gap: 8px; }
