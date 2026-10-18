@@ -12,8 +12,11 @@ import { emptyFilter, useApp, type ExploreFilter } from "./store";
 
 const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
+type Sub = "standings" | "matchups" | "breakdowns";
+
 export function PoolTab() {
   const { season, me } = useApp();
+  const [sub, setSub] = useState<Sub>("standings");
   const ids = humans(season.players).map((p) => p.id);
   const done = season.weeks.flatMap((w) => w.games).filter((g) => g.result);
   const gradedWeeks = season.weeks.filter((w) => w.games.some((g) => g.result));
@@ -43,7 +46,13 @@ export function PoolTab() {
   return (<>
     <Header title="Pool" sub={`${done.length} games graded · through ${shortLabel(lastWeek)}`} />
     <main className="wrap">
+      <div className="subtabs" role="tablist" aria-label="Pool views">
+        {([["standings", "Standings"], ["matchups", "Matchups"], ["breakdowns", "Breakdowns"]] as [Sub, string][]).map(([k, l]) => (
+          <button key={k} role="tab" aria-selected={sub === k} onClick={() => setSub(k)}>{l}</button>
+        ))}
+      </div>
       <div className="dash">
+        {sub === "standings" && (<>
         <div className="kpis">
           <div className="kpi hero"><div className="l">Entry record</div><div className="v">{fmtRec(entry)}</div><div className="d">{fmtPct(entry)} against the spread</div></div>
           <div className="kpi"><div className="l"><i className="dot" style={cvar(leader.p.id)} />Leader</div><div className="v">{leader.p.name}</div><div className="d">{fmtRec(leader.r)} · {fmtPct(leader.r)}</div></div>
@@ -81,23 +90,28 @@ export function PoolTab() {
             <tbody>{traj.series.map((s) => <tr key={s.id}><td>{s.name}</td>{s.values.slice(1).map((v, i) => <td key={i}>{v > 0 ? `+${v}` : v}</td>)}</tr>)}</tbody></table>}>
           <LineChart labels={traj.labels} series={traj.series} highlight={[ENTRY, me]} />
         </ChartCard>
+        <MoneyAndWeeks />
+        </>)}
 
-        <ChartCard className="s6" title="Week by week" sub="Win % each week · hover or tap a cell for the record"
+        {sub === "breakdowns" && (<>
+        <ChartCard className="s12" title="Week by week" sub="Win % each week · hover or tap a cell for the record"
           table={<HeatTable cols={weekly.cols} rows={weekly.rows} />}>
           <Heatmap cols={weekly.cols} rows={weekly.rows} minCol={40} rowHead={78} />
         </ChartCard>
 
-        <ChartCard className="s6" title="Head to head" sub="Row player's win % on games where the two picked differently"
+        <ChartCard className="s12" title="Where each picker wins" sub="Win % by type of game · Favourites/Underdogs follow each picker's own side"
+          table={<HeatTable cols={cats.cols} rows={cats.rows} />}>
+          <Heatmap cols={cats.cols} rows={cats.rows} minCol={60} />
+        </ChartCard>
+        </>)}
+
+        {sub === "matchups" && (<>
+        <ChartCard className="s7" title="Head to head" sub="Row player's win % on games where the two picked differently"
           table={<HeatTable cols={h2h.cols} rows={h2h.rows} />}>
           <Heatmap cols={h2h.cols} rows={h2h.rows} minCol={58} />
         </ChartCard>
 
-        <ChartCard className="s8" title="Where each picker wins" sub="Win % by type of game · Favourites/Underdogs follow each picker's own side"
-          table={<HeatTable cols={cats.cols} rows={cats.rows} />}>
-          <Heatmap cols={cats.cols} rows={cats.rows} minCol={60} />
-        </ChartCard>
-
-        <ChartCard className="s4" title="Does agreement pay?" sub="Entry win % by how the four of you split"
+        <ChartCard className="s5" title="Does agreement pay?" sub="Entry win % by how the four of you split"
           table={<table className="grid"><thead><tr><th>Split</th><th>Record</th><th>Win %</th></tr></thead>
             <tbody>{cons.map((c) => <tr key={c.key}><td>{c.label}</td><td>{fmtRec(c.rec)}</td><td>{fmtPct(c.rec)}</td></tr>)}</tbody></table>}>
           <WinBars items={cons.map((c) => ({ id: c.key, label: c.key, sub: c.label, rec: c.rec, pct: c.pct }))} />
@@ -105,8 +119,8 @@ export function PoolTab() {
           <WinBars items={solo.map((x) => ({ id: x.id, label: x.name, rec: x.rec, pct: x.pct, color: `var(--p-${x.id})` }))} />
         </ChartCard>
 
-        <MoneyAndWeeks />
         <Breakdown />
+        </>)}
       </div>
     </main>
   </>);
@@ -119,7 +133,7 @@ function MoneyAndWeeks() {
   const m = money(season);
   const ps = pickers(season);
   return (
-    <div className="chart-card s8">
+    <div className="chart-card s12">
       <div className="chart-head"><div><h3>Money &amp; weekly records</h3><p>The week&apos;s best player is in bold</p></div></div>
       <div className="money" style={{ marginBottom: 14 }}>
         <div><span>Paid in</span><b>{usd(m.fees)}</b></div>
@@ -171,7 +185,7 @@ function Breakdown() {
   ];
   if (ids.includes(who)) slices.push({ k: "Solo picks", r: rec((g) => soloPicker(g, ids) === who) });
   return (
-    <div className="chart-card s4">
+    <div className="chart-card s12">
       <div className="chart-head"><div><h3>Drill into games</h3><p>Tap a row to open those games in Explore</p></div></div>
       <div className="rail" style={{ marginBottom: 6 }}>
         {season.players.map((p) => (

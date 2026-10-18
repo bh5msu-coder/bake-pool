@@ -14,7 +14,10 @@ import { useApp } from "./store";
 type Show = "all" | "todo" | "ties";
 type LiveMap = Map<number, LiveGame>;
 
-/** Polls live scores every minute while this week's games are being played and the app is visible. */
+/**
+ * Polls live scores while a week's games are near or underway and the app is visible:
+ * every minute when something is live or about to kick off, every 5 minutes otherwise.
+ */
 function useLive(week: Week | undefined, demo: boolean): LiveMap {
   const [live, setLive] = useState<LiveMap>(new Map());
   const id = week?.id, deadline = week?.deadline, num = week?.week;
@@ -23,26 +26,68 @@ function useLive(week: Week | undefined, demo: boolean): LiveMap {
     setLive(new Map());
     if (!id || !deadline || allGraded) return;
     // Demo reopens the latest week for picking, so it skips the time window and asks for that week's real scores.
-    const start = Date.parse(deadline) - 864e5, end = Date.parse(deadline) + 8 * 864e5;
+    const start = Date.parse(deadline) - 6 * 864e5, end = Date.parse(deadline) + 8 * 864e5;
     if (!demo && (Date.now() < start || Date.now() > end)) return;
     const url = demo ? `/api/scores?demoWeek=${num}` : `/api/scores?weekId=${id}`;
-    let stop = false;
+    let stop = false, timer = 0;
     const load = async () => {
-      if (document.visibilityState !== "visible") return;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const json = (await res.json()) as { games: LiveGame[] };
-        if (!stop) setLive(new Map(json.games.map((g) => [g.num, g])));
-      } catch { /* keep the last scores on a network blip */ }
+      let next = 300_000;
+      if (document.visibilityState === "visible") {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const games = ((await res.json()) as { games: LiveGame[] }).games;
+            if (!stop) setLive(new Map(games.map((g) => [g.num, g])));
+            const soon = games.some((g) => g.state === "in" || (g.state === "pre" && Date.parse(g.start) - Date.now() < 20 * 60_000));
+            if (soon) next = 60_000;
+          }
+        } catch { /* keep the last scores on a network blip */ }
+      }
+      if (!stop) timer = window.setTimeout(load, next);
     };
     void load();
-    const t = window.setInterval(load, 60_000);
-    const onVis = () => document.visibilityState === "visible" && void load();
+    const onVis = () => { if (document.visibilityState === "visible") { window.clearTimeout(timer); void load(); } };
     document.addEventListener("visibilitychange", onVis);
-    return () => { stop = true; window.clearInterval(t); document.removeEventListener("visibilitychange", onVis); };
+    return () => { stop = true; window.clearTimeout(timer); document.removeEventListener("visibilitychange", onVis); };
   }, [id, deadline, num, allGraded, demo]);
   return live;
+}
+
+/** Results so far, plus whoever is covering right now in games still being played. */
+function projected(week: Week, live: LiveMap) {
+  return week.games.map((g) => {
+    const l = live.get(g.num);
+    return g.result || !l || l.state === "pre" || !l.covering ? g : { ...g, result: l.covering };
+  });
+}
+
+/** ESPN writes "15:00 - 3rd"; a scoreboard reads better as "3rd 15:00". */
+const clock = (d: string) => { const m = /^(.+?) - (.+)$/.exec(d); return m ? `${m[2]} ${m[1]}` : d; };
+
+const dayFmt = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric" });
+const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+
+interface Section { key: string; title: string; live?: boolean; games: Game[] }
+
+/** Live now → upcoming by day (in kickoff order) → final. Without live data, one plain list. */
+function sections(games: Game[], live: LiveMap): Section[] {
+  if (!live.size) return [{ key: "all", title: `${games.length} games`, games }];
+  const done = (g: Game) => !!g.result || live.get(g.num)?.state === "post";
+  const now = games.filter((g) => !done(g) && live.get(g.num)?.state === "in");
+  const later = games.filter((g) => !done(g) && live.get(g.num)?.state !== "in")
+    .sort((a, b) => (live.get(a.num)?.start ?? "").localeCompare(live.get(b.num)?.start ?? "") || a.num - b.num);
+  const out: Section[] = [];
+  if (now.length) out.push({ key: "live", title: "Live now", live: true, games: now });
+  for (const g of later) {
+    const s = live.get(g.num)?.start;
+    const day = s ? dayFmt.format(new Date(s)) : "Time TBD";
+    const last = out.at(-1);
+    if (last?.key === `day:${day}`) last.games.push(g);
+    else out.push({ key: `day:${day}`, title: day, games: [g] });
+  }
+  const finals = games.filter(done);
+  if (finals.length) out.push({ key: "final", title: "Final", games: finals });
+  return out;
 }
 
 export function WeekTab() {
@@ -52,6 +97,7 @@ export function WeekTab() {
   const [as, setAs] = useState(me);
   const [show, setShow] = useState<Show>("all");
   const [detail, setDetail] = useState<Game | null>(null);
+  const [picker, setPicker] = useState(false);
   const ids = humans(season.players).map((p) => p.id);
 
   const nav = (
@@ -73,64 +119,114 @@ export function WeekTab() {
   const open = isOpen(week);
   const graded = isGraded(week);
   const final = week.games.every((g) => g.result);
-  const games = week.games.filter((g) =>
+  const filtered = week.games.filter((g) =>
     show === "todo" ? !g.picks[as] : show === "ties" ? split(g, ids) === "2-2" : true);
+  const secs = sections(filtered, live);
+  const playing = week.games.filter((g) => !g.result && live.get(g.num)?.state === "in").length;
+  const proj = projected(week, live);
   const shown = detail && week.games.find((g) => g.id === detail.id && g.num === detail.num);
 
-  const strip = graded ? (
-    <div className="strip mob-only">
-      {[...season.players.map((p) => [p.id, p.name]), [ENTRY, "Entry"]].map(([id, lab]) => (
-        <div key={id} className={id === me ? "me" : ""}>
-          <div className="who"><i className="dot" style={cvar(id)} />{lab}</div>
-          <div className="val">{fmtRec(record(week.games, id, ids))}</div>
-        </div>
-      ))}
+  const left = week.deadline ? timeLeft(week.deadline) : null;
+  const mine = week.games.filter((g) => g.picks[as]).length;
+  const summary = open ? (
+    <div className="summary">
+      <span>{as === me ? "You" : season.players.find((p) => p.id === as)?.name} {mine}/{week.games.length} picked</span>
+      <span className="sep" />
+      <span className="q">{left ? `Locks in ${left}` : "No deadline set"}</span>
     </div>
-  ) : null;
+  ) : (
+    <div className="summary">
+      <span>Entry {fmtRec(record(proj, ENTRY, ids))}</span>
+      <span className="sep" />
+      <span className="q">You {fmtRec(record(proj, me, ids))}</span>
+      {playing > 0 && <><span className="sep" /><span><span className="live-dot" />{playing} live</span></>}
+      {!playing && !final && graded && <><span className="sep" /><span className="q">{proj.filter((g) => g.result).length}/{week.games.length} done</span></>}
+    </div>
+  );
 
-  const sub = open ? "Open for picks"
-    : graded ? (final ? "Final" : "In progress") : "Locked";
+  const sub = open ? (week.deadline ? `Picks lock ${fmtDeadline(week.deadline)}` : "Open for picks")
+    : final ? "Final" : playing ? "Games in progress" : graded ? "In progress" : "Locked";
 
   return (<>
-    <Header title={labelOf(week)} sub={sub} right={nav} strip={strip} />
+    <Header title={labelOf(week)} sub={sub} right={nav} strip={summary} onTitle={() => setPicker(true)} />
     <main className="wrap">
       <div className="week-layout">
         <div>
-          <div className="mob-only">{open ? <Status week={week} as={as} /> : <ClosedSummary week={week} live={live} />}</div>
-          <section>
-            <div className="row" style={{ marginBottom: 10, flexWrap: "wrap" }}>
-              <div className="pills" role="group" aria-label="Show">
-                {(["all", "todo", "ties"] as Show[]).map((s) => (
-                  <button key={s} className="pill" aria-pressed={show === s} onClick={() => setShow(s)}>
-                    {s === "all" ? "All games" : s === "todo" ? "To pick" : "2-2 splits"}
-                    <small>{s === "all" ? week.games.length : s === "todo" ? week.games.filter((g) => !g.picks[as]).length
-                      : week.games.filter((g) => split(g, ids) === "2-2").length}</small>
-                  </button>
-                ))}
+          {open && <div className="mob-only"><Status week={week} as={as} /></div>}
+          <section style={{ paddingTop: open ? 4 : 14 }}>
+            {(open || isAdmin) && (
+              <div className="row" style={{ marginBottom: 4, flexWrap: "wrap" }}>
+                {open && (
+                  <div className="pills" role="group" aria-label="Show">
+                    {(["all", "todo", "ties"] as Show[]).map((s) => (
+                      <button key={s} className="pill" aria-pressed={show === s} onClick={() => setShow(s)}>
+                        {s === "all" ? "All games" : s === "todo" ? "To pick" : "2-2 splits"}
+                        <small>{s === "all" ? week.games.length : s === "todo" ? week.games.filter((g) => !g.picks[as]).length
+                          : week.games.filter((g) => split(g, ids) === "2-2").length}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {isAdmin && open && (
+                  <label className="row" style={{ fontSize: ".84rem", color: "var(--muted)", marginLeft: "auto", gap: 6 }}>
+                    Picking as
+                    <select value={as} onChange={(e) => setAs(e.target.value)} className="btn" style={{ minHeight: 36 }}>
+                      {season.players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </label>
+                )}
               </div>
-              {isAdmin && open && (
-                <label className="row" style={{ fontSize: ".8rem", color: "var(--muted)", marginLeft: "auto", gap: 6 }}>
-                  Picking as
-                  <select value={as} onChange={(e) => setAs(e.target.value)} className="btn" style={{ minHeight: 36 }}>
-                    {season.players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </label>
-              )}
-            </div>
-            <div className="games">
-              {games.map((g) => <GameCard key={g.id ?? g.num} game={g} open={open} as={as} live={live.get(g.num)} onMore={() => setDetail(g)} />)}
-              {!games.length && <div className="empty"><b>Nothing here</b>{show === "todo" ? "Every game is picked." : "No 2-2 splits this week."}</div>}
-            </div>
+            )}
+            {live.size > 0 && (
+              <div className="cover-key"><span><i />Covering the spread</span><span><b style={{ color: "var(--accent)" }}>✓</b> Your pick</span><span><span className="entry-pill" style={{ marginLeft: 0 }}>E</span> Group entry</span></div>
+            )}
+            {secs.map((sec) => (
+              <div key={sec.key}>
+                <h2 className={`sec-h${sec.live ? " live" : ""}`}>
+                  {sec.live && <span className="live-dot" />}{sec.title}<span className="n">{sec.games.length}</span>
+                </h2>
+                <div className="games">
+                  {sec.games.map((g) => <GameRow key={g.id ?? g.num} game={g} open={open} as={as} live={live.get(g.num)} onMore={() => setDetail(g)} />)}
+                </div>
+              </div>
+            ))}
+            {!filtered.length && <div className="empty"><b>Nothing here</b>{show === "todo" ? "Every game is picked." : "No 2-2 splits this week."}</div>}
           </section>
+          {!open && graded && <div className="mob-only card" style={{ marginBottom: 16 }}><WeekStandings week={week} games={proj} /></div>}
         </div>
         <aside className="rail-col desk-only" style={{ paddingTop: 18 }}>
-          <div className="card">{open ? <Status week={week} as={as} /> : <ClosedSummary week={week} live={live} />}</div>
-          {graded && <div className="card" style={{ marginTop: 12 }}><WeekStandings week={week} /></div>}
+          {open && <div className="card"><Status week={week} as={as} /></div>}
+          {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
         </aside>
       </div>
     </main>
     {shown && <GameSheet game={shown} week={week} live={live.get(shown.num)} onClose={() => setDetail(null)} />}
+    {picker && <WeekPicker onClose={() => setPicker(false)} />}
   </>);
+}
+
+function WeekPicker({ onClose }: { onClose(): void }) {
+  const { season, weekIdx, setWeekIdx } = useApp();
+  const ids = humans(season.players).map((p) => p.id);
+  return (
+    <Sheet title="Choose a week" onClose={onClose}>
+      <div className="list">
+        {season.weeks.map((w, i) => {
+          const fin = w.games.length > 0 && w.games.every((g) => g.result);
+          const status = isOpen(w) ? "Open" : fin ? "Final" : isGraded(w) ? "In progress" : "Locked";
+          return (
+            <button key={w.week} className="slice" aria-current={i === weekIdx ? "true" : undefined}
+              style={i === weekIdx ? { background: "var(--accent-soft)" } : undefined}
+              onClick={() => { setWeekIdx(i); onClose(); window.scrollTo({ top: 0 }); }}>
+              <span className="k">{labelOf(w)}<small>{status}</small></span>
+              <span className="r">{isGraded(w) ? `Entry ${fmtRec(record(w.games, ENTRY, ids))}` : ""}</span>
+              <span className="go">›</span>
+            </button>
+          );
+        })}
+      </div>
+    </Sheet>
+  );
 }
 
 function Status({ week, as }: { week: Week; as: string }) {
@@ -187,42 +283,15 @@ function Status({ week, as }: { week: Week; as: string }) {
   );
 }
 
-function ClosedSummary({ week, live }: { week: Week; live: LiveMap }) {
+function WeekStandings({ week, games }: { week: Week; games: Game[] }) {
   const { season, me } = useApp();
   const ids = humans(season.players).map((p) => p.id);
-  // Count finished results, plus whoever is covering right now in games still being played.
-  const projected = week.games.map((g) => {
-    const l = live.get(g.num);
-    return g.result || !l || l.state === "pre" || !l.covering ? g : { ...g, result: l.covering };
-  });
-  const playing = week.games.filter((g) => !g.result && live.get(g.num)?.state === "in").length;
-  const done = projected.filter((g) => g.result).length;
-  if (!done) return <section><p className="hint" style={{ margin: 0 }}>Picks are locked. Scores and results show here once games start.</p></section>;
-  const mine = record(projected, me, ids), entry = record(projected, ENTRY, ids);
-  return (
-    <section className="status" style={{ paddingTop: 16 }}>
-      <div className="row" style={{ alignItems: "flex-end" }}>
-        <div><div className="lab">Entry</div><div className="big">{fmtRec(entry)}</div></div>
-        <div className="spacer" />
-        <div style={{ textAlign: "right" }}><div className="lab">You</div><div className="big">{fmtRec(mine)}</div></div>
-      </div>
-      <div className="meter" style={{ background: "var(--sunk)" }} aria-label={`${done} of ${week.games.length} graded`}>
-        <i style={{ width: `${(done / week.games.length) * 100}%`, background: "var(--faint)" }} />
-      </div>
-      <div className="lab">{playing ? <><span className="live-dot" />Live · {playing} in progress · </> : null}{done} of {week.games.length} games counted</div>
-      {week.winnings > 0 && <div className="warn" style={{ color: "var(--win)", background: "var(--win-soft)" }}>Won ${week.winnings.toFixed(0)} this week.</div>}
-    </section>
-  );
-}
-
-function WeekStandings({ week }: { week: Week }) {
-  const { season, me } = useApp();
-  const ids = humans(season.players).map((p) => p.id);
+  const counted = games.filter((g) => g.result).length;
   const rows = [...season.players.map((p) => ({ id: p.id, name: p.name })), { id: ENTRY, name: "Entry" }, { id: MAJORITY, name: "Majority" }]
-    .map((r) => ({ ...r, rec: record(week.games, r.id, ids) }))
+    .map((r) => ({ ...r, rec: record(games, r.id, ids) }))
     .sort((a, b) => b.rec.w - a.rec.w || a.rec.l - b.rec.l);
   return (<>
-    <p className="eyebrow">This week</p>
+    <p className="eyebrow">{labelOf(week)} standings</p>
     <div className="list">
       {rows.map((r) => (
         <div key={r.id} className={`st${r.id === me ? " me" : ""}${r.id === ENTRY || r.id === MAJORITY ? " bench" : ""}`} style={{ gridTemplateColumns: "1fr auto 48px" }}>
@@ -232,54 +301,56 @@ function WeekStandings({ week }: { week: Week }) {
         </div>
       ))}
     </div>
+    <p className="hint">{counted} of {week.games.length} games counted, including who&apos;s covering in games still being played.</p>
   </>);
 }
 
-function GameCard({ game: g, open, as, live, onMore }: { game: Game; open: boolean; as: string; live?: LiveGame; onMore(): void }) {
+function GameRow({ game: g, open, as, live, onMore }: { game: Game; open: boolean; as: string; live?: LiveGame; onMore(): void }) {
   const { season, me, run } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const entry = entryPick(g, ids);
   const sp = split(g, ids);
   const my = grade(g.picks[me], g.result);
+  const started = !!live && live.state !== "pre";
+  const finished = !!g.result || live?.state === "post";
+  const coverTeam = g.result ?? (started ? live!.covering : null);
 
-  const side = (team: string, isHome: boolean) => {
-    const backers = season.players.filter((p) => g.picks[p.id] === team);
-    const mine = g.picks[as] === team;
-    const score = live && live.state !== "pre" ? (isHome ? live.homeScore : live.awayScore) : null;
-    const coveringNow = !g.result && live && live.state !== "pre" && live.covering === team;
+  const team = (t: string, isHome: boolean) => {
+    const backers = season.players.filter((p) => g.picks[p.id] === t);
+    const mine = g.picks[as] === t;
+    const score = started ? (isHome ? live!.homeScore : live!.awayScore) : null;
+    const cls = ["team", mine && "mine", coverTeam === t && "cover", finished && coverTeam && coverTeam !== "PUSH" && coverTeam !== t && "out"].filter(Boolean).join(" ");
     return (
-      <button
-        className={`side${mine ? " mine" : ""}${g.result === team ? " covered" : ""}${coveringNow ? (live!.state === "post" ? " covered" : " covering") : ""}`}
-        disabled={!open || !g.id}
-        aria-pressed={mine}
-        aria-label={`${team} ${spreadFor(team, g.fav, g.spread)}${mine ? ", your pick" : ""}${g.result === team ? ", covered" : ""}`}
-        onClick={() => { if (!mine && g.id) void run("setPick", g.id, as, team); }}
-      >
-        <span className="tn">{isHome ? "@ " : ""}{team}{score !== null && <b className="score">{score}</b>}<span className="sp">{spreadFor(team, g.fav, g.spread)}</span></span>
+      <button className={cls} disabled={!open || !g.id} aria-pressed={mine}
+        aria-label={`${t} ${spreadFor(t, g.fav, g.spread)}${score !== null ? `, ${score} points` : ""}${mine ? ", your pick" : ""}${coverTeam === t ? (finished ? ", covered" : ", covering") : ""}`}
+        onClick={() => { if (!mine && g.id) void run("setPick", g.id, as, t); }}>
+        <span className="nm">{isHome && <span className="at">@</span>}{t}</span>
         <span className="who">
+          {entry === t && <span className="entry-pill" title="Group entry">E</span>}
           {backers.map((p) => (
-            <span key={p.id} className={`chip${chipClass(p.id)}${p.id === as ? " me" : ""}`} style={{ background: colorOf(p.id) }} title={p.name}>{p.initial}</span>
+            <span key={p.id} className={`chip${chipClass(p.id)}`} style={{ background: colorOf(p.id) }} title={p.name}>{p.initial}</span>
           ))}
-          {entry === team && <span className="chip entry" title="Group entry">ENTRY</span>}
         </span>
+        <span className="sc">{score ?? ""}</span>
+        <span className="ln">{spreadFor(t, g.fav, g.spread)}</span>
       </button>
     );
   };
 
+  const head = live?.state === "in" ? <span className="clock"><span className="live-dot" />{clock(live.detail)}</span>
+    : finished ? <span className="fin">Final</span>
+    : live?.start ? <span>{timeFmt.format(new Date(live.start))}</span>
+    : <span>Game {g.num}</span>;
+
   return (
-    <article className="game">
-      <div className="meta">
-        <span className="num">{String(g.num).padStart(2, "0")}</span><span>{g.league}</span><span>{g.line}</span>
-        {sp === "2-2" && <span className="tag signal">2-2</span>}
-        {g.entryOverride && <span className="tag accent">Override</span>}
-        {my && <span className={`tag ${my === "W" ? "win" : my === "L" ? "loss" : "signal"}`}>{my === "P" ? "Push" : my === "W" ? "Win" : "Loss"}</span>}
-        {live && !g.result && (live.state === "in"
-          ? <span className="tag live"><span className="live-dot" />{live.detail}</span>
-          : live.state === "post" ? <span className="tag">Final</span>
-          : <span className="kick">{live.detail}</span>)}
-        <button className="more" onClick={onMore} aria-label={`Details for game ${g.num}`}>⋯</button>
-      </div>
-      <div className="sides">{side(g.away, false)}{side(g.home, true)}</div>
+    <article className="sb">
+      <button className="stat" onClick={onMore} aria-label={`Details for ${g.away} at ${g.home}`}>
+        {head}
+        <small>{g.league}{sp ? ` · ${sp}` : ""}</small>
+        {my && <span className={`tag res ${my === "W" ? "win" : my === "L" ? "loss" : "signal"}`}>{my === "P" ? "Push" : my === "W" ? "Win" : "Loss"}</span>}
+        {g.entryOverride && <span className="tag accent res">Override</span>}
+      </button>
+      <div>{team(g.away, false)}{team(g.home, true)}</div>
     </article>
   );
 }
@@ -297,13 +368,14 @@ export function GameSheet({ game: g, week, live, onClose }: { game: Game; week: 
 
   return (
     <Sheet title={`${g.away} at ${g.home}`} onClose={onClose}>
-      <p style={{ fontSize: ".85rem", color: "var(--muted)", margin: "0 0 8px" }}>
+      <p style={{ fontSize: ".88rem", color: "var(--muted)", margin: "0 0 8px" }}>
         {labelOf(week)} · Game {g.num} · {g.league} · {g.line} · {g.fav} favoured
+        {live?.start && live.state === "pre" ? ` · ${dayFmt.format(new Date(live.start))}, ${timeFmt.format(new Date(live.start))}` : ""}
       </p>
       {live && live.state !== "pre" && (
-        <p style={{ margin: "0 0 10px", fontWeight: 600 }}>
-          {g.away} {live.awayScore} · {g.home} {live.homeScore} · {live.detail}
-          {live.covering && <span style={{ fontWeight: 400, color: "var(--muted)" }}> · {live.covering === "PUSH" ? "push" : `${live.covering} ${live.state === "post" ? "covered" : "covering"}`}</span>}
+        <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: "1.05rem" }}>
+          {g.away} {live.awayScore} · {g.home} {live.homeScore} <span style={{ fontWeight: 500, color: "var(--muted)", fontSize: ".9rem" }}>· {live.detail}
+          {live.covering && ` · ${live.covering === "PUSH" ? "push" : `${live.covering} ${live.state === "post" ? "covered" : "covering"}`}`}</span>
         </p>
       )}
       <div className="list">
@@ -312,7 +384,7 @@ export function GameSheet({ game: g, week, live, onClose }: { game: Game; week: 
           return (
             <div className="kv" key={id}>
               <span className="lab"><i className="dot" style={cvar(id)} />{name}</span>
-              <span>{pick ?? <span style={{ color: "var(--faint)" }}>—</span>}{note && <span style={{ fontSize: ".78rem", color: "var(--faint)" }}> · {note}</span>}</span>
+              <span>{pick ?? <span style={{ color: "var(--faint)" }}>—</span>}{note && <span style={{ fontSize: ".8rem", color: "var(--faint)" }}> · {note}</span>}</span>
               {gr ? <span className={`tag ${gr === "W" ? "win" : gr === "L" ? "loss" : "signal"}`}>{gr === "W" ? "Win" : gr === "L" ? "Loss" : "Push"}</span> : <span />}
             </div>
           );
@@ -330,7 +402,7 @@ export function GameSheet({ game: g, week, live, onClose }: { game: Game; week: 
           <button className="pill" aria-pressed={!g.entryOverride} onClick={() => run("setOverride", g.id!, null)}>Automatic</button>
           {opts.map((t) => <button key={t} className="pill" aria-pressed={g.entryOverride === t} onClick={() => run("setOverride", g.id!, t)}>Force {t}</button>)}
         </div>
-        <p className="hint">Enter Claude&apos;s picks (or fix anyone&apos;s) with &quot;Picking as&quot; above the games while the week is open.</p>
+        <p className="hint">Results record themselves when games go final. Enter Claude&apos;s picks (or fix anyone&apos;s) with &quot;Picking as&quot; while the week is open.</p>
       </>)}
     </Sheet>
   );

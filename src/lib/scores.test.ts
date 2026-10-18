@@ -35,7 +35,7 @@ describe("against the spread", () => {
   it("grades Thursday's real game the way the sheet did (Denver covered)", () => {
     const sea = wk6[0];
     const live = liveFor(sea, matchGame(sea, evs))!;
-    expect(live).toMatchObject({ state: "post", completed: true, awayScore: 14, homeScore: 17, covering: "Denver" });
+    expect(live).toMatchObject({ state: "post", completed: true, awayScore: 14, homeScore: 17, covering: "Denver", start: "2026-10-16T00:15Z" });
   });
   it("covers the Thursday-to-Monday window in Central time", () => {
     expect(weekDays("2026-10-22T19:30:00Z")).toEqual(["20261021", "20261022", "20261023", "20261024", "20261025", "20261026", "20261027"]);

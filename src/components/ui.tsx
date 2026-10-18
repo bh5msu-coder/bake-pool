@@ -5,13 +5,15 @@ import { ENTRY, elimSummary, fmtRec, humans, money, record } from "@/lib/scoring
 import { IconElim, IconExplore, IconPool, IconWeek } from "./icons";
 import { useApp, type Tab } from "./store";
 
-export function Header({ title, sub, right, strip }: { title: string; sub?: string; right?: ReactNode; strip?: ReactNode }) {
+export function Header({ title, sub, right, strip, onTitle }: {
+  title: string; sub?: string; right?: ReactNode; strip?: ReactNode; onTitle?(): void;
+}) {
   const { season, me, setMenu } = useApp();
   const p = season.players.find((x) => x.id === me);
   return (
     <header className="top">
       <div className="wrap bar">
-        <h1>{title}{sub && <small>{sub}</small>}</h1>
+        <h1>{onTitle ? <button className="titlebtn" onClick={onTitle} aria-label={`${title}, choose week`}>{title}</button> : title}{sub && <small>{sub}</small>}</h1>
         {right}
         <button className="avatar" style={{ "--who": colorOf(me) } as CSSProperties} onClick={() => setMenu(true)} aria-label="Menu">
           {p?.initial ?? "?"}

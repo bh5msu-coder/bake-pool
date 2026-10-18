@@ -160,7 +160,7 @@ export function Heatmap({ cols, rows, rowHead = 92, minCol = 52 }: { cols: strin
           {rows.map((r) => (<RowCells key={r.id} r={r} cols={cols} show={show} />))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>.250</span><i /><span>.750</span><span style={{ marginLeft: 8 }}>win % · grey = .500</span></div>
+      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span style={{ marginLeft: 8 }}>win rate · grey = 50%</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );
@@ -176,7 +176,7 @@ function RowCells({ r, cols, show }: { r: HeatRow; cols: string[]; show(e: React
       ) : (
         <button key={i} className="hc" style={heatStyle(c.pct)} aria-label={text}
           onPointerEnter={(e) => show(e, text)} onFocus={(e) => show(e, text)} onClick={(e) => show(e, text)}>
-          {fmtPct(c.rec!)}
+          {Math.round(c.pct * 100)}%
         </button>
       );
     })}

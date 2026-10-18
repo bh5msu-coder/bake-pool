@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.0 — 2026-10-17 · sports-app redesign
+- Dark scoreboard header and desktop sidebar; stronger contrast for small text; uppercase section labels.
+- Week tab rebuilt as scoreboard rows: status column (live clock, Final, or kickoff time), one row per team with
+  score and spread, a green edge on the team covering, ✓ on your pick, an "E" marker for the group entry.
+- Games grouped into Live now → each upcoming day (kickoff order) → Final.
+- Sticky summary line in the header: picks progress and countdown before the deadline; live Entry and your record after.
+- Tap the week title for a week menu with each week's status and Entry record.
+- Live data loads from six days before the deadline (kickoff times) and refreshes every minute only when a game
+  is live or about to start, otherwise every 5 minutes.
+- Pool split into Standings / Matchups / Breakdowns; heatmaps show whole percentages.
+
 ## 0.5.0 — 2026-10-17 · live scores
 - Live scores from ESPN's public scoreboard: game cards show the score, clock (pulsing red while live), and which
   side is covering the spread right now; the locked-week summary shows a live Entry record.

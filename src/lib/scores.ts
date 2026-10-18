@@ -103,6 +103,8 @@ export function matchGame(g: Pick<Game, "away" | "home" | "league">, events: Sco
 
 export interface LiveGame {
   num: number; state: ScoreEvent["state"]; detail: string; completed: boolean;
+  /** Scheduled kickoff (ISO). */
+  start: string;
   awayScore: number | null; homeScore: number | null;
   /** Team currently covering (or that covered), "PUSH", or null before kickoff. */
   covering: string | null;
@@ -123,7 +125,7 @@ export function liveFor(g: Game, m: Matched | null): LiveGame | null {
   const homeScore = m.flipped ? e.away.score : e.home.score;
   const started = e.state !== "pre" && awayScore !== null && homeScore !== null;
   return {
-    num: g.num, state: e.state, detail: e.detail, completed: e.completed, awayScore, homeScore,
+    num: g.num, state: e.state, detail: e.detail, completed: e.completed, start: e.date, awayScore, homeScore,
     covering: started ? coverer(g, awayScore!, homeScore!) : null,
   };
 }
