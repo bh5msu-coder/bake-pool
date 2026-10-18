@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0 — 2026-10-17 · The Pool league page
+- New **League** tab: THE POOL (45 entries) from BAKE's point of view, read from the league's Google Sheet
+  (Champ, Money and Elim tabs via CSV export, cached 10 minutes).
+  - Overview: championship rank, wins behind the leader and behind 4th place (last paid spot), money won, elimination.
+  - **Chance to finish in the money**: Monte Carlo of 5,000 seasons over the games left. Each entry's pick rate is
+    drawn from a Beta posterior (its record blended with the field average, 300-game prior), the rest of the season
+    is played out, ties split payouts. Shows odds of top 4 and of 1st, expected payout, projected final wins (10th–90th).
+  - "Chasing the money" gap chart (vs leader, vs 4th place) and weekly finishes (field range, middle half, BAKE).
+  - Leaderboard: all 45 entries, sortable, BAKE pinned, weekly wins, rank change, money and odds.
+  - Money leaders and the elimination field.
+- Games graded/remaining come from this app's weeks and the BAKE sheet's Summary tab (same slate as THE POOL).
+
 ## 0.6.0 — 2026-10-17 · sports-app redesign
 - Dark scoreboard header and desktop sidebar; stronger contrast for small text; uppercase section labels.
 - Week tab rebuilt as scoreboard rows: status column (live clock, Final, or kickoff time), one row per team with

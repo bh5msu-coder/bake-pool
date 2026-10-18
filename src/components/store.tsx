@@ -55,7 +55,7 @@ function applyLocal(s: Season, op: Op): Season {
   return next;
 }
 
-export type Tab = "week" | "pool" | "elim" | "explore";
+export type Tab = "week" | "pool" | "league" | "elim" | "explore";
 
 export interface ExploreFilter {
   weeks: Set<number>; league: Set<string>; band: Set<string>; side: Set<string>; split: Set<string>;

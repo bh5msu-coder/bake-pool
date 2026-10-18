@@ -16,6 +16,8 @@
   /* players: categorical slots 1-5, fixed order (never by rank) */
   --p-brad: #2a78d6; --p-andrew: #eb6834; --p-kevin: #1baf7a; --p-eric: #eda100; --p-claude: #e87ba4;
   --p-entry: #0b0b0b; --p-majority: #898781;
+  /* league gap chart: categorical slots 7 (violet) and 6 (green) */
+  --p-leader: #6250d6; --p-cutoff: #008300;
   /* diverging (win % around .500): blue <-> red, grey midpoint */
   --div-neg: #d03b3b; --div-mid: #f0efec; --div-pos: #2a78d6;
   --body: var(--font-plex-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -36,6 +38,7 @@
     --loss: #ef7373; --loss-fill: #d03b3b; --loss-soft: #2c1617;
     --p-brad: #3987e5; --p-andrew: #d95926; --p-kevin: #199e70; --p-eric: #c98500; --p-claude: #d55181;
     --p-entry: #f0efec; --p-majority: #898781;
+    --p-leader: #9085e9; --p-cutoff: #0ca30c;
     --div-neg: #e66767; --div-mid: #383835; --div-pos: #3987e5;
     color-scheme: dark;
   }
@@ -321,6 +324,27 @@ section + section { border-top: 1px solid var(--rule); }
 .bars .v { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 .bars .sub { font-size: .74rem; color: var(--faint); font-weight: 400; display: block; }
 
+/* ---------- league ---------- */
+.finishes { display: grid; gap: 4px; }
+.fw { display: grid; grid-template-columns: 92px minmax(0, 1fr) 96px; gap: 12px; align-items: center; min-height: 38px; font-size: .88rem; }
+.fw .sub, .fv .sub { display: block; font-size: .74rem; color: var(--faint); font-weight: 400; }
+.fl { font-weight: 600; }
+.fv { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ft { position: relative; height: 22px; }
+.ft i { position: absolute; top: 50%; transform: translateY(-50%); display: block; }
+.ft .range { height: 4px; background: var(--rule); border-radius: 2px; }
+.ft .iqr { height: 12px; background: var(--axis); border-radius: 3px; }
+.ft .med { width: 2px; height: 18px; background: var(--muted); }
+.ft .us { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); margin-left: -7px; }
+.grid.board th, .grid.board td { padding-inline: 7px; }
+.grid.board th.sortable { cursor: pointer; user-select: none; }
+.grid.board th.sortable:hover { color: var(--ink); }
+.grid.board .us-row td { background: var(--accent-soft); font-weight: 700; }
+.grid.board .sticky-1, .grid.board .sticky-2 { position: sticky; background: var(--surface); z-index: 1; }
+.grid.board .sticky-1 { left: 0; min-width: 44px; }
+.grid.board .sticky-2 { left: 44px; text-align: left; font-weight: 600; }
+.grid.board .us-row .sticky-1, .grid.board .us-row .sticky-2 { background: var(--accent-soft); }
+
 /* ---------- eliminator ---------- */
 .ticket { border-radius: 14px; overflow: hidden; background: var(--tb, var(--accent)); color: var(--tt, #fff); }
 .ticket .face { padding: 18px; }
@@ -392,7 +416,7 @@ nav.tabs {
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--rule);
   padding: 4px max(8px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
 }
-nav.tabs .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+nav.tabs .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
 nav.tabs button {
   min-height: 54px; border: 0; background: transparent; border-radius: 10px; color: var(--faint);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font: 600 .78rem var(--body);

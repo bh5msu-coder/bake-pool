@@ -66,7 +66,9 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
   const [hover, setHover] = useState<number | null>(null);
   const all = series.flatMap((s) => s.values);
   const yt = ticks(Math.min(0, ...all), Math.max(0, ...all));
-  const m = { t: 12, r: 64, b: 28, l: 36 };
+  // Leave room on the right for the end labels of highlighted series.
+  const endChars = Math.max(0, ...series.filter((s) => highlight.includes(s.id)).map((s) => `${s.name} ${format(s.values.at(-1) ?? 0)}`.length));
+  const m = { t: 12, r: Math.max(64, endChars * 6.6 + 16), b: 28, l: 36 };
   const W = Math.max(width, 280), H = height;
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const x = (i: number) => m.l + (labels.length < 2 ? iw / 2 : (i / (labels.length - 1)) * iw);

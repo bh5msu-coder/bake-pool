@@ -105,6 +105,12 @@ Writing needs a Google service account ("robot account"):
   every finished game with no result yet, then writes to the sheet. Manual results are never overwritten.
 - ESPN's feed is unofficial and could change; if it stops, results can still be entered from each game's ⋯ menu.
 
+## League page (THE POOL)
+
+`/api/league` reads THE POOL's sheet (`LEAGUE_SHEET_ID`, default `1QbdsvKq1tZh…`; must be link-shared) and builds the
+League tab for the entry `LEAGUE_ENTRY` (default `BAKE`): standings, money, elimination and a 5,000-run Monte Carlo
+of the championship. Parsing and the simulator live in `src/lib/league.ts` (tested against a CSV export of the real sheet).
+
 ## Command-line jobs
 
 ```bash

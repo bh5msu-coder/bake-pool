@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import { ENTRY, MAJORITY } from "./scoring";
 
-const KNOWN = new Set(["brad", "andrew", "kevin", "eric", "claude", ENTRY, MAJORITY]);
+const KNOWN = new Set(["brad", "andrew", "kevin", "eric", "claude", ENTRY, MAJORITY, "leader", "cutoff"]);
 /** Light fills need dark initials on chips. */
 const LIGHT_FILL = new Set(["kevin", "eric", "claude"]);
 

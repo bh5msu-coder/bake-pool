@@ -1,0 +1,132 @@
+,,,,BUY BACK,,,,,,,,,,Alive:,,,,15,ELIMINATION,,,,,,,,,,,,,,,,,,,,,,
+"Admin Cells
+HIDE ONCE EDITING IS COMPLETE",,,,,,,,,,,,,,No Losses:,,,,2,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,One Loss:,,,,13,Currrent Payouts:,,,,Pot Size,,,,1st,,,,2nd,,,,3rd,,,,4th,,
+,,,,,,,,,,,,,,Eliminated:,,,,31,,,,,"$7,700",,,,"$4,200",,,,"$2,000",,,,"$1,000",,,,$500,,
+,,,,,,,Week,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,9/15/2026,,9/22/2026,,9/29/2026,,10/6/2026,,10/13/2026,,10/20/2026,,10/27/2026,,11/3/2026,,11/10/2026,,11/17/2026,,11/24/2026,,12/1/2026,,12/8/2026,,12/15/2026,,12/22/2026,,12/29/2026,,1/5/2027,,1/11/2027
+Display,Shading,Misses,Alive?,FALSE,Entry,,1,,2,,3,,4,,5,,6,,7,,8,,9,,10,,11,,12,,13,,14,,15,,16,,17,,18
+FALSE,,1,FALSE,FALSE,AJB,,,NO,,MIN,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,1,1,TRUE,TRUE,BAKE,,,NO,,MIA,,AZ,,TEN,,TB,,NYJ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,BAM,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,BAU,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,BB,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,2,1,TRUE,TRUE,BBB,,,CLE,,NYG,,ATL,,MIA,,TEN,,AZ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,BMB,,,NO,,CLE,,NYJ,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,BTS,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,CAM,,,AZ,,MIA,,WAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,3,1,TRUE,TRUE,CAP,,,CLE,,MIA,,AZ,,TEN,,TB,,LAC,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,4,1,TRUE,TRUE,CQR,,,NE,,MIA,,LAC,,TEN,,TB,,NYJ,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,5,0,TRUE,FALSE,CVT,,,CLE,,TEN,,LAC,,MIA,,PHI,,AZ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,DAR,,,NO,,PIT,,ATL,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,6,1,TRUE,TRUE,DAS,,,NO,,CLE,,MIA,,TEN,,LV,,LAC,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,7,1,TRUE,TRUE,EBT,,,CLE,,MIA,,AZ,,TEN,,TB,,NYJ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,EJP,,,CLE,,PIT,,ATL,,LAC,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,8,1,TRUE,TRUE,GGB,,,CLE,,MIA,,JAX,,TEN,,LAC,,DAL,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,9,1,TRUE,TRUE,GIP,,,WAS,,MIA,,AZ,,TEN,,TB,,NYJ,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,10,0,TRUE,FALSE,GPS,,,CLE,,MIA,,AZ,,TEN,,LV,,LAC,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,JCC,,,NO,,IND,,CHI,,NE,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,JDR,,,CLE,,MIN,,MIA,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,LCT,,,NO,,IND,,CHI,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,LEG,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,11,1,TRUE,TRUE,LGRW,,,CLE,,MIA,,AZ,,TEN,,TB,,NYJ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,MDF,,,ATL,,CLE,,MIA,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,MHL,,,NE,,LV,,NYJ,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,MO,,,NO,,MIN,,NYJ,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,12,1,TRUE,TRUE,MORS,,,WAS,,MIA,,NYJ,,TEN,,TB,,AZ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,MRF,,,AZ,,MIA,,WAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,13,1,TRUE,TRUE,NBB,,,WAS,,IND,,NYJ,,LAC,,TB,,AZ,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,NLO,,,AZ,,CLE,,ATL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,OMG,,,AZ,,MIA,,WAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,RDAD,,,AZ,,MIA,,LAC,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,RFM,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,RH,,,NO,,TEN,,NYJ,,CAR,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,RJC,,,AZ,,MIA,,WAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,SDS,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,SLL,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,SLS,,,AZ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,TJB,,,AZ,,NO,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,TN,,,NO,,MIA,,WAS,,LAC,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,TWD,,,NO,,MIA,,WAS,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,1,FALSE,FALSE,VOODOO,,,CLE,,TEN,,AZ,,MIA,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,2,FALSE,TRUE,WEE,,,CLE,,MIA,,WAS,,TEN,,TB,,,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,14,1,TRUE,TRUE,ZAP,,,WAS,,MIA,,AZ,,NE,,TEN,,LV,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,15,1,TRUE,TRUE,ZZZ,,,NO,,MIA,,AZ,,TEN,,TB,,NYJ,,,,,,,,,,,,,,,,,,,,,,,
+TRUE,1,NY Jets,8,,NYJ,(7),FALSE,0.0%,FALSE,0.0%,FALSE,17.1%,FALSE,0.0%,FALSE,0.0%,FALSE,40.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Miami,14,,MIA,(1),FALSE,0.0%,FALSE,51.4%,FALSE,8.6%,FALSE,10.3%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Buffalo,0,,BUF,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,New England,2,,NE,(13),FALSE,4.3%,FALSE,0.0%,FALSE,0.0%,TRUE,6.9%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Cincinnati,0,,CIN,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Baltimore,0,,BAL,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Cleveland,8,,CLE,(7),FALSE,23.9%,TRUE,10.8%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Pittsburgh,0,,PIT,(15),FALSE,0.0%,FALSE,5.4%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Indianapolis,1,,IND,(14),FALSE,0.0%,FALSE,8.1%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Jacksonville,1,,JAX,(14),FALSE,0.0%,FALSE,0.0%,TRUE,2.9%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Houston,0,,HOU,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Tennessee,14,,TEN,(1),FALSE,0.0%,FALSE,8.1%,FALSE,0.0%,FALSE,69.0%,FALSE,7.4%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,LA Chargers,7,,LAC,(8),FALSE,0.0%,FALSE,0.0%,FALSE,8.6%,FALSE,10.3%,FALSE,3.7%,FALSE,20.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Las Vegas,3,,LV,(12),FALSE,0.0%,TRUE,2.7%,FALSE,0.0%,FALSE,0.0%,FALSE,7.4%,FALSE,6.7%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Kansas City,0,,KC,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Denver,0,,DEN,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,NY Giants,1,,NYG,(14),FALSE,0.0%,FALSE,2.7%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Philadelphia,1,,PHI,(14),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,3.7%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Dallas,1,,DAL,(14),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,6.7%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Washington,4,,WAS,(11),FALSE,8.7%,FALSE,0.0%,TRUE,20.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Detroit,0,,DET,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Chicago,0,,CHI,(15),FALSE,0.0%,FALSE,0.0%,TRUE,5.7%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Minnesota,0,,MIN,(15),FALSE,0.0%,TRUE,8.1%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Green Bay,0,,GB,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Tampa Bay,9,,TB,(6),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,TRUE,77.8%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Carolina,0,,CAR,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,TRUE,3.4%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Atlanta,1,,ATL,(14),FALSE,2.2%,FALSE,0.0%,TRUE,11.4%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,New Orleans,3,,NO,(12),FALSE,26.1%,TRUE,2.7%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,LA Rams,0,,LAR,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Seattle,0,,SEA,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,San Francisco,0,,SF,(15),FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,0.0%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+TRUE,1,Arizona,12,,AZ,(3),TRUE,34.8%,FALSE,0.0%,FALSE,25.7%,FALSE,0.0%,FALSE,0.0%,FALSE,26.7%,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE,,FALSE
+FALSE,,,,AJB,,,New Orleans,,Minnesota,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BAKE,,,New Orleans,,Miami,,Arizona,,Tennessee,,Tampa Bay,,NY Jets,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BAM,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BAU,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BB,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BBB,,,Cleveland,,NY Giants,,Atlanta,,Miami,,Tennessee,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BMB,,,New Orleans,,Cleveland,,NY Jets,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,BTS,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,CAM,,,Arizona,,Miami,,Washington,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,CAP,,,Cleveland,,Miami,,Arizona,,Tennessee,,Tampa Bay,,LA Chargers,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,CQR,,,New England,,Miami,,LA Chargers,,Tennessee,,Tampa Bay,,NY Jets,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,CVT,,,Cleveland,,Tennessee,,LA Chargers,,Miami,,Philadelphia,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,DAR,,,New Orleans,,Pittsburgh,,Atlanta,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,DAS,,,New Orleans,,Cleveland,,Miami,,Tennessee,,Las Vegas,,LA Chargers,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,EBT,,,Cleveland,,Miami,,Arizona,,Tennessee,,Tampa Bay,,NY Jets,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,EJP,,,Cleveland,,Pittsburgh,,Atlanta,,LA Chargers,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,GGB,,,Cleveland,,Miami,,Jacksonville,,Tennessee,,LA Chargers,,Dallas,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,GIP,,,Washington,,Miami,,Arizona,,Tennessee,,Tampa Bay,,NY Jets,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,GPS,,,Cleveland,,Miami,,Arizona,,Tennessee,,Las Vegas,,LA Chargers,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,JCC,,,New Orleans,,Indianapolis,,Chicago,,New England,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,JDR,,,Cleveland,,Minnesota,,Miami,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,LCT,,,New Orleans,,Indianapolis,,Chicago,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,LEG,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,LGRW,,,Cleveland,,Miami,,Arizona,,Tennessee,,Tampa Bay,,NY Jets,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,MDF,,,Atlanta,,Cleveland,,Miami,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,MHL,,,New England,,Las Vegas,,NY Jets,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,MO,,,New Orleans,,Minnesota,,NY Jets,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,MORS,,,Washington,,Miami,,NY Jets,,Tennessee,,Tampa Bay,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,MRF,,,Arizona,,Miami,,Washington,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,NBB,,,Washington,,Indianapolis,,NY Jets,,LA Chargers,,Tampa Bay,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,NLO,,,Arizona,,Cleveland,,Atlanta,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,OMG,,,Arizona,,Miami,,Washington,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,RDAD,,,Arizona,,Miami,,LA Chargers,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,RFM,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,RH,,,New Orleans,,Tennessee,,NY Jets,,Carolina,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,RJC,,,Arizona,,Miami,,Washington,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,SDS,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,SLL,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,SLS,,,Arizona,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,TJB,,,Arizona,,New Orleans,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,TN,,,New Orleans,,Miami,,Washington,,LA Chargers,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,TWD,,,New Orleans,,Miami,,Washington,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,VOODOO,,,Cleveland,,Tennessee,,Arizona,,Miami,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,WEE,,,Cleveland,,Miami,,Washington,,Tennessee,,Tampa Bay,,,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,ZAP,,,Washington,,Miami,,Arizona,,New England,,Tennessee,,Las Vegas,,,,,,,,,,,,,,,,,,,,,,,,
+FALSE,,,,ZZZ,,,New Orleans,,Miami,,Arizona,,Tennessee,,Tampa Bay,,NY Jets,,,,,,,,,,,,,,,,,,,,,,,,

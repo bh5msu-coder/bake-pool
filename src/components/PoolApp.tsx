@@ -7,6 +7,7 @@ import type { Season } from "@/lib/scoring";
 import { browserClient } from "@/lib/supabase/client";
 import { ElimTab } from "./Elim";
 import { ExploreTab } from "./Explore";
+import { LeagueTab } from "./League";
 import { Login } from "./Login";
 import { Menu } from "./Menu";
 import { PoolTab } from "./Pool";
@@ -42,6 +43,7 @@ function Screens() {
     <div className="shell">
       {tab === "week" && <WeekTab />}
       {tab === "pool" && <PoolTab />}
+      {tab === "league" && <LeagueTab />}
       {tab === "elim" && <ElimTab />}
       {tab === "explore" && <ExploreTab />}
     </div>
