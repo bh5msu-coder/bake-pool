@@ -18,6 +18,11 @@ function applyLocal(s: Season, op: Op): Season {
       if (g) { if (team) g.picks[pid] = team; else delete g.picks[pid]; }
       break;
     }
+    case "setLock": {
+      const [wid, pid, locked] = op.args, w = week(wid);
+      if (w) w.locks = locked ? [...new Set([...(w.locks ?? []), pid])] : (w.locks ?? []).filter((x) => x !== pid);
+      break;
+    }
     case "setElimPick": {
       const [wid, pid, team] = op.args, w = week(wid);
       if (w) { if (team) w.elim.picks[pid] = team; else delete w.elim.picks[pid]; }

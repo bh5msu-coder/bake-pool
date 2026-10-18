@@ -17,10 +17,19 @@ async function all(sb: SupabaseClient, table: string, order: string) {
 }
 
 export async function loadSeason(sb: SupabaseClient): Promise<Season> {
-  const [players, settings, weeks, games, picks, elimPicks, elimWeeks] = await Promise.all([
+  const [players, settings, weeks, games, picks, elimPicks, elimWeeks, locks] = await Promise.all([
     all(sb, "players", "sort"), all(sb, "settings", "key"), all(sb, "weeks", "week"), all(sb, "games", "num"),
     all(sb, "picks", "game_id"), all(sb, "elim_picks", "week_id"), all(sb, "elim_weeks", "week_id"),
+    all(sb, "pick_locks", "week_id"),
   ]);
+  // Open weeks hide other people's picks; ask for how many each person has made instead.
+  const now = Date.now();
+  const openIds = weeks.filter((w) => !w.deadline || Date.parse(w.deadline as string) > now).map((w) => w.id as number);
+  const counts = new Map<number, Record<string, number>>();
+  await Promise.all(openIds.map(async (id) => {
+    const { data } = await sb.rpc("pick_counts", { w: id });
+    counts.set(id, Object.fromEntries(((data ?? []) as { player_id: string; picked: number }[]).map((r) => [r.player_id, r.picked])));
+  }));
   const setting = (k: string) => settings.find((s) => s.key === k)?.value;
   const season = Number(setting("season") ?? new Date().getFullYear());
 
@@ -64,6 +73,8 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
           override: (ew?.override_team as string) ?? null,
           outcome: (ew?.outcome as "survived" | "died") ?? null,
         },
+        locks: locks.filter((l) => l.week_id === w.id).map((l) => l.player_id as string),
+        counts: counts.get(w.id as number),
       };
     }),
   };
@@ -72,6 +83,7 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
 /** Writes the app makes. `null` team clears a pick. */
 export interface Mutations {
   setPick(gameId: number, playerId: string, team: string | null): Promise<void>;
+  setLock(weekId: number, playerId: string, locked: boolean): Promise<void>;
   setElimPick(weekId: number, playerId: string, team: string | null): Promise<void>;
   setResult(gameId: number, result: string | null): Promise<void>;
   setOverride(gameId: number, team: string | null): Promise<void>;
@@ -85,7 +97,7 @@ const check = ({ error }: { error: { message: string } | null }) => {
   if (error) throw new Error(friendly(error.message));
 };
 const friendly = (m: string) =>
-  /row-level security|violates row/i.test(m) ? "Picks are locked for this game (deadline passed or result is in)." : m;
+  /row-level security|violates row/i.test(m) ? "That's locked: your picks are locked, the deadline passed, or the result is in." : m;
 
 export function supabaseMutations(sb: SupabaseClient): Mutations {
   return {
@@ -93,6 +105,11 @@ export function supabaseMutations(sb: SupabaseClient): Mutations {
       check(team
         ? await sb.from("picks").upsert({ game_id, player_id, team })
         : await sb.from("picks").delete().match({ game_id, player_id }));
+    },
+    async setLock(week_id, player_id, locked) {
+      check(locked
+        ? await sb.from("pick_locks").upsert({ week_id, player_id })
+        : await sb.from("pick_locks").delete().match({ week_id, player_id }));
     },
     async setElimPick(week_id, player_id, team) {
       check(team

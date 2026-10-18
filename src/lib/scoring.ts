@@ -42,6 +42,10 @@ export interface Week {
   winnings: number;
   games: Game[];
   elim: ElimWeek;
+  /** Players who have locked their picks for this week. */
+  locks?: string[];
+  /** Picks per player while the week's picks are hidden (others' teams aren't loaded, only how many). */
+  counts?: Record<PlayerId, number>;
 }
 
 export interface LedgerEntry { label: string; amount: number } // negative = paid out
@@ -154,6 +158,18 @@ export const side = (g: Game, team: string | null) => (!team ? null : team === g
 export const isGraded = (w: Week) => w.games.some((g) => g.result);
 export const isFinal = (w: Week) => w.games.length > 0 && w.games.every((g) => g.result);
 export const isOpen = (w: Week, now = Date.now()) => !w.deadline || now < Date.parse(w.deadline);
+
+/** How many games a player has picked this week, even when their teams are hidden. */
+export const pickedCount = (w: Week, id: PlayerId) =>
+  Math.max(w.counts?.[id] ?? 0, w.games.filter((g) => g.picks[id]).length);
+
+/** Every human has locked and Claude has a pick in every game: the group entry is final. */
+export const groupLocked = (w: Week, players: Player[]) =>
+  w.games.length > 0 && humans(players).every((p) => w.locks?.includes(p.id))
+  && pickedCount(w, "claude") >= w.games.length;
+
+/** Everyone's picks are visible once the week locks, or earlier when the whole group has locked. */
+export const revealed = (w: Week, players: Player[], now = Date.now()) => !isOpen(w, now) || groupLocked(w, players);
 
 /** Head to head between two pickers, counting only games where they disagreed. */
 export function headToHead(games: Game[], a: PlayerId, b: PlayerId, humanIds: PlayerId[]) {

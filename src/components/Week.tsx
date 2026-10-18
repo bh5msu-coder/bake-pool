@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
-  ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, humans, isGraded, isOpen, majority, MAJORITY, record, split,
+  ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
+  pickedCount, record, revealed, split,
   type Game, type Week,
 } from "@/lib/scoring";
 import type { LiveGame } from "@/lib/scores";
@@ -91,7 +92,7 @@ function sections(games: Game[], live: LiveMap): Section[] {
 }
 
 export function WeekTab() {
-  const { season, me, isAdmin, demo, weekIdx, setWeekIdx } = useApp();
+  const { season, me, isAdmin, demo, weekIdx, setWeekIdx, reload } = useApp();
   const week = season.weeks[weekIdx];
   const live = useLive(week, demo);
   const [as, setAs] = useState(me);
@@ -104,8 +105,36 @@ export function WeekTab() {
   const blanks = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
   const pickShow = (s: Show) => { if (s === "todo") setTodo(new Set(blanks)); setShow(s); };
 
-  // Land on "To pick" when a week opens with games left to pick, otherwise on everything.
   const weekKey = week?.id ?? week?.week, weekOpen = !!week && isOpen(week);
+
+  // While picks are hidden, check every minute who has locked (and, once the group has, load everyone's picks).
+  const weekVisible = !!week && revealed(week, season.players);
+  useEffect(() => {
+    if (!weekOpen || weekVisible || demo) return;
+    const t = window.setInterval(() => document.visibilityState === "visible" && void reload(), 60_000);
+    return () => window.clearInterval(t);
+  }, [weekOpen, weekVisible, demo, reload]);
+
+  // When the last person locks, the group entry is final: load everyone's picks and write them to the sheet now.
+  const pushedFor = useRef<number | null>(null);
+  const final_ = !!week && weekOpen && groupLocked(week, season.players);
+  useEffect(() => {
+    if (!final_ || !week?.id || demo || pushedFor.current === week.id) return;
+    pushedFor.current = week.id;
+    void reload();
+    void fetch("/api/sheet/lock-push", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ weekId: week.id }) });
+  }, [final_, week?.id, demo, reload]);
+
+  // After a new pick, scroll to the next game you haven't picked (in screen order, wrapping to the top).
+  const jumpFrom = (num: number) => window.setTimeout(() => {
+    const rows = [...document.querySelectorAll<HTMLElement>("article.sb[data-num]")];
+    const at = rows.findIndex((el) => el.dataset.num === String(num));
+    const next = [...rows.slice(at + 1), ...rows.slice(0, Math.max(0, at))].find((el) => el.dataset.blank === "1");
+    // That was the last one: bring up the lock button instead.
+    (next ?? document.querySelector<HTMLElement>(".done-bar"))?.scrollIntoView({ block: "center" });
+  }, 30);
+
+  // Land on "To pick" when a week opens with games left to pick, otherwise on everything.
   useEffect(() => {
     const left = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
     setTodo(new Set(left));
@@ -132,7 +161,10 @@ export function WeekTab() {
   const open = isOpen(week);
   const graded = isGraded(week);
   const final = week.games.every((g) => g.result);
-  const view: Show = open ? show : "all";
+  const visible = revealed(week, season.players);
+  const locked = !!week.locks?.includes(as);
+  const canPick = open && !locked;
+  const view: Show = open && (show !== "ties" || visible) ? show : "all";
   const filtered = week.games.filter((g) =>
     view === "todo" ? todo.has(g.num) : view === "ties" ? split(g, ids) === "2-2" : true);
   const secs = sections(filtered, live);
@@ -176,8 +208,8 @@ export function WeekTab() {
               <div className="row" style={{ marginBottom: 4, flexWrap: "wrap" }}>
                 {open && (
                   <div className="pills" role="group" aria-label="Show">
-                    {(["all", "todo", "ties"] as Show[]).map((s) => (
-                      <button key={s} className="pill" aria-pressed={show === s} onClick={() => pickShow(s)}>
+                    {(visible ? ["all", "todo", "ties"] as Show[] : ["all", "todo"] as Show[]).map((s) => (
+                      <button key={s} className="pill" aria-pressed={view === s} onClick={() => pickShow(s)}>
                         {s === "all" ? "All games" : s === "todo" ? "To pick" : "2-2 splits"}
                         <small>{s === "all" ? week.games.length : s === "todo" ? blanks.length
                           : week.games.filter((g) => split(g, ids) === "2-2").length}</small>
@@ -188,7 +220,7 @@ export function WeekTab() {
               </div>
             )}
             {live.size > 0 && (
-              <div className="cover-key"><span><i />Covering the spread</span><span><b style={{ color: "var(--accent)" }}>✓</b> Your pick</span><span><span className="entry-pill" style={{ marginLeft: 0 }}>E</span> Group entry</span></div>
+              <div className="cover-key"><span><i />Covering the spread</span><span><b style={{ color: "var(--accent)" }}>✓</b> Your pick</span>{visible && <span><span className="entry-pill" style={{ marginLeft: 0 }}>E</span> Group entry</span>}</div>
             )}
             {secs.map((sec) => (
               <div key={sec.key}>
@@ -196,11 +228,17 @@ export function WeekTab() {
                   {sec.live && <span className="live-dot" />}{sec.title}<span className="n">{sec.games.length}</span>
                 </h2>
                 <div className="games">
-                  {sec.games.map((g) => <GameRow key={g.id ?? g.num} game={g} open={open} as={as} live={live.get(g.num)} onMore={() => setDetail(g)} />)}
+                  {sec.games.map((g) => <GameRow key={g.id ?? g.num} game={g} open={canPick} hidden={!visible} as={as} live={live.get(g.num)}
+                    onMore={() => setDetail(g)} onPicked={() => jumpFrom(g.num)} />)}
                 </div>
               </div>
             ))}
-            {view === "todo" && !blanks.length && filtered.length > 0 && <p className="hint" style={{ textAlign: "center" }}>All {week.games.length} picked. You can change any pick until they lock.</p>}
+            {open && !blanks.length && !groupLocked(week, season.players) && humans(season.players).some((p) => p.id === as) && (
+              <div className="done-bar">
+                <span>{locked ? "Locked. You can unlock until everyone else has locked." : `All ${week.games.length} picked. Happy with them?`}</span>
+                <LockButton week={week} as={as} />
+              </div>
+            )}
             {!filtered.length && <div className="empty"><b>{view === "todo" ? "All picked" : "Nothing here"}</b>{view === "todo" ? "Every game has your pick. Tap All games to review or change them." : "No 2-2 splits this week."}</div>}
           </section>
           {!open && graded && <div className="mob-only card" style={{ marginBottom: 16 }}><WeekStandings week={week} games={proj} /></div>}
@@ -211,7 +249,7 @@ export function WeekTab() {
         </aside>
       </div>
     </main>
-    {shown && <GameSheet game={shown} week={week} live={live.get(shown.num)} onClose={() => setDetail(null)} />}
+    {shown && <GameSheet game={shown} week={week} hidden={!visible} live={live.get(shown.num)} onClose={() => setDetail(null)} />}
     {picker && <WeekPicker onClose={() => setPicker(false)} />}
   </>);
 }
@@ -258,6 +296,12 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
   const mine = week.games.filter((g) => g.picks[as]).length;
   const entry = entryLines(week, ids);
   const missing = week.games.reduce((n, g) => n + ids.filter((id) => !g.picks[id]).length, 0);
+  const total = week.games.length;
+  const isHuman = humans(season.players).some((p) => p.id === as);
+  const locked = !!week.locks?.includes(as);
+  const final = groupLocked(week, season.players);
+  const waiting = humans(season.players).filter((p) => !week.locks?.includes(p.id)).map((p) => p.name);
+  const claudeLeft = total - pickedCount(week, "claude");
 
   async function copy() {
     try {
@@ -292,6 +336,7 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
               </select>
             </label>
           ) : <span className="lab">Your picks</span>}
+          {locked && <span className="tag accent" style={{ marginLeft: 6 }}>Locked</span>}
           <span className="spacer" />
           <b className="num">{mine} / {week.games.length}</b>
         </div>
@@ -301,14 +346,25 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
       </div>
       <div className="progress">
         {season.players.map((p) => {
-          const n = week.games.filter((g) => g.picks[p.id]).length;
+          const n = pickedCount(week, p.id), lk = week.locks?.includes(p.id);
           return (
-            <div key={p.id} className={n === week.games.length ? "done" : ""}>
-              <i className="dot" style={cvar(p.id)} /><span>{p.name}</span><b>{n}</b>
+            <div key={p.id} className={lk || (p.kind !== "human" && n === total) ? "done" : ""}
+              title={lk ? `${p.name} has locked` : `${p.name}: ${n} of ${total} picked`}>
+              <i className="dot" style={cvar(p.id)} /><span>{p.name}</span><b>{lk ? "🔒" : n}</b>
             </div>
           );
         })}
       </div>
+      {final ? (
+        <p className="ok-note">Everyone has locked and Claude is in. The group entry is final.</p>
+      ) : isHuman && <LockButton week={week} as={as} />}
+      {!final && (
+        <p className="hint" style={{ margin: 0 }}>
+          Picks stay hidden until everyone locks{claudeLeft > 0 ? " and Claude is in" : ""}, or the deadline passes.
+          {waiting.length > 0 && ` Waiting on ${waiting.join(", ")}${claudeLeft > 0 ? `; Claude has ${claudeLeft} to go` : ""}.`}
+          {!waiting.length && claudeLeft > 0 && ` Claude has ${claudeLeft} to go.`}
+        </p>
+      )}
       {/* The entry writes itself to the sheet at the deadline; copying is a manual fallback for Brad. */}
       {isAdmin && !compact && (
         <button className="btn" onClick={copy} disabled={entry.blanks > 0}>
@@ -318,10 +374,30 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
       )}
       {!compact && (
         <p className="hint" style={{ margin: 0 }}>
-          Majority (3 of 4) makes the entry; Claude breaks 2-2 splits. It goes into the sheet automatically when picks lock.
+          Majority (3 of 4) makes the entry; Claude breaks 2-2 splits. It goes into the sheet as soon as everyone locks, or at the deadline.
         </p>
       )}
     </section>
+  );
+}
+
+/** Lock or unlock one person's picks for the week. Locking needs every game picked. */
+function LockButton({ week, as }: { week: Week; as: string }) {
+  const { season, me, run } = useApp();
+  const total = week.games.length;
+  const mine = week.games.filter((g) => g.picks[as]).length;
+  const name = season.players.find((p) => p.id === as)?.name;
+  if (week.locks?.includes(as)) {
+    return (
+      <button className="btn" onClick={() => void run("setLock", week.id!, as, false)} disabled={!week.id}>
+        🔒 {as === me ? "Your" : `${name}'s`} picks are locked · Unlock
+      </button>
+    );
+  }
+  return (
+    <button className="cta" onClick={() => void run("setLock", week.id!, as, true)} disabled={!week.id || mine < total}>
+      {mine < total ? `Pick all ${total} to lock (${total - mine} left)` : `Lock ${as === me ? "my" : `${name}'s`} picks`}
+    </button>
   );
 }
 
@@ -347,11 +423,13 @@ function WeekStandings({ week, games }: { week: Week; games: Game[] }) {
   </>);
 }
 
-function GameRow({ game: g, open, as, live, onMore }: { game: Game; open: boolean; as: string; live?: LiveGame; onMore(): void }) {
+function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
+  game: Game; open: boolean; hidden: boolean; as: string; live?: LiveGame; onMore(): void; onPicked(): void;
+}) {
   const { season, me, run } = useApp();
   const ids = humans(season.players).map((p) => p.id);
-  const entry = entryPick(g, ids);
-  const sp = split(g, ids);
+  const entry = hidden ? null : entryPick(g, ids);
+  const sp = hidden ? null : split(g, ids);
   const my = grade(g.picks[me], g.result);
   const started = !!live && live.state !== "pre";
   const finished = !!g.result || live?.state === "post";
@@ -365,7 +443,11 @@ function GameRow({ game: g, open, as, live, onMore }: { game: Game; open: boolea
     return (
       <button className={cls} disabled={!open || !g.id} aria-pressed={mine}
         aria-label={`${t} ${spreadFor(t, g.fav, g.spread)}${score !== null ? `, ${score} points` : ""}${mine ? ", your pick" : ""}${coverTeam === t ? (finished ? ", covered" : ", covering") : ""}`}
-        onClick={() => { if (!mine && g.id) void run("setPick", g.id, as, t); }}>
+        onClick={async () => {
+          if (mine || !g.id) return;
+          const wasBlank = !g.picks[as];
+          if (await run("setPick", g.id, as, t) && wasBlank) onPicked();
+        }}>
         <span className="nm">{isHome && <span className="at">@</span>}{t}</span>
         <span className="who">
           {entry === t && <span className="entry-pill" title="Group entry">E</span>}
@@ -385,7 +467,7 @@ function GameRow({ game: g, open, as, live, onMore }: { game: Game; open: boolea
     : <span>Game {g.num}</span>;
 
   return (
-    <article className="sb">
+    <article className="sb" data-num={g.num} data-blank={g.picks[as] ? undefined : "1"}>
       <button className="stat" onClick={onMore} aria-label={`Details for ${g.away} at ${g.home}`}>
         {head}
         <small>{g.league}{sp ? ` · ${sp}` : ""}</small>
@@ -397,14 +479,16 @@ function GameRow({ game: g, open, as, live, onMore }: { game: Game; open: boolea
   );
 }
 
-export function GameSheet({ game: g, week, live, onClose }: { game: Game; week: Week; live?: LiveGame; onClose(): void }) {
+export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game; week: Week; live?: LiveGame; hidden?: boolean; onClose(): void }) {
   const { season, isAdmin, run } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const maj = majority(g, ids), entry = entryPick(g, ids);
   const rows: [string, string, string | null, string?][] = [
-    ...season.players.map((p) => [p.id, p.name, g.picks[p.id] ?? null] as [string, string, string | null]),
+    ...season.players.map((p) => [p.id, p.name, g.picks[p.id] ?? null, hidden && !g.picks[p.id] ? "hidden until everyone locks" : undefined] as [string, string, string | null, string?]),
+    ...(hidden ? [] : [
     [MAJORITY, "Majority", maj, maj ? undefined : Object.keys(g.picks).length ? "no majority" : undefined],
     [ENTRY, "Entry", entry, g.entryOverride ? "override" : !maj && entry ? "Claude breaks the tie" : undefined],
+    ] as [string, string, string | null, string?][]),
   ];
   const opts = useMemo(() => [g.away, g.home], [g.away, g.home]);
 

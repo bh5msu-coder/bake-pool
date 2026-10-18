@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 — 2026-10-18 · Personal locks and hidden picks
+- **Lock my picks**: once you've picked every game you can lock. Until then, and until you lock, you can change
+  anything. You can unlock again while others are still picking.
+- **Picks are hidden** from everyone else until all four have locked and Claude has a pick in every game, or the
+  2:30 PM lock passes. Enforced by the database (migration 0008: `pick_locks`, `private.week_revealed`), not just
+  the screen. Everyone sees how many games each person has picked and who has locked (`pick_counts`).
+- When the last person locks, the **group entry is final**: picks are revealed and written to the sheet right away
+  (`/api/sheet/lock-push`), without waiting for the deadline. Nobody can unlock after that.
+- After each new pick the list **jumps to the next game you haven't picked**; after the last one it lands on the lock button.
+- While picks are hidden, the app checks every minute for who has locked.
+- Tested the database rules by acting as Andrew: own picks only, can't change after locking, can't lock for
+  someone else, everything visible once the group locks.
+
 ## 0.7.2 — 2026-10-18 · Soft deadline with a grace period
 - Picks are now **due Thursday at noon CT** (soft deadline) and **lock at 2:30 PM CT** (hard lock, unchanged).
   The 150 minutes between is a grace period: anyone can still pick, and the header turns amber with

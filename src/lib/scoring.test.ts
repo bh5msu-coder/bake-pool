@@ -97,3 +97,29 @@ describe("helpers", () => {
     expect(entryLines(w, HUMANS)).toMatchObject({ blanks: 1, text: "\nA" });
   });
 });
+
+describe("personal locks and hidden picks", () => {
+  const s = fixtureSeason();
+  const open = (patch: Partial<import("./scoring").Week>) => ({
+    ...s.weeks[0], deadline: "2099-01-01T00:00:00Z",
+    games: s.weeks[0].games.map((g) => ({ ...g, picks: { claude: g.picks.claude ?? g.away } })), ...patch,
+  });
+
+  it("counts picks from the hidden-pick totals when teams aren't loaded", async () => {
+    const { pickedCount } = await import("./scoring");
+    expect(pickedCount(open({ counts: { kevin: 7 } }), "kevin")).toBe(7);
+    expect(pickedCount(open({}), "claude")).toBe(s.weeks[0].games.length);
+  });
+
+  it("locks the group only when all four have locked and Claude is in", async () => {
+    const { groupLocked, revealed } = await import("./scoring");
+    const all = ["brad", "andrew", "kevin", "eric"];
+    expect(groupLocked(open({ locks: all.slice(0, 3) }), s.players)).toBe(false);
+    expect(groupLocked(open({ locks: all }), s.players)).toBe(true);
+    const noClaude = open({ locks: all });
+    noClaude.games = noClaude.games.map((g, i) => (i ? g : { ...g, picks: {} }));
+    expect(groupLocked(noClaude, s.players)).toBe(false);
+    expect(revealed(open({ locks: [] }), s.players)).toBe(false);
+    expect(revealed({ ...open({}), deadline: "2000-01-01T00:00:00Z" }, s.players)).toBe(true);
+  });
+});
