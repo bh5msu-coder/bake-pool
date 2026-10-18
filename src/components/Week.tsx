@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { fmtDeadline, timeLeft } from "@/lib/deadline";
+import { fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
   ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, humans, isGraded, isOpen, majority, MAJORITY, record, split,
@@ -140,13 +140,15 @@ export function WeekTab() {
   const proj = projected(week, live);
   const shown = detail && week.games.find((g) => g.id === detail.id && g.num === detail.num);
 
-  const left = week.deadline ? timeLeft(week.deadline) : null;
+  const dl = deadlines(week, season.graceMinutes);
   const mine = week.games.filter((g) => g.picks[as]).length;
   const summary = open ? (
     <div className="summary">
       <span>{as === me ? "You" : season.players.find((p) => p.id === as)?.name} {mine}/{week.games.length} picked</span>
       <span className="sep" />
-      <span className="q">{left ? `Locks in ${left}` : "No deadline set"}</span>
+      {dl.phase === "grace"
+        ? <span className="late">Grace period · locks in {dl.toLock}</span>
+        : <span className="q">{dl.toDue ? `Due in ${dl.toDue}` : "No deadline set"}</span>}
     </div>
   ) : (
     <div className="summary">
@@ -158,7 +160,9 @@ export function WeekTab() {
     </div>
   );
 
-  const sub = open ? (week.deadline ? `Picks lock ${fmtDeadline(week.deadline)}` : "Open for picks")
+  const sub = open ? (!dl.due ? "Open for picks"
+      : dl.phase === "grace" ? `Picks were due ${fmtTime(dl.due)} · lock ${fmtTime(week.deadline!)}`
+      : `Picks due ${fmtShort(dl.due)}`)
     : final ? "Final" : playing ? "Games in progress" : graded ? "In progress" : "Locked";
 
   return (<>
@@ -196,7 +200,7 @@ export function WeekTab() {
                 </div>
               </div>
             ))}
-            {view === "todo" && !blanks.length && filtered.length > 0 && <p className="hint" style={{ textAlign: "center" }}>All {week.games.length} picked. You can change any pick until the deadline.</p>}
+            {view === "todo" && !blanks.length && filtered.length > 0 && <p className="hint" style={{ textAlign: "center" }}>All {week.games.length} picked. You can change any pick until they lock.</p>}
             {!filtered.length && <div className="empty"><b>{view === "todo" ? "All picked" : "Nothing here"}</b>{view === "todo" ? "Every game has your pick. Tap All games to review or change them." : "No 2-2 splits this week."}</div>}
           </section>
           {!open && graded && <div className="mob-only card" style={{ marginBottom: 16 }}><WeekStandings week={week} games={proj} /></div>}
@@ -237,10 +241,20 @@ function WeekPicker({ onClose }: { onClose(): void }) {
 }
 
 /** Pick progress. Compact (phones) drops the countdown, which the header already shows. */
+/** Soft deadline (picks due), hard lock, the phase between them and the time left to each. */
+function deadlines(week: Week, grace: number) {
+  const due = week.deadline ? softDeadline(week.deadline, grace) : null;
+  return {
+    due, phase: phaseOf(week.deadline, grace),
+    toDue: due ? timeLeft(due) : null, toLock: week.deadline ? timeLeft(week.deadline) : null,
+  };
+}
+
 function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id: string): void; compact?: boolean }) {
   const { season, me, isAdmin, toast } = useApp();
   const ids = humans(season.players).map((p) => p.id);
-  const left = week.deadline ? timeLeft(week.deadline) : null;
+  const dl = deadlines(week, season.graceMinutes);
+  const grace = dl.phase === "grace";
   const mine = week.games.filter((g) => g.picks[as]).length;
   const entry = entryLines(week, ids);
   const missing = week.games.reduce((n, g) => n + ids.filter((id) => !g.picks[id]).length, 0);
@@ -257,8 +271,16 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
   return (
     <section className={`status${compact ? " compact" : ""}`} style={{ paddingTop: compact ? 12 : 16 }}>
       {!compact && <div>
-        <div className="lock"><span className="big">{left ?? "—"}</span><span className="lab">{left ? "until picks lock" : week.deadline ? "Locked" : "No deadline set"}</span></div>
-        {week.deadline && <div className="lab" style={{ marginTop: 4 }}>{fmtDeadline(week.deadline)}</div>}
+        <div className="lock">
+          <span className={`big${grace ? " late" : ""}`}>{(grace ? dl.toLock : dl.toDue) ?? "—"}</span>
+          <span className="lab">{grace ? "grace period left" : dl.toDue ? "until picks are due" : week.deadline ? "Locked" : "No deadline set"}</span>
+        </div>
+        {dl.due && week.deadline && (
+          <div className="lab" style={{ marginTop: 4 }}>
+            {grace ? `Picks were due ${fmtTime(dl.due)}. They lock at ${fmtTime(week.deadline)}.`
+              : `Due ${fmtDeadline(dl.due)} · grace until ${fmtTime(week.deadline)}`}
+          </div>
+        )}
       </div>}
       <div>
         <div className="row" style={{ marginBottom: 6 }}>

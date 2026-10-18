@@ -55,6 +55,8 @@ export interface Season {
   elimBuybackCost: number;
   /** Paid up front for the whole season (the sheet's Summary total). */
   seasonFee: number;
+  /** Grace period in minutes between when picks are due and the hard lock (the week's deadline). */
+  graceMinutes: number;
   ledger: LedgerEntry[];
 }
 

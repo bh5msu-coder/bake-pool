@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.2 — 2026-10-18 · Soft deadline with a grace period
+- Picks are now **due Thursday at noon CT** (soft deadline) and **lock at 2:30 PM CT** (hard lock, unchanged).
+  The 150 minutes between is a grace period: anyone can still pick, and the header turns amber with
+  "Grace period · locks in …".
+- The lock, the sheet write 5 minutes after it, and the database rules are unchanged; only what the app shows moved.
+- Grace period is a setting (`grace_minutes`, migration 0007) Brad can change in the menu.
+- Tests for the due/grace/locked phases.
+
 ## 0.7.1 — 2026-10-18 · Cleaner weekly picks
 - Phones: the open week no longer repeats the deadline three times; the header carries it, and the progress card
   is a slim meter plus one line of everyone's pick counts.

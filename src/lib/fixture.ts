@@ -26,6 +26,7 @@ export function fixtureSeason(): Season {
     elimBuybacks: 1,
     elimBuybackCost: 100,
     seasonFee: 1250,
+    graceMinutes: 150,
     ledger: [],
     weeks: r.weeks.map((w) => ({
       week: w.week,

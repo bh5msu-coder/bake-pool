@@ -48,6 +48,7 @@ function applyLocal(s: Season, op: Op): Season {
       else if (k === "elim_buyback_cost") next.elimBuybackCost = Number(v);
       else if (k === "ledger") next.ledger = v as Season["ledger"];
       else if (k === "season_fee") next.seasonFee = Number(v);
+      else if (k === "grace_minutes") next.graceMinutes = Number(v);
       break;
     }
     case "setPlayerEmail": break;

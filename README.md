@@ -73,8 +73,9 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
 
 1. John's lines go into the sheet's **Converter** tab as usual (row 1 away, row 2 home, row 3 favourite, row 4 spread,
    row 5 printed line, one game per column; the first 30 columns are the slate).
-2. Once a day the cron (`/api/lines/sync`) checks that tab. A new slate becomes the next week, with a Thursday 2:30 PM CT
-   deadline. Moved lines are updated as long as the game has no result. An open week is never replaced automatically.
+2. Once a day the cron (`/api/lines/sync`) checks that tab. A new slate becomes the next week, with picks due Thursday at
+   noon CT and a hard lock at 2:30 PM CT. The 150-minute grace period between them is the `grace_minutes` setting
+   (editable in the menu); `weeks.deadline` is the hard lock. Moved lines are updated as long as the game has no result. An open week is never replaced automatically.
    Brad can also tap **Refresh lines** in the menu to preview and apply right away.
 3. Everyone picks until the deadline. Brad enters Claude's picks with the **AS** selector.
 4. Copy the entry from the Week tab and submit it.

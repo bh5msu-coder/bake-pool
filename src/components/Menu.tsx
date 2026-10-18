@@ -86,17 +86,17 @@ function AdminTools() {
           <button className="cta danger" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0} onClick={() => apply(true)}>Replace {plan.label}</button>}
       </div>
     )}
-    <p className="hint">The app also checks the Converter tab automatically once a day. New weeks get a Thursday 2:30 PM CT deadline.</p>
+    <p className="hint">The app also checks the Converter tab automatically once a day. New weeks are due Thursday at noon CT and lock at 2:30 PM CT.</p>
 
     <p className="eyebrow" style={{ marginTop: 22 }}>Write to the Google Sheet</p>
     {week?.id && <button className="cta ghost" onClick={pushNow} disabled={!!busy}>{busy === "push" ? "Writing…" : `Push ${labelOf(week)} to sheet now`}</button>}
     {pushed && <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>{pushed}</div>}
-    <p className="hint">Happens automatically 5 minutes after each Thursday 2:30 PM CT deadline. Picks, eliminator votes and results go into
+    <p className="hint">Happens automatically 5 minutes after picks lock (Thursday 2:30 PM CT). Picks, eliminator votes and results go into
       that week&apos;s rows; the sheet&apos;s own formulas are left alone.</p>
 
     {week?.id && (<>
       <p className="eyebrow" style={{ marginTop: 22 }}>{labelOf(week)} settings</p>
-      <div className="field"><label htmlFor="dl">Deadline (your time)</label>
+      <div className="field"><label htmlFor="dl">Picks lock at (your time)</label>
         <input id="dl" type="datetime-local" defaultValue={toLocalInput(week.deadline)} key={`dl${week.id}`}
           onBlur={(e) => e.target.value && run("updateWeek", week.id!, { deadline: new Date(e.target.value).toISOString() })} /></div>
       <div className="row" style={{ gap: 10 }}>
@@ -105,6 +105,11 @@ function AdminTools() {
             onBlur={(e) => run("updateWeek", week.id!, { winnings: Math.max(0, Number(e.target.value) || 0) })} /></div>
       </div>
     </>)}
+
+    <div className="field" style={{ marginTop: 22 }}><label htmlFor="grace">Grace period (minutes before the lock that picks are due)</label>
+      <input id="grace" type="number" inputMode="numeric" min={0} max={1440} step={15} defaultValue={season.graceMinutes}
+        onBlur={(e) => run("setSetting", "grace_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
+    <p className="hint">150 = due at noon, locked at 2:30 PM. Anyone can still pick during the grace period.</p>
 
     <div className="field" style={{ marginTop: 22 }}><label htmlFor="sfee">Season entry $ (paid up front)</label>
       <input id="sfee" type="number" inputMode="decimal" min={0} defaultValue={season.seasonFee}

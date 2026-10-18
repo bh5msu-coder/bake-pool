@@ -1,6 +1,7 @@
 // Loads the season from Supabase into the shape the scoring code uses, and
 // wraps the writes the app makes. Row level security decides what's allowed.
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { GRACE_MINUTES } from "./deadline";
 import type { Game, LedgerEntry, Player, Season, Week } from "./scoring";
 
 type Row = Record<string, unknown>;
@@ -46,6 +47,7 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
     elimBuybacks: Number(setting("elim_buybacks") ?? 0),
     elimBuybackCost: Number(setting("elim_buyback_cost") ?? 100),
     seasonFee: Number(setting("season_fee") ?? 0),
+    graceMinutes: Number(setting("grace_minutes") ?? GRACE_MINUTES),
     ledger: Array.isArray(setting("ledger")) ? (setting("ledger") as LedgerEntry[]) : [],
     players: players.map((p): Player => ({
       id: p.id as string, name: p.name as string, initial: p.initial as string,
@@ -76,7 +78,7 @@ export interface Mutations {
   updateWeek(weekId: number, patch: { deadline?: string | null; entry_fee?: number; winnings?: number }): Promise<void>;
   setElimWeek(weekId: number, patch: { override_team?: string | null; outcome?: string | null }): Promise<void>;
   setPlayerEmail(playerId: string, email: string | null): Promise<void>;
-  setSetting(key: "elim_buybacks" | "elim_buyback_cost" | "ledger" | "season_fee", value: unknown): Promise<void>;
+  setSetting(key: "elim_buybacks" | "elim_buyback_cost" | "ledger" | "season_fee" | "grace_minutes", value: unknown): Promise<void>;
 }
 
 const check = ({ error }: { error: { message: string } | null }) => {
