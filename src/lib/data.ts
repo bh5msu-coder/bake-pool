@@ -62,7 +62,10 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
       id: p.id as string, name: p.name as string, initial: p.initial as string,
       kind: p.kind as Player["kind"], isAdmin: !!p.is_admin,
     })),
-    weeks: weeks.filter((w) => w.season === season).map((w): Week => {
+    upcoming: weeks.filter((w) => w.season === season && !gamesByWeek.has(w.id as number)).map((w) => ({
+      id: w.id as number, week: w.week as number, label: (w.label as string) ?? `Week ${w.week}`, deadline: (w.deadline as string) ?? null,
+    })),
+    weeks: weeks.filter((w) => w.season === season && gamesByWeek.has(w.id as number)).map((w): Week => {
       const ew = elimWeeks.find((e) => e.week_id === w.id);
       return {
         id: w.id as number, week: w.week as number, label: (w.label as string) ?? null, deadline: (w.deadline as string) ?? null,

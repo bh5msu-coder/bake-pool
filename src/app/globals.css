@@ -162,6 +162,7 @@ section + section { border-top: 1px solid var(--rule); }
 .progress div.done { border-color: color-mix(in srgb, var(--win-fill) 45%, transparent); }
 .progress div.done b { color: var(--win); }
 .status.compact { gap: 8px; }
+.slice.upcoming { opacity: .62; cursor: default; }
 .done-bar { display: grid; gap: 10px; text-align: center; font: 500 .9rem var(--body); color: var(--muted); margin: 18px 0 8px; }
 .ok-note { margin: 0; font: 600 .86rem/1.45 var(--body); color: var(--win); background: color-mix(in srgb, var(--win-fill) 12%, transparent); border-radius: 10px; padding: 10px 12px; }
 .status.compact .progress { display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -511,3 +512,4 @@ nav.tabs button span { display: none; }
 .empty b { display: block; font: 700 1.1rem var(--body); color: var(--ink); margin-bottom: 6px; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.slice.upcoming:hover { background: transparent; }

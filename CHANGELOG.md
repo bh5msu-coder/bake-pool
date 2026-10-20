@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 — 2026-10-20 · Rest of the season on the schedule
+- Weeks 7–15, Bowl, Weeks 16–18, CFP and Playoffs are listed as **upcoming** (from the Summary tab), each with an
+  estimated Thursday 2:30 PM CT lock; Bowl, CFP and Playoffs are "date TBD". They show in the week menu as
+  "Lines not posted yet" and stay out of standings and stats until they have games.
+- The lines sync now **fills the upcoming week** when John posts its slate, instead of always adding a new one. The
+  lock is the Thursday after the lines post, unless Brad already set one for that week.
+- `npm run sheet -- schedule [--apply]` lists or adds the remaining weeks.
+
 ## 0.8.1 — 2026-10-18 · Clearer game rows
 - **✓ now means the group entry** (it replaces the black "E" box), shown before the team name once picks are revealed.
 - **Your pick is the tinted row.** While everyone else's picks are hidden, it also carries a "Your pick" label; after

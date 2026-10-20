@@ -54,6 +54,8 @@ export interface Season {
   season: number;
   players: Player[];
   weeks: Week[];
+  /** Weeks on the schedule whose lines aren't posted yet (no games). `deadline` is an estimate, or null when unknown. */
+  upcoming?: { id?: number; week: number; label: string; deadline: string | null }[];
   /** Eliminator lives bought back after the first one; each costs `elimBuybackCost`. */
   elimBuybacks: number;
   elimBuybackCost: number;

@@ -16,6 +16,17 @@ export const DEADLINE = { weekday: 4, hour: 14, minute: 30 } as const;
 /** Minutes between the soft deadline (picks due) and the hard lock. Noon → 2:30 PM. */
 export const GRACE_MINUTES = 150;
 
+/**
+ * Estimated hard lock for a numbered week on the schedule: Thursday 2:30 PM CT, (n - 1) weeks after Week 1's Thursday.
+ * Bowl, CFP and Playoff slates don't follow the weekly rhythm, so they get null (date to be set when lines post).
+ */
+export function estimateDeadline(label: string, week1Iso: string): string | null {
+  const m = /^Week (\d+)$/.exec(label);
+  if (!m) return null;
+  const from = new Date(Date.parse(week1Iso) - 864e5 + (Number(m[1]) - 1) * 7 * 864e5);
+  return nextDeadline(from).toISOString();
+}
+
 export type Phase = "open" | "grace" | "locked";
 
 /** When picks are due: the hard lock minus the grace period. */
@@ -45,6 +56,11 @@ export function fmtDeadline(iso: string) {
 /** "2:30 PM CT" */
 export function fmtTime(iso: string) {
   return new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" }).format(new Date(iso)) + " CT";
+}
+
+/** "Oct 29" in Central time. */
+export function fmtDay(iso: string) {
+  return new Intl.DateTimeFormat("en-US", { timeZone: TZ, month: "short", day: "numeric" }).format(new Date(iso));
 }
 
 /** "Thu 12:00 PM CT", for tight spots. */

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
+import { fmtDay, fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
   ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
@@ -275,6 +275,13 @@ function WeekPicker({ onClose }: { onClose(): void }) {
             </button>
           );
         })}
+        {(season.upcoming ?? []).map((u) => (
+          <div key={`u${u.week}`} className="slice upcoming" aria-disabled="true">
+            <span className="k">{u.label}<small>Lines not posted yet</small></span>
+            <span className="r">{u.deadline ? `~${fmtShort(softDeadline(u.deadline, season.graceMinutes)).replace(/ \d.*$/, "")} ${fmtDay(u.deadline)}` : "Date TBD"}</span>
+            <span className="go" />
+          </div>
+        ))}
       </div>
     </Sheet>
   );

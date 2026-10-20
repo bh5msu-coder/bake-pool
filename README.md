@@ -80,6 +80,8 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
    four have locked and Claude has a pick in every game, or until the hard lock. When the group locks, the app writes
    the week to the sheet straight away (`/api/sheet/lock-push`). Moved lines are updated as long as the game has no result. An open week is never replaced automatically.
    Brad can also tap **Refresh lines** in the menu to preview and apply right away.
+   The rest of the season is pre-listed as upcoming weeks with no games (`npm run sheet -- schedule --apply`);
+   the sync fills the next one in order when its lines appear.
 3. Everyone picks until the deadline. Brad enters Claude's picks with the **AS** selector.
 4. Copy the entry from the Week tab and submit it.
 5. After the games, Brad taps **⋯** on each game to record who covered, and sets the week's winnings in the menu.

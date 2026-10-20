@@ -21,16 +21,20 @@ const periodAt = (ps: Period[], order: number): Period =>
 export type LinesPlan =
   | { action: "none"; week: number; label: string; message: string; games: ParsedGame[] }
   | { action: "update"; week: number; label: string; weekId: number; message: string; games: ParsedGame[]; changes: { num: number; from: string; to: string }[] }
-  | { action: "create"; week: number; label: string; deadline: string; message: string; games: ParsedGame[] }
+  | { action: "create"; week: number; label: string; deadline: string; message: string; games: ParsedGame[]; weekId?: number }
   | { action: "conflict"; week: number; label: string; weekId: number; message: string; games: ParsedGame[] };
 
 /** Compares the Converter tab with the latest week and decides what to do. Writes nothing. */
 export async function planLinesSync(sb: SupabaseClient, read: TabReader, now = new Date()): Promise<LinesPlan> {
   const season = await currentSeason(sb);
-  const [converter, ps, { data: latest }] = await Promise.all([
+  const [converter, ps, { data: rows }] = await Promise.all([
     read("Converter"), periods(read),
-    sb.from("weeks").select("id,week,label,deadline").eq("season", season).order("week", { ascending: false }).limit(1).maybeSingle(),
+    sb.from("weeks").select("id,week,label,deadline,games(count)").eq("season", season).order("week"),
   ]);
+  // Upcoming weeks sit in the table with no games until their lines are posted; compare against the last week that has games.
+  type WeekRow = { id: number; week: number; label: string | null; deadline: string | null; games: { count: number }[] };
+  const all = (rows ?? []) as WeekRow[];
+  const latest = all.filter((w) => (w.games?.[0]?.count ?? 0) > 0).at(-1);
 
   if (latest) {
     const label = latest.label ?? `Week ${latest.week}`;
@@ -55,8 +59,13 @@ export async function planLinesSync(sb: SupabaseClient, read: TabReader, now = n
   const p = periodAt(ps, (latest?.week ?? 0) + 1);
   const games = parseConverter(converter, p.games);
   if (games.length < 2) throw new Error("Couldn't find any games on the Converter tab.");
+  // Fill the upcoming week if it's already listed. Keep a deadline Brad set by hand when it's within the coming week;
+  // otherwise picks lock the Thursday after the lines are posted.
+  const slot = all.find((w) => w.week === p.order);
+  const next = nextDeadline(now);
+  const keep = slot?.deadline && Date.parse(slot.deadline) > now.getTime() && Date.parse(slot.deadline) - now.getTime() < 7 * 864e5;
   return {
-    action: "create", week: p.order, label: p.label, deadline: nextDeadline(now).toISOString(), games,
+    action: "create", week: p.order, label: p.label, deadline: keep ? slot!.deadline! : next.toISOString(), games, weekId: slot?.id,
     message: `New slate found: ${p.label}, ${games.length} games${games.length < p.games ? ` (the Summary tab expects ${p.games})` : ""}.`,
   };
 }
@@ -74,11 +83,18 @@ export async function applyLinesSync(sb: SupabaseClient, plan: LinesPlan, opts: 
     }
     await sb.from("weeks").update({ lines_synced_at: now }).eq("id", plan.weekId);
   } else if (plan.action === "create") {
-    const season = await currentSeason(sb);
-    const { data: w, error } = await sb.from("weeks")
-      .insert({ season, week: plan.week, label: plan.label, deadline: plan.deadline, lines_synced_at: now }).select("id").single();
-    if (error) throw new Error(error.message);
-    const ins = await sb.from("games").insert(rows(w.id));
+    let id = plan.weekId;
+    if (id) {
+      const { error } = await sb.from("weeks").update({ label: plan.label, deadline: plan.deadline, lines_synced_at: now }).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const season = await currentSeason(sb);
+      const { data: w, error } = await sb.from("weeks")
+        .insert({ season, week: plan.week, label: plan.label, deadline: plan.deadline, lines_synced_at: now }).select("id").single();
+      if (error) throw new Error(error.message);
+      id = w.id as number;
+    }
+    const ins = await sb.from("games").insert(rows(id!));
     if (ins.error) throw new Error(ins.error.message);
   } else if (plan.action === "conflict" && opts.replace) {
     const del = await sb.from("games").delete().eq("week_id", plan.weekId);
