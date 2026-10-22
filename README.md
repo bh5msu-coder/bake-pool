@@ -26,7 +26,7 @@ the weekly lines from John's sheet.
 |---|---|
 | App | Next.js 15 (React 19, TypeScript), installable to the home screen (web manifest) |
 | Data + login | Supabase: Postgres with row-level security, email magic-link sign-in |
-| Lines | Server route reads the sheet's **Converter** tab (CSV export link, tab found by name); Vercel Cron runs it daily |
+| Lines | Server route reads the sheet's **Converter** tab (CSV export link, tab found by name); a Supabase timer runs it every 30 minutes, Vercel Cron daily |
 | Hosting | Vercel |
 | Tests | Vitest (scoring, sheet parsing, deadlines) |
 
@@ -73,8 +73,10 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
 
 1. John's lines go into the sheet's **Converter** tab as usual (row 1 away, row 2 home, row 3 favourite, row 4 spread,
    row 5 printed line, one game per column; the first 30 columns are the slate).
-2. Once a day the cron (`/api/lines/sync`) checks that tab. A new slate becomes the next week, with picks due Thursday at
-   noon CT and a hard lock at 2:30 PM CT. The 150-minute grace period between them is the `grace_minutes` setting
+2. Every 30 minutes a Supabase timer (`lines-sync`, migration 0009) calls `/api/lines/sync?push=0`, which checks that
+   tab; a daily Vercel cron (8 AM CT) does the same and also repeats the sheet write-back. A new slate becomes the next
+   week, with picks due Thursday at noon CT and a hard lock at 2:30 PM CT, and the app moves to it on its own the next
+   time it refreshes (coming back to the foreground, or its minute-by-minute check while picks are hidden). The 150-minute grace period between them is the `grace_minutes` setting
    (editable in the menu); `weeks.deadline` is the hard lock.
    Each person locks their own picks (`pick_locks`). Other people's picks stay hidden (row level security) until all
    four have locked and Claude has a pick in every game, or until the hard lock. When the group locks, the app writes
@@ -135,7 +137,8 @@ npm run sheet -- lines --csv path/to/csvs     # same, from CSV exports named Con
   Until it's there, sign-in and the lines sync refuse to run.
 - **Supabase auth URLs:** Authentication → URL Configuration → Site URL `https://bake-pool.vercel.app`;
   Redirect URLs `https://bake-pool.vercel.app/auth/callback` and `http://localhost:3000/auth/callback`.
-- **Cron:** `vercel.json` runs `/api/lines/sync` daily at 13:00 UTC (8 AM CT).
+- **Cron:** `vercel.json` runs `/api/lines/sync` daily at 13:00 UTC (8 AM CT); Vercel's Hobby plan allows one run a day,
+  so the 30-minute lines check and the other timers run from Supabase `pg_cron` (see `supabase/migrations/`).
 
 ## Project layout
 

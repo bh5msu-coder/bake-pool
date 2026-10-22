@@ -86,7 +86,7 @@ function AdminTools() {
           <button className="cta danger" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0} onClick={() => apply(true)}>Replace {plan.label}</button>}
       </div>
     )}
-    <p className="hint">The app also checks the Converter tab automatically once a day. New weeks are due Thursday at noon CT and lock at 2:30 PM CT.</p>
+    <p className="hint">The app also checks the Converter tab every 30 minutes, so a new week shows up on its own once John posts the lines. New weeks are due Thursday at noon CT and lock at 2:30 PM CT.</p>
 
     <p className="eyebrow" style={{ marginTop: 22 }}>Write to the Google Sheet</p>
     {week?.id && <button className="cta ghost" onClick={pushNow} disabled={!!busy}>{busy === "push" ? "Writing…" : `Push ${labelOf(week)} to sheet now`}</button>}

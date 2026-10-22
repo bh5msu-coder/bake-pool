@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.1 — 2026-10-22 · The week moves forward on its own
+- **Lines are checked every 30 minutes** (Supabase timer `lines-sync`, migration 0009, calling `/api/lines/sync?push=0`),
+  not just once a day at 8 AM CT. The next week shows up in the app within half an hour of John posting its lines, with
+  no need to tap Refresh lines. The daily Vercel run still does the sheet write-back safety net; `?push=0` skips it.
+- **The app moves to the new week by itself.** When a refresh (coming back to the foreground, or the minute-by-minute
+  check while picks are hidden) finds that a new week has opened, the Week, Elim and menu screens go to it. Browsing an
+  older week isn't interrupted otherwise.
+- Tests for which week the app lands on.
+
 ## 0.9.0 — 2026-10-20 · Rest of the season on the schedule
 - Weeks 7–15, Bowl, Weeks 16–18, CFP and Playoffs are listed as **upcoming** (from the Summary tab), each with an
   estimated Thursday 2:30 PM CT lock; Bowl, CFP and Playoffs are "date TBD". They show in the week menu as
