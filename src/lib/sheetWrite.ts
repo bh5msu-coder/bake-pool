@@ -1,6 +1,6 @@
 // Works out which cells of the shared sheet to fill with the app's picks.
 // Pure: takes the current tab contents and returns cell writes, so it can be tested.
-import { humans, type Season, type Week } from "./scoring";
+import { humans, labelOf, type Season, type Week } from "./scoring";
 import { matchTeam, type Grid, type Period } from "./sheet";
 
 export interface CellWrite { range: string; values: string[][] }
@@ -42,6 +42,12 @@ export function planPicks(picksTab: Grid, period: Period, week: Week): PicksPlan
     if (g.entryOverride) writes.push({ range: `Picks!${COL.override}${row}`, values: [[g.entryOverride]] });
     if (g.result && g.result !== "PUSH") writes.push({ range: `Picks!${COL.result}${row}`, values: [[g.result]] });
   });
+  // Safety net: a week's write never reaches another week's rows (past or future) and never blanks a cell.
+  const first = start, last = start + size - 1;
+  for (const w of writes) {
+    const r = Number(/(\d+)$/.exec(w.range)?.[1]);
+    if (!(r >= first && r <= last) || w.values.flat().some((v) => !v)) throw new Error(`Refusing to write ${w.range}: outside ${labelOf(week)}'s rows ${first}-${last}.`);
+  }
   return { writes, rows: week.games.length - unmatched.length, unmatched, filledGames: empty };
 }
 

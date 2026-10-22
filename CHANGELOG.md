@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 0.9.3 — 2026-10-22 · Sheet write stays inside its week
+- The write-back refuses any cell outside the week's own rows on the Picks tab, and any blank value. Past and future
+  weeks, and the "Picks / Brad Andrew Kevin Eric" headers, are never touched. Test added.
+- Dry run for Week 7: 153 cells, all in rows 202–231 (plus Week 7's Eliminator row). 93 fill empty cells, 49 already
+  match, and 11 replace the sheet's Claude picks with the app's.
+
 ## 0.9.2 — 2026-10-22 · Everyone owns their picks
 - Only you can enter, change or lock your picks. Brad's "Picking as" now lists just Brad and Claude, and the database
   enforces the same rule (migration 0010).

@@ -12,6 +12,14 @@ const { periods } = parseSummaryTab(tab("Summary"));
 const season = fixtureSeason();
 
 describe("writing picks to the real sheet layout", () => {
+  it("only ever touches its own week's rows, never earlier or later weeks", () => {
+    const sheetW6 = parsePicksTab(picksTab).get("Week 6")!;
+    const week: Week = { ...season.weeks[5], label: "Week 6", games: sheetW6.map((g) => ({ ...g, result: null, entryOverride: null })) };
+    const rows = planPicks(picksTab, periods[5], week).writes.map((w) => Number(/(\d+)$/.exec(w.range)![1]));
+    expect(Math.min(...rows)).toBeGreaterThanOrEqual(periods[5].start!);
+    expect(Math.max(...rows)).toBeLessThan(periods[6].start!);
+  });
+
   it("matches an existing week's rows by team and writes each picker's column", () => {
     const sheetW6 = parsePicksTab(picksTab).get("Week 6")!;
     const week: Week = { ...season.weeks[5], label: "Week 6", games: sheetW6.map((g) => ({ ...g, result: null, entryOverride: null })) };
