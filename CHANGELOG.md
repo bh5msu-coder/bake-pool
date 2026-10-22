@@ -6,6 +6,11 @@
   many have locked. Once the week locks it shows the Entry record up to the minute, counting the side that's covering
   in games still being played, with how many are live and final and when the scores were last fetched. Finished
   weeks show "Final" and the week's winnings. Clicking it opens that week.
+- **Entry selections, line by line.** "Entry selections ›" on the card, and a button under the Week tab's rail (and on
+  phones), opens the week's entry: each line's team and spread, how it got there (4-0, 3-1, Claude on a 2-2 split or
+  when someone didn't pick, or Brad's override), who's on it, and Win/Loss/Push or Covering/Behind while the game is on.
+  A summary counts the 4-0s, 3-1s, Claude's tie-breaks and overrides; Brad gets a Copy button. Hidden until everyone
+  has locked or the week locks, like the picks themselves.
 - The live-scores poll moved to a shared hook (`useLive`) so the card and the Week tab reuse one fetch when they're
   watching the same week.
 

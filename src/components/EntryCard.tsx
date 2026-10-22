@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { ENTRY, fmtRec, groupLocked, humans, isOpen, labelOf, record } from "@/lib/scoring";
+import { EntrySheet } from "./EntrySheet";
 import { defaultWeekIdx, useApp } from "./store";
 import { projected, useLive } from "./useLive";
 
@@ -23,19 +24,24 @@ export function EntryCard() {
   const idx = defaultWeekIdx(season);
   const week = season.weeks[idx];
   const { live, updatedAt } = useLive(week, demo);
+  const [lines, setLines] = useState(false);
   if (!week) return null;
 
   const ids = humans(season.players).map((p) => p.id);
   const here = tab === "week" && weekIdx === idx;
   const go = () => { setWeekIdx(idx); setTab("week"); window.scrollTo({ top: 0 }); };
   const shell = (big: ReactNode, sub: ReactNode, cls = "", foot?: ReactNode) => (
-    <button className={`entry-card${here ? " here" : ""}`} onClick={go} aria-current={here ? "true" : undefined}>
-      <span className="ec-lab">This week&apos;s entry</span>
-      <span className="ec-wk">{labelOf(week)}</span>
-      <span className={`ec-big${cls}`}>{big}</span>
-      <span className="ec-sub">{sub}</span>
-      {foot && <span className="ec-foot">{foot}</span>}
-    </button>
+    <div className={`entry-card${here ? " here" : ""}`}>
+      <button className="ec-main" onClick={go} aria-current={here ? "true" : undefined}>
+        <span className="ec-lab">This week&apos;s entry</span>
+        <span className="ec-wk">{labelOf(week)}</span>
+        <span className={`ec-big${cls}`}>{big}</span>
+        <span className="ec-sub">{sub}</span>
+        {foot && <span className="ec-foot">{foot}</span>}
+      </button>
+      <button className="ec-more" onClick={() => setLines(true)}>Entry selections ›</button>
+      {lines && <EntrySheet week={week} live={live} onClose={() => setLines(false)} />}
+    </div>
   );
 
   if (isOpen(week)) {

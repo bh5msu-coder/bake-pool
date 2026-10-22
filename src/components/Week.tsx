@@ -8,6 +8,7 @@ import {
   type Game, type Week,
 } from "@/lib/scoring";
 import type { LiveGame } from "@/lib/scores";
+import { EntrySheet } from "./EntrySheet";
 import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor } from "@/lib/teams";
 import { Header, Sheet } from "./ui";
@@ -53,6 +54,7 @@ export function WeekTab() {
   const [todo, setTodo] = useState<Set<number>>(new Set());
   const [detail, setDetail] = useState<Game | null>(null);
   const [picker, setPicker] = useState(false);
+  const [lines, setLines] = useState(false);
   const ids = humans(season.players).map((p) => p.id);
   const blanks = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
   const pickShow = (s: Show) => { if (s === "todo") setTodo(new Set(blanks)); setShow(s); };
@@ -196,16 +198,33 @@ export function WeekTab() {
             {!filtered.length && <div className="empty"><b>{view === "todo" ? "All picked" : "Nothing here"}</b>{view === "todo" ? "Every game has your pick. Tap All games to review or change them." : "No 2-2 splits this week."}</div>}
           </section>
           {!open && graded && <div className="mob-only card" style={{ marginBottom: 16 }}><WeekStandings week={week} games={proj} /></div>}
+          <div className="mob-only" style={{ marginBottom: 16 }}><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
         </div>
         <aside className="rail-col desk-only" style={{ paddingTop: 18 }}>
           {open && <div className="card"><Status week={week} as={as} setAs={setAs} /></div>}
           {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
+          <div style={{ marginTop: 12 }}><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
         </aside>
       </div>
     </main>
     {shown && <GameSheet game={shown} week={week} hidden={!visible} live={live.get(shown.num)} onClose={() => setDetail(null)} />}
     {picker && <WeekPicker onClose={() => setPicker(false)} />}
+    {lines && <EntrySheet week={week} live={live} onClose={() => setLines(false)} />}
   </>);
+}
+
+/** Opens the week's entry line by line; says so when the picks are still hidden. */
+function EntryLinesButton({ week, onOpen }: { week: Week; onOpen(): void }) {
+  const { season } = useApp();
+  const shown = revealed(week, season.players);
+  const ids = humans(season.players).map((p) => p.id);
+  const n = shown ? week.games.filter((g) => entryPick(g, ids)).length : 0;
+  return (
+    <button className="btn entry-lines" onClick={onOpen}>
+      <span>Entry selections</span>
+      <small>{shown ? `${n} of ${week.games.length} lines` : "hidden until everyone locks"}</small>
+    </button>
+  );
 }
 
 function WeekPicker({ onClose }: { onClose(): void }) {
