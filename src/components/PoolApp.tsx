@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { loadSeason, supabaseMutations, type Mutations } from "@/lib/data";
+import { loadSeason, previewEntry, supabaseMutations, type EntryRow, type Mutations } from "@/lib/data";
+import { entryPick, humans, majority } from "@/lib/scoring";
 import { nextDeadline } from "@/lib/deadline";
 import type { Season } from "@/lib/scoring";
 import { browserClient } from "@/lib/supabase/client";
@@ -93,6 +94,13 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
   }, [sb]);
 
   const mutations = useMemo(() => (sb ? supabaseMutations(sb) : demoMutations), [sb]);
+  const preview = useCallback(async (weekId: number): Promise<EntryRow[]> => {
+    if (sb) return previewEntry(sb, weekId);
+    // Demo: everything is local, so work it out from the loaded picks.
+    const w = season?.weeks.find((x) => x.id === weekId);
+    const ids = season ? humans(season.players).map((p) => p.id) : [];
+    return (w?.games ?? []).map((g) => ({ num: g.num, entry: entryPick(g, ids) ?? "", how: majority(g, ids) ? "majority" : "claude" }));
+  }, [sb, season]);
 
   if (session === undefined) return <div className="empty">Loading…</div>;
   if (!demo && !session) return <Login error={loginError} />;
@@ -103,7 +111,7 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
   if (!season || !me) return <div className="empty">Loading the pool…</div>;
 
   return (
-    <AppProvider initial={season} me={me} demo={demo} mutations={mutations} reload={load} signOut={signOut}>
+    <AppProvider initial={season} me={me} demo={demo} mutations={mutations} previewEntry={preview} reload={load} signOut={signOut}>
       <Screens />
     </AppProvider>
   );

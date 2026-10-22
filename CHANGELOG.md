@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 0.9.4 — 2026-10-22 · Brad's early look at the weekly entry
+- From noon Thursday (picks due), once Claude has a pick in every game, Brad gets **View weekly entry (admin)** in the
+  picks card. It shows the group entry for every game, marks the ones Claude decided on a 2-2 split, and includes the
+  eliminator team, with Copy. No need to wait for the 2:30 lock.
+- The database works it out (`admin_entry`, migration 0011) and returns it only to the admin and only after the due time.
+  It gives the entry only, so individual picks stay hidden until the lock or until everyone locks.
+
 ## 0.9.3 — 2026-10-22 · Sheet write stays inside its week
 - The write-back refuses any cell outside the week's own rows on the Picks tab, and any blank value. Past and future
   weeks, and the "Picks / Brad Andrew Kevin Eric" headers, are never touched. Test added.

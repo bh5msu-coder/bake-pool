@@ -3,10 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDay, fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
-  ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
+  ENTRY, elimTeam, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
   pickedCount, record, revealed, split,
   type Game, type Week,
 } from "@/lib/scoring";
+import type { EntryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
 import { spreadFor } from "@/lib/teams";
 import { Header, Sheet } from "./ui";
@@ -311,6 +312,9 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
   const final = groupLocked(week, season.players);
   const waiting = humans(season.players).filter((p) => !week.locks?.includes(p.id)).map((p) => p.name);
   const claudeLeft = total - pickedCount(week, "claude");
+  // Brad can see the group entry once picks are due and Claude is in, without waiting for the lock.
+  const [preview, setPreview] = useState(false);
+  const canPreview = isAdmin && !final && dl.phase === "grace" && claudeLeft === 0 && !!week.id;
 
   async function copy() {
     try {
@@ -368,6 +372,8 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
       {final ? (
         <p className="ok-note">Everyone has locked and Claude is in. The group entry is final.</p>
       ) : isHuman && <LockButton week={week} as={as} />}
+      {canPreview && <button className="btn" onClick={() => setPreview(true)}>View weekly entry (admin)</button>}
+      {preview && <EntryPreview week={week} onClose={() => setPreview(false)} />}
       {!final && (
         <p className="hint" style={{ margin: 0 }}>
           Picks stay hidden until everyone locks{claudeLeft > 0 ? " and Claude is in" : ""}, or the deadline passes.
@@ -388,6 +394,51 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
         </p>
       )}
     </section>
+  );
+}
+
+/** Brad's early look at the group entry and eliminator team, from the database (only he can get it, only after noon). */
+function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
+  const { season, previewEntry, toast } = useApp();
+  const [rows, setRows] = useState<EntryRow[] | null>(null);
+  const ids = humans(season.players).map((p) => p.id);
+  const elim = elimTeam(week.elim, ids);
+  useEffect(() => {
+    previewEntry(week.id!).then(setRows).catch((e: Error) => { toast(e.message, true); setRows([]); });
+  }, [week.id, previewEntry, toast]);
+  const byNum = new Map((rows ?? []).map((r) => [r.num, r]));
+  const ties = (rows ?? []).filter((r) => r.how === "claude").length;
+  async function copy() {
+    try { await navigator.clipboard.writeText(week.games.map((g) => byNum.get(g.num)?.entry ?? "").join("\n")); toast("Entry copied"); }
+    catch { toast("Couldn't reach the clipboard.", true); }
+  }
+  return (
+    <Sheet title={`${labelOf(week)} entry`} onClose={onClose} action={rows?.length ? <button className="link" onClick={copy}>Copy</button> : undefined}>
+      {rows === null ? <p className="hint">Loading…</p> : !rows.length ? (
+        <p className="hint">Not available yet: it opens once picks are due (noon Thursday) and Claude has a pick in every game.</p>
+      ) : (<>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Only you can see this until picks lock. {rows.length - ties} games by majority, {ties} decided by Claude on a 2-2 split.
+          Individual picks stay hidden.
+        </p>
+        <div className="kv" style={{ marginBottom: 8 }}>
+          <span className="lab">Eliminator (team to lose)</span>
+          <span><b>{elim ?? "No group pick yet"}</b></span><span />
+        </div>
+        <div className="list">
+          {week.games.map((g) => {
+            const r = byNum.get(g.num);
+            return (
+              <div className="kv" key={g.num}>
+                <span className="lab">{g.num}. {g.away} @ {g.home} <small style={{ color: "var(--faint)" }}>{g.line}</small></span>
+                <span><b>{r?.entry ?? "—"}</b></span>
+                {r?.how === "claude" ? <span className="tag signal">Claude</span> : <span />}
+              </div>
+            );
+          })}
+        </div>
+      </>)}
+    </Sheet>
   );
 }
 

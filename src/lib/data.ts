@@ -83,6 +83,19 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
   };
 }
 
+/** One game of the group entry, as Brad's early preview returns it. */
+export interface EntryRow { num: number; entry: string; how: "majority" | "claude" }
+
+/**
+ * Brad's preview of the group entry once picks are due and Claude is in, before the lock reveals everyone's picks.
+ * The database returns nothing to anyone else, or before then.
+ */
+export async function previewEntry(sb: SupabaseClient, weekId: number): Promise<EntryRow[]> {
+  const { data, error } = await sb.rpc("admin_entry", { w: weekId });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as EntryRow[];
+}
+
 /** Writes the app makes. `null` team clears a pick. */
 export interface Mutations {
   setPick(gameId: number, playerId: string, team: string | null): Promise<void>;
