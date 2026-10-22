@@ -1,6 +1,6 @@
 // Season analytics behind the Pool dashboard. Pure functions over a Season.
 import {
-  band, BANDS, ENTRY, grade, humans, pct, pickOf, record, shortLabel, side, soloPicker, split,
+  band, BANDS, ENTRY, grade, humans, MAJORITY, pct, pickOf, record, shortLabel, side, soloPicker, split,
   type Game, type Rec, type Season,
 } from "./scoring";
 
@@ -107,4 +107,51 @@ export function soloRecords(s: Season) {
     const r = record(games.filter((g) => soloPicker(g, ids) === p.id), p.id, ids);
     return { id: p.id, name: p.name, rec: r, pct: pct(r) };
   });
+}
+
+export interface CompareCell { a: Rec; b: Rec; diff: number | null }
+export interface CompareRow { id: string; name: string; cells: CompareCell[] }
+
+/** Percentage points by which `who` beat `other` on these games (null if either has nothing decided). */
+function versus(games: Game[], who: string, other: string, ids: string[]): CompareCell {
+  const a = record(games, who, ids), b = record(games, other, ids);
+  const pa = pct(a), pb = pct(b);
+  return { a, b, diff: pa === null || pb === null ? null : Math.round((pa - pb) * 100) };
+}
+
+/**
+ * One picker against others (players, the group entry and/or the majority), as win-% gaps in points.
+ * By type of game: Overall, "When you differed" (only games where the two picked opposite sides), then each category.
+ * By week: one row per graded week. Categories by side follow each picker's own pick, as elsewhere.
+ */
+export function compareGrid(s: Season, who: string, against: string[], by: "type" | "week"): { cols: string[]; rows: CompareRow[] } {
+  const ids = humans(s.players).map((p) => p.id);
+  const all = pickers(s).concat({ id: MAJORITY, name: "Majority" });
+  const cols = against.map((id) => all.find((p) => p.id === id)?.name ?? id);
+  const games = s.weeks.flatMap((w) => w.games).filter((g) => g.result);
+  if (by === "week") {
+    return {
+      cols,
+      rows: graded(s).map((w) => ({ id: `w${w.week}`, name: shortLabel(w), cells: against.map((o) => versus(w.games.filter((g) => g.result), who, o, ids)) })),
+    };
+  }
+  const rows: CompareRow[] = [
+    { id: "all", name: "Overall", cells: against.map((o) => versus(games, who, o, ids)) },
+    {
+      id: "differ", name: "When you differed", cells: against.map((o) => versus(games.filter((g) => {
+        const a = pickOf(g, who, ids), b = pickOf(g, o, ids);
+        return !!a && !!b && a !== b;
+      }), who, o, ids)),
+    },
+    ...CATEGORIES.map((c) => ({
+      id: c.key, name: c.label,
+      cells: against.map((o) => {
+        const a = record(games.filter((g) => c.test(g, pickOf(g, who, ids), ids)), who, ids);
+        const b = record(games.filter((g) => c.test(g, pickOf(g, o, ids), ids)), o, ids);
+        const pa = pct(a), pb = pct(b);
+        return { a, b, diff: pa === null || pb === null ? null : Math.round((pa - pb) * 100) };
+      }),
+    })),
+  ];
+  return { cols, rows };
 }

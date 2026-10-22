@@ -37,3 +37,24 @@ describe("analytics", () => {
     expect(soloRecords(s).reduce((n, x) => n + x.rec.w + x.rec.l, 0)).toBeGreaterThan(0);
   });
 });
+
+describe("compareGrid", () => {
+  it("gives win-% gaps against players and the group, by type and by week", async () => {
+    const { compareGrid } = await import("./analytics");
+    const { ENTRY, MAJORITY, pct, record } = await import("./scoring");
+    const s = fixtureSeason();
+    const ids = ["brad", "andrew", "kevin", "eric"];
+    const g = compareGrid(s, "brad", ["kevin", ENTRY, MAJORITY], "type");
+    expect(g.cols).toEqual(["Kevin", "Entry", "Majority"]);
+    expect(g.rows[0].name).toBe("Overall");
+    const games = s.weeks.flatMap((w) => w.games).filter((x) => x.result);
+    const want = Math.round((pct(record(games, "brad", ids))! - pct(record(games, "kevin", ids))!) * 100);
+    expect(g.rows[0].cells[0].diff).toBe(want);
+    // "When you differed": the two records come from the same games, so they're mirror images.
+    const d = g.rows[1].cells[0];
+    expect(d.a.w).toBe(d.b.l);
+    expect(d.a.l).toBe(d.b.w);
+    const wk = compareGrid(s, "brad", ["kevin"], "week");
+    expect(wk.rows.length).toBe(s.weeks.filter((w) => w.games.some((x) => x.result)).length);
+  });
+});

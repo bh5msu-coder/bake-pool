@@ -1,18 +1,18 @@
 "use client";
 import { useState } from "react";
-import { categoryGrid, consensus, headToHeadGrid, pickers, soloRecords, trajectory, weeklyGrid } from "@/lib/analytics";
+import { categoryGrid, compareGrid, consensus, headToHeadGrid, pickers, soloRecords, trajectory, weeklyGrid } from "@/lib/analytics";
 import { cvar } from "@/lib/players";
 import {
   band, BANDS, ENTRY, elimSummary, fmtPct, fmtRec, humans, MAJORITY, money, pct, pickOf, record, shortLabel, side, soloPicker, split,
   type Game, type Rec,
 } from "@/lib/scoring";
-import { ChartCard, Heatmap, HeatTable, Legend, LineChart, WinBars } from "./charts";
+import { ChartCard, DiffHeatmap, DiffTable, Heatmap, HeatTable, Legend, LineChart, WinBars } from "./charts";
 import { Header } from "./ui";
 import { emptyFilter, useApp, type ExploreFilter } from "./store";
 
 const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
-type Sub = "standings" | "matchups" | "breakdowns";
+type Sub = "standings" | "compare" | "matchups" | "breakdowns";
 
 export function PoolTab() {
   const { season, me } = useApp();
@@ -47,7 +47,7 @@ export function PoolTab() {
     <Header title="Pool" sub={`${done.length} games graded · through ${shortLabel(lastWeek)}`} />
     <main className="wrap">
       <div className="subtabs" role="tablist" aria-label="Pool views">
-        {([["standings", "Standings"], ["matchups", "Matchups"], ["breakdowns", "Breakdowns"]] as [Sub, string][]).map(([k, l]) => (
+        {([["standings", "Standings"], ["compare", "Compare"], ["matchups", "Matchups"], ["breakdowns", "Breakdowns"]] as [Sub, string][]).map(([k, l]) => (
           <button key={k} role="tab" aria-selected={sub === k} onClick={() => setSub(k)}>{l}</button>
         ))}
       </div>
@@ -93,6 +93,8 @@ export function PoolTab() {
         <MoneyAndWeeks />
         </>)}
 
+        {sub === "compare" && <Compare />}
+
         {sub === "breakdowns" && (<>
         <ChartCard className="s12" title="Week by week" sub="Win % each week · hover or tap a cell for the record"
           table={<HeatTable cols={weekly.cols} rows={weekly.rows} />}>
@@ -123,6 +125,44 @@ export function PoolTab() {
         </>)}
       </div>
     </main>
+  </>);
+}
+
+type Against = "players" | "group" | "both";
+
+/** One picker's win-% gap against the others, the group, or both, by type of game and by week. */
+function Compare() {
+  const { season, me } = useApp();
+  const [who, setWho] = useState(me);
+  const [against, setAgainst] = useState<Against>("both");
+  const name = season.players.find((p) => p.id === who)?.name ?? who;
+  const players = season.players.filter((p) => p.id !== who).map((p) => p.id);
+  const cols = against === "players" ? players : against === "group" ? [ENTRY, MAJORITY] : [...players, ENTRY, MAJORITY];
+  const byType = compareGrid(season, who, cols, "type");
+  const byWeek = compareGrid(season, who, cols, "week");
+  return (<>
+    <div className="compare-bar s12">
+      <label className="row" style={{ gap: 8 }}>
+        <span className="lab">Compare</span>
+        <select className="btn" value={who} onChange={(e) => setWho(e.target.value)} style={{ minHeight: 36 }}>
+          {season.players.map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
+        </select>
+      </label>
+      <div className="pills" role="group" aria-label="Against">
+        {([["players", "vs players"], ["group", "vs group"], ["both", "Both"]] as [Against, string][]).map(([k, l]) => (
+          <button key={k} className="pill" aria-pressed={against === k} onClick={() => setAgainst(k)}>{l}</button>
+        ))}
+      </div>
+    </div>
+    <ChartCard className="s12" title={`${name} vs ${against === "players" ? "everyone" : against === "group" ? "the group" : "everyone and the group"}`}
+      sub="Win-% gap in points by type of game. Blue: better. Red: worse. Entry is what was submitted; Majority counts games with 3+ agreeing."
+      table={<DiffTable who={name} cols={byType.cols} rows={byType.rows} />}>
+      <DiffHeatmap who={name} cols={byType.cols} rows={byType.rows} />
+    </ChartCard>
+    <ChartCard className="s12" title={`${name} week by week`} sub="Win-% gap in points each week"
+      table={<DiffTable who={name} cols={byWeek.cols} rows={byWeek.rows} />}>
+      <DiffHeatmap who={name} cols={byWeek.cols} rows={byWeek.rows} rowHead={64} minCol={52} />
+    </ChartCard>
   </>);
 }
 

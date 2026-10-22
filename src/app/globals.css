@@ -517,3 +517,4 @@ nav.tabs button span { display: none; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 .slice.upcoming:hover { background: transparent; }
+.compare-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }

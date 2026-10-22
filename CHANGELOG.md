@@ -2,6 +2,15 @@
 
 
 
+
+## 0.12.0 — 2026-10-22 · Compare: you vs everyone and the group
+- New **Compare** view in the Pool tab, with heatmaps of one picker's win-% gap in points. Blue means better, red worse, grey even.
+  - Compare against the other players, against the group (Entry and Majority), or **Both**.
+  - **By type of game:** Overall, "When you differed" (games where the two picked opposite sides), favourites,
+    underdogs, NFL, college, spread bands and 2-2 splits.
+  - **By week:** the same gaps for every graded week.
+- Defaults to you; any picker can be chosen. Tap or hover a cell for both records. Each chart has a table view.
+
 ## 0.11.0 — 2026-10-22 · Tap your name to sign in
 - No email link and no PIN: the sign-in screen shows Brad, Andrew, Kevin and Eric, and tapping a name signs you in
   as that person (`/api/enter`). You stay signed in on that device as before.

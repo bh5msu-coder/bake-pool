@@ -2,7 +2,7 @@
 // Small SVG/HTML chart kit following the dataviz rules: thin marks, hairline grid,
 // one axis, legend for 2+ series, selective direct labels, hover tooltips that
 // never gate a value (every chart has a table view), text in ink tokens only.
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { colorOf, cvar } from "@/lib/players";
 import { fmtPct, fmtRec, type Rec } from "@/lib/scoring";
 
@@ -183,6 +183,64 @@ function RowCells({ r, cols, show }: { r: HeatRow; cols: string[]; show(e: React
       );
     })}
   </>);
+}
+
+/** Win-% gap in points: blue when the row picker did better, red when worse, grey at even. Full colour at ±15 pts. */
+function diffStyle(d: number): CSSProperties {
+  const t = Math.max(-1, Math.min(1, d / 15));
+  const pole = t >= 0 ? "var(--div-pos)" : "var(--div-neg)";
+  const amt = Math.round(Math.abs(t) * 100);
+  return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.55 ? "#fff" : "var(--ink)" };
+}
+const signed = (d: number) => (d > 0 ? `+${d}` : d < 0 ? `−${-d}` : "0");
+
+export interface DiffRow { id: string; name: string; cells: { a: Rec; b: Rec; diff: number | null }[] }
+
+/** Heatmap of one picker's win-% gap against each column (another player, the entry, the majority). */
+export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60 }: { who: string; cols: string[]; rows: DiffRow[]; rowHead?: number; minCol?: number }) {
+  const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!tip) return; const t = setTimeout(() => setTip(null), 4000); return () => clearTimeout(t); }, [tip]);
+  const show = (e: React.SyntheticEvent<HTMLElement>, text: string) => {
+    const b = box.current!.getBoundingClientRect(), r = e.currentTarget.getBoundingClientRect();
+    setTip({ x: r.left - b.left + r.width / 2, y: r.top - b.top, text });
+  };
+  return (
+    <div className="viz" ref={box} onPointerLeave={() => setTip(null)}>
+      <div className="tablewrap">
+        <div className="heat" style={{ gridTemplateColumns: `${rowHead}px repeat(${cols.length}, minmax(${minCol}px, 1fr))`, minWidth: rowHead + cols.length * (minCol + 2) }}>
+          <span />
+          {cols.map((c) => <span key={c} className="hd">vs {c}</span>)}
+          {rows.map((r) => (<Fragment key={r.id}>
+            <span className="rh">{r.name}</span>
+            {r.cells.map((c, i) => {
+              const text = `${r.name}: ${who} ${fmtRec(c.a)} (${fmtPct(c.a)}) · ${cols[i]} ${fmtRec(c.b)} (${fmtPct(c.b)})`
+                + (c.diff === null ? "" : ` · ${signed(c.diff)} pts`);
+              return c.diff === null ? <span key={i} className="hc empty" aria-label={text}>—</span> : (
+                <button key={i} className="hc" style={diffStyle(c.diff)} aria-label={text}
+                  onPointerEnter={(e) => show(e, text)} onFocus={(e) => show(e, text)} onClick={(e) => show(e, text)}>
+                  {signed(c.diff)}
+                </button>
+              );
+            })}
+          </Fragment>))}
+        </div>
+      </div>
+      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span style={{ marginLeft: 8 }}>win-% points · blue = {who} better · grey = even</span></div>
+      {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
+    </div>
+  );
+}
+
+export function DiffTable({ who, cols, rows }: { who: string; cols: string[]; rows: DiffRow[] }) {
+  return (
+    <table className="grid">
+      <thead><tr><th />{cols.map((c) => <th key={c}>{who} vs {c}</th>)}</tr></thead>
+      <tbody>{rows.map((r) => (
+        <tr key={r.id}><td>{r.name}</td>{r.cells.map((c, i) => <td key={i}>{fmtRec(c.a)} vs {fmtRec(c.b)}{c.diff === null ? "" : ` (${signed(c.diff)})`}</td>)}</tr>
+      ))}</tbody>
+    </table>
+  );
 }
 
 export function HeatTable({ cols, rows }: { cols: string[]; rows: HeatRow[] }) {
