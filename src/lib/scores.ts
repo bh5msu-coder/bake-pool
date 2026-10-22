@@ -65,7 +65,7 @@ const NFL_ABBR: Record<string, string> = {
 const NCAA_ALIAS: Record<string, string> = {
   "Miami (FL)": "Miami", Pitt: "Pittsburgh", UNC: "North Carolina", Cal: "California", "Ole Miss": "Ole Miss",
   UConn: "UConn", "NC State": "NC State", USC: "USC", UCF: "UCF", UCLA: "UCLA", UAB: "UAB", UTSA: "UTSA", UTEP: "UTEP",
-  SMU: "SMU", BYU: "BYU", TCU: "TCU", LSU: "LSU",
+  SMU: "SMU", BYU: "BYU", TCU: "TCU", LSU: "LSU", "Central Florida": "UCF",
 };
 
 const norm = (s: string) => s.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]/g, "");

@@ -12,7 +12,9 @@ const sheet = () => {
   return publicSheet(id);
 };
 
-// Vercel Cron: pull the Converter tab and apply safe changes (new week, moved lines). Never replaces an open week.
+// Scheduled: pull the Converter tab and apply safe changes (new week, moved lines). Never replaces an open week.
+// The Supabase timer calls this every 30 minutes with ?push=0 (lines only); the daily Vercel cron calls it without,
+// which also repeats the sheet write-back as a safety net.
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`)
@@ -21,6 +23,8 @@ export async function GET(req: Request) {
     const sb = adminClient();
     const plan = await planLinesSync(sb, sheet());
     if (plan.action === "create" || plan.action === "update") await applyLinesSync(sb, plan);
+    if (new URL(req.url).searchParams.get("push") === "0")
+      return NextResponse.json({ action: plan.action, message: plan.message, pushed: "skipped" });
     // Safety net for the deadline write, and picks up results entered since.
     const pushed = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
       ? await pushDue(sb, process.env.SHEET_ID!).catch((e: Error) => ({ error: e.message }))

@@ -133,8 +133,15 @@ export function AppProvider(props: {
     }
   }, [mutations, toast]);
 
+  // Reloading also moves the app forward: when a new week's lines arrive, the screen goes to it (the open week).
+  // Nothing moves while the same week stays the default, so browsing an old week isn't interrupted.
   const reload = useCallback(async () => {
-    try { setSeason(await props.reload()); } catch (e) { toast((e as Error).message, true); }
+    try {
+      const next = await props.reload();
+      const before = defaultWeekIdx(current.current), after = defaultWeekIdx(next);
+      setSeason(next);
+      if (after !== before) setWeekIdx(after);
+    } catch (e) { toast((e as Error).message, true); }
   }, [props, toast]);
 
   const isAdmin = !!season.players.find((p) => p.id === me)?.isAdmin;
