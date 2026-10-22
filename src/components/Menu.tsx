@@ -63,6 +63,13 @@ function AdminTools() {
     setPushed(`${r.week}: wrote ${r.cells} cells for ${r.games} games.` + (r.unmatched.length ? ` Couldn't find on the sheet: ${r.unmatched.join(", ")}.` : ""));
   });
 
+  const sync = (mode: "import" | "export") => act(mode, async () => {
+    if (mode === "import" && !confirm("Take every pick that's in the sheet for the open week? Where the sheet and the app differ, the sheet's pick replaces the app's (locked players excepted).")) return;
+    const r = await post<{ message: string; skipped: string[] }>("/api/sheet/sync", { mode });
+    setPushed(r.message + (r.skipped.length ? ` Skipped: ${r.skipped.join("; ")}.` : ""));
+    await reload();
+  });
+
   const problems = plan?.games.filter((g) => g.problem) ?? [];
   return (<>
     <p className="eyebrow" style={{ marginTop: 20 }}>Lines from John&apos;s sheet</p>
@@ -88,7 +95,13 @@ function AdminTools() {
     )}
     <p className="hint">The app also checks the Converter tab every 30 minutes, so a new week shows up on its own once John posts the lines. New weeks are due Thursday at noon CT and lock at 2:30 PM CT.</p>
 
-    <p className="eyebrow" style={{ marginTop: 22 }}>Write to the Google Sheet</p>
+    <p className="eyebrow" style={{ marginTop: 22 }}>Picks ↔ Google Sheet</p>
+    <div className="row" style={{ gap: 8, marginBottom: 8 }}>
+      <button className="cta ghost" style={{ flex: 1 }} onClick={() => sync("import")} disabled={!!busy}>{busy === "import" ? "Importing…" : "Import from sheet"}</button>
+      <button className="cta ghost" style={{ flex: 1 }} onClick={() => sync("export")} disabled={!!busy}>{busy === "export" ? "Exporting…" : "Export to sheet"}</button>
+    </div>
+    <p className="hint" style={{ marginTop: 0 }}>Until picks lock, the open week also syncs both ways every 10 minutes: whichever side changed last wins
+      (the app if both did). Locked players&apos; picks always come from the app.</p>
     {week?.id && <button className="cta ghost" onClick={pushNow} disabled={!!busy}>{busy === "push" ? "Writing…" : `Push ${labelOf(week)} to sheet now`}</button>}
     {pushed && <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>{pushed}</div>}
     <p className="hint">Happens automatically 5 minutes after picks lock (Thursday 2:30 PM CT). Picks, eliminator votes and results go into

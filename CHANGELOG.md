@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 0.10.0 — 2026-10-22 · Picks sync both ways with the sheet
+- Until the open week locks, picks sync **both ways** with the Picks tab every 10 minutes (Supabase timer →
+  `/api/sheet/sync`).
+  - Whichever side changed since the last sync wins, and the app wins if both did.
+  - A pick typed in the sheet goes into the app; a pick made in the app goes into the sheet.
+  - Locked players' picks always come from the app.
+  - Names that aren't one of the game's two teams are skipped and reported.
+  - `pick_sync` (migration 0012) remembers the last synced value per person and game.
+- Menu buttons: **Import from sheet** (the sheet's picks win) and **Export to sheet** (the app's win), for right now.
+- Only the open week's rows and the pick columns (G–J, L) are touched. Past and future weeks never are.
+- Picks are written to the sheet as they're made, so anyone with the sheet link can see them before the lock (Brad's call).
+
 ## 0.9.4 — 2026-10-22 · Brad's early look at the weekly entry
 - From noon Thursday (picks due), once Claude has a pick in every game, Brad gets **View weekly entry (admin)** in the
   picks card. It shows the group entry for every game, marks the ones Claude decided on a 2-2 split, and includes the

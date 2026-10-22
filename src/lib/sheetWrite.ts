@@ -6,10 +6,27 @@ import { matchTeam, type Grid, type Period } from "./sheet";
 export interface CellWrite { range: string; values: string[][] }
 
 /** Picks tab columns (A = 1). The sheet's own formulas (Majority, Win/Loss…) are never touched. */
-const COL = { away: "A", home: "B", line: "C", brad: "G", andrew: "H", kevin: "I", eric: "J", claude: "L", override: "N", result: "O" } as const;
-const PICKERS = ["brad", "andrew", "kevin", "eric", "claude"] as const;
+export const COL = { away: "A", home: "B", line: "C", brad: "G", andrew: "H", kevin: "I", eric: "J", claude: "L", override: "N", result: "O" } as const;
+export const PICKERS = ["brad", "andrew", "kevin", "eric", "claude"] as const;
 
-const cell = (g: Grid, r: number, c: number) => (g[r - 1]?.[c] ?? "").trim(); // r is the 1-based sheet row
+export const cell = (g: Grid, r: number, c: number) => (g[r - 1]?.[c] ?? "").trim(); // r is the 1-based sheet row
+
+/** Which sheet row holds each of the week's games (by game number), matched by team names. */
+export function weekRows(picksTab: Grid, period: Period, week: Week) {
+  const start = period.start;
+  const rows = new Map<number, number>();
+  if (!start) return { rows, empty: false, first: 0, last: -1 };
+  const size = Math.max(period.games, week.games.length);
+  const blockRows = Array.from({ length: size }, (_, i) => start + i);
+  const empty = blockRows.every((r) => !cell(picksTab, r, 0) && !cell(picksTab, r, 1));
+  for (const g of week.games) {
+    const row = empty ? start + week.games.indexOf(g) : blockRows.find((r) => ![...rows.values()].includes(r)
+      && matchTeam(cell(picksTab, r, 0), g.away, g.home) === g.away
+      && matchTeam(cell(picksTab, r, 1), g.away, g.home) === g.home);
+    if (row) rows.set(g.num, row);
+  }
+  return { rows, empty, first: start, last: start + size - 1 };
+}
 
 export interface PicksPlan { writes: CellWrite[]; rows: number; unmatched: string[]; filledGames: boolean }
 
