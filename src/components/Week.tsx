@@ -8,60 +8,12 @@ import {
   type Game, type Week,
 } from "@/lib/scoring";
 import type { LiveGame } from "@/lib/scores";
+import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor } from "@/lib/teams";
 import { Header, Sheet } from "./ui";
 import { useApp } from "./store";
 
 type Show = "all" | "todo" | "ties";
-type LiveMap = Map<number, LiveGame>;
-
-/**
- * Polls live scores while a week's games are near or underway and the app is visible:
- * every minute when something is live or about to kick off, every 5 minutes otherwise.
- */
-function useLive(week: Week | undefined, demo: boolean): LiveMap {
-  const [live, setLive] = useState<LiveMap>(new Map());
-  const id = week?.id, deadline = week?.deadline, num = week?.week;
-  const allGraded = !!week && week.games.length > 0 && week.games.every((g) => g.result);
-  useEffect(() => {
-    setLive(new Map());
-    if (!id || !deadline || allGraded) return;
-    // Demo reopens the latest week for picking, so it skips the time window and asks for that week's real scores.
-    const start = Date.parse(deadline) - 6 * 864e5, end = Date.parse(deadline) + 8 * 864e5;
-    if (!demo && (Date.now() < start || Date.now() > end)) return;
-    const url = demo ? `/api/scores?demoWeek=${num}` : `/api/scores?weekId=${id}`;
-    let stop = false, timer = 0;
-    const load = async () => {
-      let next = 300_000;
-      if (document.visibilityState === "visible") {
-        try {
-          const res = await fetch(url);
-          if (res.ok) {
-            const games = ((await res.json()) as { games: LiveGame[] }).games;
-            if (!stop) setLive(new Map(games.map((g) => [g.num, g])));
-            const soon = games.some((g) => g.state === "in" || (g.state === "pre" && Date.parse(g.start) - Date.now() < 20 * 60_000));
-            if (soon) next = 60_000;
-          }
-        } catch { /* keep the last scores on a network blip */ }
-      }
-      if (!stop) timer = window.setTimeout(load, next);
-    };
-    void load();
-    const onVis = () => { if (document.visibilityState === "visible") { window.clearTimeout(timer); void load(); } };
-    document.addEventListener("visibilitychange", onVis);
-    return () => { stop = true; window.clearTimeout(timer); document.removeEventListener("visibilitychange", onVis); };
-  }, [id, deadline, num, allGraded, demo]);
-  return live;
-}
-
-/** Results so far, plus whoever is covering right now in games still being played. */
-function projected(week: Week, live: LiveMap) {
-  return week.games.map((g) => {
-    const l = live.get(g.num);
-    return g.result || !l || l.state === "pre" || !l.covering ? g : { ...g, result: l.covering };
-  });
-}
-
 /** ESPN writes "15:00 - 3rd"; a scoreboard reads better as "3rd 15:00". */
 const clock = (d: string) => { const m = /^(.+?) - (.+)$/.exec(d); return m ? `${m[2]} ${m[1]}` : d; };
 
@@ -94,7 +46,7 @@ function sections(games: Game[], live: LiveMap): Section[] {
 export function WeekTab() {
   const { season, me, isAdmin, demo, weekIdx, setWeekIdx, reload } = useApp();
   const week = season.weeks[weekIdx];
-  const live = useLive(week, demo);
+  const { live } = useLive(week, demo);
   const [as, setAs] = useState(me);
   const [show, setShow] = useState<Show>("all");
   // "To pick" holds on to the games that were blank when it was chosen, so a row doesn't vanish the moment you pick it.

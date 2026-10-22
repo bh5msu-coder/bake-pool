@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.2 — 2026-10-22 · This week's Entry card in the sidebar
+- **Desktop sidebar: a card for this week's entry**, set apart with an accent edge under the section list. While the
+  week is open it shows the countdown until picks are due (amber during the grace period), your pick count and how
+  many have locked. Once the week locks it shows the Entry record up to the minute, counting the side that's covering
+  in games still being played, with how many are live and final and when the scores were last fetched. Finished
+  weeks show "Final" and the week's winnings. Clicking it opens that week.
+- The live-scores poll moved to a shared hook (`useLive`) so the card and the Week tab reuse one fetch when they're
+  watching the same week.
+
 
 ## 0.9.3 — 2026-10-22 · Sheet write stays inside its week
 - The write-back refuses any cell outside the week's own rows on the Picks tab, and any blank value. Past and future

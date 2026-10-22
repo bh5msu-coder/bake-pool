@@ -2,6 +2,7 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { colorOf } from "@/lib/players";
 import { ENTRY, elimSummary, fmtRec, humans, money, record } from "@/lib/scoring";
+import { EntryCard } from "./EntryCard";
 import { IconElim, IconExplore, IconLeague, IconPool, IconWeek } from "./icons";
 import { useApp, type Tab } from "./store";
 
@@ -92,6 +93,7 @@ export function SideNav() {
           <Icon />{lab}
         </button>
       ))}
+      <EntryCard />
       <div className="season">
         <div><span>Entry record</span><b>{fmtRec(entry)}</b></div>
         <div><span>Net each</span><b className={m.each < 0 ? "neg" : "pos"}>{m.each < 0 ? "-" : ""}${Math.abs(m.each).toFixed(0)}</b></div>
