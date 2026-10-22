@@ -18,10 +18,10 @@ describe("majority and entry", () => {
     expect(majority(g({ brad: "A", andrew: "A", kevin: "A", eric: "H" }), HUMANS)).toBe("A");
     expect(majority(g({ brad: "A", andrew: "A", kevin: "H", eric: "H" }), HUMANS)).toBeNull();
   });
-  it("breaks a 2-2 tie with Claude, and an override beats everything", () => {
+  it("breaks a 2-2 tie with Claude, and nothing can force the entry", () => {
     const tie = g({ brad: "A", andrew: "A", kevin: "H", eric: "H", claude: "H" });
     expect(entryPick(tie, HUMANS)).toBe("H");
-    expect(entryPick({ ...tie, entryOverride: "A" }, HUMANS)).toBe("A");
+    expect(entryPick({ ...tie, entryOverride: "A" }, HUMANS)).toBe("H");
   });
   it("reports splits only once everyone has picked", () => {
     expect(split(g({ brad: "A", andrew: "H", kevin: "H", eric: "H" }), HUMANS)).toBe("3-1");

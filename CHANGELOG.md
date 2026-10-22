@@ -1,5 +1,13 @@
 # Changelog
 
+
+## 0.9.2 — 2026-10-22 · Everyone owns their picks
+- Only you can enter, change or lock your picks. Brad's "Picking as" now lists just Brad and Claude, and the database
+  enforces the same rule (migration 0010).
+- **Force entry is gone.** The group entry is the majority (3 of 4), and Claude's pick decides only 2-2 splits.
+  It had never been used. A database check keeps `entry_override` empty.
+- The eliminator's group-team override is unchanged.
+
 ## 0.9.1 — 2026-10-22 · The week moves forward on its own
 - **Lines are checked every 30 minutes** (Supabase timer `lines-sync`, migration 0009, calling `/api/lines/sync?push=0`),
   not just once a day at 8 AM CT. The next week shows up in the app within half an hour of John posting its lines, with

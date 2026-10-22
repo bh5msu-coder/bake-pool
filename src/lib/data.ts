@@ -89,7 +89,6 @@ export interface Mutations {
   setLock(weekId: number, playerId: string, locked: boolean): Promise<void>;
   setElimPick(weekId: number, playerId: string, team: string | null): Promise<void>;
   setResult(gameId: number, result: string | null): Promise<void>;
-  setOverride(gameId: number, team: string | null): Promise<void>;
   updateWeek(weekId: number, patch: { deadline?: string | null; entry_fee?: number; winnings?: number }): Promise<void>;
   setElimWeek(weekId: number, patch: { override_team?: string | null; outcome?: string | null }): Promise<void>;
   setPlayerEmail(playerId: string, email: string | null): Promise<void>;
@@ -120,7 +119,6 @@ export function supabaseMutations(sb: SupabaseClient): Mutations {
         : await sb.from("elim_picks").delete().match({ week_id, player_id }));
     },
     async setResult(id, result) { check(await sb.from("games").update({ result }).eq("id", id)); },
-    async setOverride(id, team) { check(await sb.from("games").update({ entry_override: team }).eq("id", id)); },
     async updateWeek(id, patch) { check(await sb.from("weeks").update(patch).eq("id", id)); },
     async setElimWeek(week_id, patch) { check(await sb.from("elim_weeks").upsert({ week_id, ...patch })); },
     async setSetting(key, value) { check(await sb.from("settings").upsert({ key, value })); },

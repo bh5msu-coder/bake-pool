@@ -101,9 +101,9 @@ export function split(game: Game, humanIds: PlayerId[]): string | null {
   return `${Math.max(a, teams.length - a)}-${Math.min(a, teams.length - a)}`;
 }
 
-/** The pick that goes on the submitted entry: override, then majority, then the bot breaks ties. */
+/** The pick that goes on the submitted entry: the majority (3 of 4), and Claude breaks 2-2 ties. Nobody can force it. */
 export function entryPick(game: Game, humanIds: PlayerId[]): string | null {
-  return game.entryOverride || majority(game, humanIds) || game.picks[BOT] || null;
+  return majority(game, humanIds) || game.picks[BOT] || null;
 }
 
 /** Players who were alone on their side in a 3-1 split. */

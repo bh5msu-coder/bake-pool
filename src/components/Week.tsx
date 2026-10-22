@@ -341,7 +341,8 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
             <label className="lab row" style={{ gap: 6 }}>
               Picking as
               <select value={as} onChange={(e) => setAs(e.target.value)} className="btn" style={{ minHeight: 32, padding: "0 8px" }}>
-                {season.players.map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
+                {/* Everyone owns their picks; the admin can only pick for themself and for Claude. */}
+                {season.players.filter((p) => p.id === me || p.kind === "bot").map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
               </select>
             </label>
           ) : <span className="lab">Your picks</span>}
@@ -486,7 +487,6 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
         {head}
         <small>{g.league}{sp ? ` · ${sp}` : ""}</small>
         {my && <span className={`tag res ${my === "W" ? "win" : my === "L" ? "loss" : "signal"}`}>{my === "P" ? "Push" : my === "W" ? "Win" : "Loss"}</span>}
-        {g.entryOverride && <span className="tag accent res">Override</span>}
       </button>
       <div>{team(g.away, false)}{team(g.home, true)}</div>
     </article>
@@ -501,7 +501,7 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
     ...season.players.map((p) => [p.id, p.name, g.picks[p.id] ?? null, hidden && !g.picks[p.id] ? "hidden until everyone locks" : undefined] as [string, string, string | null, string?]),
     ...(hidden ? [] : [
     [MAJORITY, "Majority", maj, maj ? undefined : Object.keys(g.picks).length ? "no majority" : undefined],
-    [ENTRY, "Entry", entry, g.entryOverride ? "override" : !maj && entry ? "Claude breaks the tie" : undefined],
+    [ENTRY, "Entry", entry, !maj && entry ? "Claude breaks the tie" : undefined],
     ] as [string, string, string | null, string?][]),
   ];
   const opts = useMemo(() => [g.away, g.home], [g.away, g.home]);
@@ -537,12 +537,7 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
           <button className="pill" aria-pressed={g.result === "PUSH"} onClick={() => run("setResult", g.id!, "PUSH")}>Push</button>
           {g.result && <button className="pill" onClick={() => run("setResult", g.id!, null)}>Clear</button>}
         </div>
-        <p className="eyebrow" style={{ marginTop: 18 }}>Entry pick</p>
-        <div className="pills">
-          <button className="pill" aria-pressed={!g.entryOverride} onClick={() => run("setOverride", g.id!, null)}>Automatic</button>
-          {opts.map((t) => <button key={t} className="pill" aria-pressed={g.entryOverride === t} onClick={() => run("setOverride", g.id!, t)}>Force {t}</button>)}
-        </div>
-        <p className="hint">Results record themselves when games go final. Enter Claude&apos;s picks (or fix anyone&apos;s) with &quot;Picking as&quot; while the week is open.</p>
+        <p className="hint">Results record themselves when games go final. Enter Claude&apos;s tie-break picks with &quot;Picking as&quot; while the week is open.</p>
       </>)}
     </Sheet>
   );
