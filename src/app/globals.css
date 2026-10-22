@@ -84,6 +84,28 @@ header.top .link { color: var(--band-accent); }
 .bar { display: flex; align-items: center; gap: 10px; min-height: 56px; }
 .bar h1 { font: 700 1.2rem/1.1 var(--display); letter-spacing: -.015em; margin: 0; flex: 1; min-width: 0; }
 .bar h1 small { display: block; font: 500 .78rem/1.3 var(--body); color: var(--band-muted); margin-top: 2px; letter-spacing: 0; }
+/* Big weekly record in the header: bright green when winning, red when losing. */
+.bar h1:has(+ .bigrec.in-bar) { flex: 0 0 auto; white-space: nowrap; }
+.bigrec.in-bar { display: none; }
+.bigrec { display: flex; align-items: flex-end; gap: 12px; margin: 0 auto 0 12px; min-width: 0; }
+.bigrec .r { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+.bigrec .r span { font: 700 .66rem var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--band-muted); margin-bottom: 3px; }
+.bigrec .r b { font: 800 1.25rem/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; color: var(--band-ink); white-space: nowrap; }
+.bigrec .r.main b { font-size: 1.75rem; }
+/* Phones: its own row under the title, Entry and You side by side. */
+.bigrec.in-strip { margin: 0; padding: 4px 16px 10px; gap: 22px; align-items: baseline; }
+.bigrec.in-strip .r { flex-direction: row; align-items: baseline; gap: 8px; }
+.bigrec.in-strip .r span { margin: 0; }
+.bigrec.in-strip .r.main b { font-size: 2rem; }
+.bigrec.in-strip .r b { font-size: 1.5rem; }
+.bigrec .r.up b { color: #39d98a; }
+.bigrec .r.down b { color: #ff6b6b; }
+@media (min-width: 1024px) {
+  .bigrec.in-bar { display: flex; gap: 28px; margin-left: 40px; }
+  .bigrec.in-strip { display: none; }
+  .bigrec .r b { font-size: 2rem; }
+  .bigrec .r.main b { font-size: 2.8rem; }
+}
 .wknav { display: flex; align-items: center; gap: 4px; }
 .iconbtn {
   min-width: 40px; min-height: 40px; border: 1px solid var(--rule); background: var(--surface);

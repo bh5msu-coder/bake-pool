@@ -3,6 +3,13 @@
 
 
 
+
+## 0.12.1 — 2026-10-22 · Big weekly record
+- Once a week locks, its record shows big and bold in the header: Entry (largest), then You.
+  Bright green when winning, red when losing, white when even.
+- Desktop: next to the week title. Phones: its own row under the title.
+- It counts who's covering in games still being played, and the strip below says how many games are live or done.
+
 ## 0.12.0 — 2026-10-22 · Compare: you vs everyone and the group
 - New **Compare** view in the Pool tab, with heatmaps of one picker's win-% gap in points. Blue means better, red worse, grey even.
   - Compare against the other players, against the group (Entry and Majority), or **Both**.

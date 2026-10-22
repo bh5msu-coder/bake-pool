@@ -5,7 +5,7 @@ import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
   ENTRY, elimTeam, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
   pickedCount, record, revealed, split,
-  type Game, type Week,
+  type Game, type Rec, type Week,
 } from "@/lib/scoring";
 import type { EntryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
@@ -183,13 +183,20 @@ export function WeekTab() {
         ? <span className="late">Grace period · locks in {dl.toLock}</span>
         : <span className="q">{dl.toDue ? `Due in ${dl.toDue}` : "No deadline set"}</span>}
     </div>
-  ) : (
+  ) : (playing > 0 || (!final && graded)) ? (
     <div className="summary">
-      <span>Entry {fmtRec(record(proj, ENTRY, ids))}</span>
-      <span className="sep" />
-      <span className="q">You {fmtRec(record(proj, me, ids))}</span>
-      {playing > 0 && <><span className="sep" /><span><span className="live-dot" />{playing} live</span></>}
-      {!playing && !final && graded && <><span className="sep" /><span className="q">{proj.filter((g) => g.result).length}/{week.games.length} done</span></>}
+      {playing > 0 && <span><span className="live-dot" />{playing} live · records include who&apos;s covering now</span>}
+      {!playing && <span className="q">{proj.filter((g) => g.result).length}/{week.games.length} games done</span>}
+    </div>
+  ) : undefined;
+
+  // The week's record, big and bright in the header once picks are locked: the entry first, then yours.
+  const recTone = (r: Rec) => (r.w > r.l ? "up" : r.l > r.w ? "down" : "even");
+  const entryRec = record(proj, ENTRY, ids), myRec = record(proj, me, ids);
+  const bigRec = (cls: string) => open ? undefined : (
+    <div className={`bigrec ${cls}`} aria-label={`${labelOf(week)} entry ${fmtRec(entryRec)}, you ${fmtRec(myRec)}`}>
+      <div className={`r main ${recTone(entryRec)}`}><span>Entry</span><b>{fmtRec(entryRec)}</b></div>
+      <div className={`r ${recTone(myRec)}`}><span>You</span><b>{fmtRec(myRec)}</b></div>
     </div>
   );
 
@@ -199,7 +206,8 @@ export function WeekTab() {
     : final ? "Final" : playing ? "Games in progress" : graded ? "In progress" : "Locked";
 
   return (<>
-    <Header title={labelOf(week)} sub={sub} right={nav} strip={summary} onTitle={() => setPicker(true)} />
+    <Header title={labelOf(week)} sub={sub} right={nav} score={bigRec("in-bar")} onTitle={() => setPicker(true)}
+      strip={open ? summary : <>{bigRec("in-strip")}{summary}</>} />
     <main className="wrap">
       <div className="week-layout">
         <div>
