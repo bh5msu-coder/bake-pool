@@ -19,6 +19,7 @@ describe("matching the sheet's names to ESPN", () => {
     expect(teamMatches("Miami (FL)", "NCAA", t(["Miami (OH)", "RedHawks", "Miami (OH) RedHawks", "M-OH"]))).toBe(false);
     expect(teamMatches("Texas", "NCAA", t(["Texas Tech", "Red Raiders", "Texas Tech Red Raiders", "TTU"]))).toBe(false);
     expect(teamMatches("UNC", "NCAA", t(["North Carolina", "Tar Heels", "North Carolina Tar Heels", "UNC"]))).toBe(true);
+    expect(teamMatches("Central Florida", "NCAA", t(["UCF", "Knights", "UCF Knights", "UCF"]))).toBe(true);
     expect(teamMatches("LA Rams", "NFL", t(["Los Angeles", "Rams", "Los Angeles Rams", "LAR"]))).toBe(true);
     expect(teamMatches("LA Rams", "NFL", t(["Los Angeles", "Chargers", "Los Angeles Chargers", "LAC"]))).toBe(false);
   });

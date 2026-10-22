@@ -8,6 +8,7 @@
   check while picks are hidden) finds that a new week has opened, the Week, Elim and menu screens go to it. Browsing an
   older week isn't interrupted otherwise.
 - Tests for which week the app lands on.
+- Live scores: "Central Florida" on the sheet now matches ESPN's "UCF" (the one Week 7 game that wasn't auto-grading).
 
 ## 0.9.0 — 2026-10-20 · Rest of the season on the schedule
 - Weeks 7–15, Bowl, Weeks 16–18, CFP and Playoffs are listed as **upcoming** (from the Summary tab), each with an
