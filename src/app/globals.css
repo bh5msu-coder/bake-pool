@@ -507,6 +507,10 @@ nav.tabs button span { display: none; }
 /* ---------- login ---------- */
 .login { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
 .login .card { width: 100%; max-width: 380px; padding: 28px; }
+.who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.who-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 96px; padding: 16px 8px; border: 1px solid var(--ring); border-radius: 12px; background: var(--surface); font: 600 1rem var(--body); color: var(--ink); cursor: pointer; }
+.who-btn:hover:not(:disabled) { background: var(--hover); }
+.who-btn .avatar { width: 44px; height: 44px; display: grid; place-items: center; font-size: 1.1rem; }
 .login h1 { font: 800 1.7rem var(--body); letter-spacing: -.02em; margin: 0 0 4px; }
 .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
 .empty b { display: block; font: 700 1.1rem var(--body); color: var(--ink); margin-bottom: 6px; }

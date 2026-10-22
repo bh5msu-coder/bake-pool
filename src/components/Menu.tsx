@@ -137,7 +137,8 @@ function AdminTools() {
           onBlur={(e) => e.target.value && run("setPlayerEmail", p.id, e.target.value).then((ok) => ok && toast(`Saved ${p.name}'s email`))} />
       </div>
     ))}
-    <p className="hint">Only these emails can sign in. Saved emails aren&apos;t shown here; type one to replace it.</p>
+    <p className="hint">Sign-in is just tapping your name; each email ties a name to its account. Saved emails aren&apos;t shown here;
+      type one to replace it.</p>
   </>);
 }
 

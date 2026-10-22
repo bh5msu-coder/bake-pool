@@ -1,6 +1,15 @@
 # Changelog
 
 
+
+## 0.11.0 — 2026-10-22 · Tap your name to sign in
+- No email link and no PIN: the sign-in screen shows Brad, Andrew, Kevin and Eric, and tapping a name signs you in
+  as that person (`/api/enter`). You stay signed in on that device as before.
+- Each person still gets their own session, so "only you can change your picks", locks and hidden picks still apply
+  per name. But nothing checks that you are who you tap: **anyone with the link can sign in as anyone.** Brad chose
+  this knowingly.
+- The account password behind each name is derived on the server from the secret key and never sent anywhere.
+
 ## 0.10.0 — 2026-10-22 · Picks sync both ways with the sheet
 - Until the open week locks, picks sync **both ways** with the Picks tab every 10 minutes (Supabase timer →
   `/api/sheet/sync`).
