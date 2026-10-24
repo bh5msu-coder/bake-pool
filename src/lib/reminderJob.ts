@@ -1,7 +1,7 @@
 import "server-only";
 // Finds who hasn't locked their picks for the open week and emails them (Resend's HTTP API).
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { GRACE_MINUTES, softDeadline } from "./deadline";
+import { GRACE_MINUTES, nextDeadline, softDeadline } from "./deadline";
 import { REMINDER_LEAD_MINUTES, reminderDue, reminderEmail } from "./emailReminders";
 
 export interface Recipient { id: string; name: string; email: string; picked: number; total: number }
@@ -76,6 +76,16 @@ export async function sendReminders(plan: ReminderPlan, url: string, graceMin: n
     } catch (e) { out.push({ id: r.id, name: r.name, ok: false, error: (e as Error).message }); }
   }
   return out;
+}
+
+/** A sample reminder to one address, so the Resend setup can be checked without waiting for a Thursday. */
+export async function sendTestReminder(to: { name: string; email: string }, url: string, graceMin: number) {
+  const nextLock = nextDeadline().toISOString();
+  const plan: ReminderPlan = {
+    weekId: 0, label: "Test week", lock: nextLock, due: softDeadline(nextLock, graceMin), remindAt: false, remindedAt: null,
+    recipients: [{ id: "test", name: to.name, email: to.email, picked: 22, total: 30 }], skipped: [],
+  };
+  return sendReminders(plan, url, graceMin);
 }
 
 export async function markReminded(sb: SupabaseClient, weekId: number, at = new Date()) {

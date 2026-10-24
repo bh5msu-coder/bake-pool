@@ -83,6 +83,11 @@ function AdminTools() {
   });
 
   const remPreview = () => act("rem", async () => setRem(await post("/api/reminders")));
+  const remTest = () => act("remtest", async () => {
+    const r = await post<{ results: SendResult[] }>("/api/reminders", { test: true });
+    const x = r.results[0];
+    toast(x?.ok ? "Test email sent to you." : `Couldn't send: ${x?.error ?? "unknown error"}`, !x?.ok);
+  });
   const remSend = () => act("remsend", async () => {
     if (!confirm(`Email everyone who hasn't locked ${rem?.plan?.label ?? "this week"} right now?`)) return;
     setRem(await post("/api/reminders", { send: true }));
@@ -146,6 +151,7 @@ function AdminTools() {
     <div className="row" style={{ gap: 8 }}>
       <button className="cta ghost" onClick={remPreview} disabled={!!busy}>{busy === "rem" ? "Checking…" : "Who'd get one?"}</button>
       <button className="cta ghost" onClick={remSend} disabled={!!busy || !rem?.plan?.recipients.length}>{busy === "remsend" ? "Sending…" : "Send now"}</button>
+      <button className="cta ghost" onClick={remTest} disabled={!!busy}>{busy === "remtest" ? "Sending…" : "Email me a test"}</button>
     </div>
     {rem && (
       <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>
