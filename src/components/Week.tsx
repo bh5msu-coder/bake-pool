@@ -7,7 +7,7 @@ import {
   pickedCount, record, revealed, split,
   type Game, type Rec, type Week,
 } from "@/lib/scoring";
-import type { EntryRow } from "@/lib/data";
+import type { EntryRow, HistoryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
 import { EntrySheet } from "./EntrySheet";
 import { projected, useLive, type LiveMap } from "./useLive";
@@ -523,6 +523,29 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
   );
 }
 
+const whenFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
+
+/** Every change to the picks on one game: who, from what to what, and when. */
+function PickHistory({ gameId, hidden }: { gameId: number; hidden: boolean }) {
+  const { season, history } = useApp();
+  const [rows, setRows] = useState<HistoryRow[] | null>(null);
+  useEffect(() => { history(gameId).then(setRows).catch(() => setRows([])); }, [gameId, history]);
+  const name = (id: string | null) => season.players.find((p) => p.id === id)?.name ?? id ?? "";
+  if (!rows?.length) return null;
+  return (<>
+    <p className="eyebrow" style={{ marginTop: 18 }}>Pick history{hidden ? " (yours until the reveal)" : ""}</p>
+    <div className="history">
+      {rows.slice().reverse().map((r, i) => (
+        <div key={i} className="h-row">
+          <span className="h-when">{whenFmt.format(new Date(r.at))}</span>
+          <span><i className="dot" style={cvar(r.player)} /><b>{name(r.player)}</b> {r.from ?? "—"} → {r.to ?? "cleared"}
+            <small>{r.changedBy === null ? " · via the sheet or Claude's routine" : r.changedBy !== r.player ? ` · by ${name(r.changedBy)}` : ""}</small></span>
+        </div>
+      ))}
+    </div>
+  </>);
+}
+
 export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game; week: Week; live?: LiveGame; hidden?: boolean; onClose(): void }) {
   const { season, isAdmin, run } = useApp();
   const ids = humans(season.players).map((p) => p.id);
@@ -569,6 +592,7 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
         </div>
         <p className="hint">Results record themselves when games go final. Enter Claude&apos;s tie-break picks with &quot;Picking as&quot; while the week is open.</p>
       </>)}
+      {g.id && <PickHistory gameId={g.id} hidden={!!hidden} />}
     </Sheet>
   );
 }

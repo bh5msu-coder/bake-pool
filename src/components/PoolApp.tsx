@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { loadSeason, previewElim, previewEntry, supabaseMutations, type EntryRow, type Mutations } from "@/lib/data";
+import { loadSeason, pickHistory, previewElim, previewEntry, supabaseMutations, type EntryRow, type Mutations } from "@/lib/data";
 import { elimTeam, entryPick, humans, majority } from "@/lib/scoring";
 import { nextDeadline } from "@/lib/deadline";
 import type { Season } from "@/lib/scoring";
@@ -94,6 +94,7 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
   }, [sb]);
 
   const mutations = useMemo(() => (sb ? supabaseMutations(sb) : demoMutations), [sb]);
+  const history = useCallback(async (gameId: number) => (sb ? pickHistory(sb, gameId) : []), [sb]);
   const previewE = useCallback(async (weekId: number) => {
     if (sb) return previewElim(sb, weekId);
     const w = season?.weeks.find((x) => x.id === weekId);
@@ -116,7 +117,7 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
   if (!season || !me) return <div className="empty">Loading the pool…</div>;
 
   return (
-    <AppProvider initial={season} me={me} demo={demo} mutations={mutations} previewEntry={preview} previewElim={previewE} reload={load} signOut={signOut}>
+    <AppProvider initial={season} me={me} demo={demo} mutations={mutations} previewEntry={preview} previewElim={previewE} history={history} reload={load} signOut={signOut}>
       <Screens />
     </AppProvider>
   );

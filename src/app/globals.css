@@ -573,3 +573,8 @@ nav.tabs button span { display: none; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 .slice.upcoming:hover { background: transparent; }
 .compare-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.history { display: grid; gap: 6px; font-size: .84rem; }
+.history .h-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: baseline; }
+.history .h-when { color: var(--faint); font-variant-numeric: tabular-nums; }
+.history .dot { margin-right: 5px; }
+.history small { color: var(--faint); }

@@ -93,6 +93,17 @@ export interface EntryRow { num: number; entry: string; how: "majority" | "claud
  * Brad's preview of the group entry once picks are due and Claude is in, before the lock reveals everyone's picks.
  * The database returns nothing to anyone else, or before then.
  */
+/** One change to a pick. `changedBy` is null when the server made it (sheet sync, Claude's routine). */
+export interface HistoryRow { player: string; from: string | null; to: string | null; changedBy: string | null; at: string }
+
+/** A game's pick history. You see your own; everyone's once the week is revealed. */
+export async function pickHistory(sb: SupabaseClient, gameId: number): Promise<HistoryRow[]> {
+  const { data, error } = await sb.from("pick_history").select("player_id,old_team,new_team,changed_by,changed_at")
+    .eq("game_id", gameId).order("changed_at");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({ player: r.player_id, from: r.old_team, to: r.new_team, changedBy: r.changed_by, at: r.changed_at }));
+}
+
 /** The group's eliminator team for Brad's early preview (null on a tied vote, or before picks are due). */
 export async function previewElim(sb: SupabaseClient, weekId: number): Promise<string | null> {
   const { data, error } = await sb.rpc("admin_elim", { w: weekId });
