@@ -12,6 +12,7 @@ import type { LiveGame } from "@/lib/scores";
 import { EntrySheet } from "./EntrySheet";
 import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor } from "@/lib/teams";
+import { RecapCard } from "./Recap";
 import { Header, Sheet } from "./ui";
 import { useApp } from "./store";
 
@@ -166,6 +167,7 @@ export function WeekTab() {
       <div className="week-layout">
         <div>
           {open && <div className="mob-only"><Status week={week} as={as} setAs={setAs} compact /></div>}
+          {final && <div className="mob-only" style={{ marginTop: 14 }}><RecapCard week={week} /></div>}
           <section style={{ paddingTop: open ? 4 : 14 }}>
             {(open || isAdmin) && (
               <div className="row" style={{ marginBottom: 4, flexWrap: "wrap" }}>
@@ -211,6 +213,7 @@ export function WeekTab() {
         </div>
         <aside className="rail-col desk-only" style={{ paddingTop: 18 }}>
           {open && <div className="card"><Status week={week} as={as} setAs={setAs} /></div>}
+          {final && <div style={{ marginBottom: 12 }}><RecapCard week={week} /></div>}
           {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
           <div style={{ marginTop: 12 }}><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
         </aside>

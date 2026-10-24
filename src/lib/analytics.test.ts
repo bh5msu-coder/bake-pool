@@ -58,3 +58,17 @@ describe("compareGrid", () => {
     expect(wk.rows.length).toBe(s.weeks.filter((w) => w.games.some((x) => x.result)).length);
   });
 });
+
+describe("weekRecap", () => {
+  it("summarises a finished week: entry, best and worst, splits, eliminator, season", async () => {
+    const { weekRecap } = await import("./analytics");
+    const { ENTRY, record } = await import("./scoring");
+    const s = fixtureSeason();
+    const r = weekRecap(s, 5);
+    const ids = ["brad", "andrew", "kevin", "eric"];
+    expect(r.entry).toEqual(record(s.weeks[4].games, ENTRY, ids));
+    expect(r.agree.w + r.agree.l + r.three.w + r.three.l + r.ties.w + r.ties.l).toBe(r.entry.w + r.entry.l);
+    expect(r.best[0].rec.w).toBeGreaterThanOrEqual(r.worst[0].rec.w);
+    expect(r.text.split("\n")[0]).toMatch(/^BAKE Pool · Week 5: Entry \d+-\d+/);
+  });
+});

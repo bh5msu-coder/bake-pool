@@ -1,6 +1,6 @@
 // Season analytics behind the Pool dashboard. Pure functions over a Season.
 import {
-  band, BANDS, ENTRY, grade, humans, MAJORITY, pct, pickOf, record, shortLabel, side, soloPicker, split,
+  band, BANDS, elimSummary, ENTRY, fmtPct, fmtRec, grade, humans, labelOf, MAJORITY, pct, pickOf, record, shortLabel, side, soloPicker, split,
   type Game, type Rec, type Season,
 } from "./scoring";
 
@@ -154,4 +154,31 @@ export function compareGrid(s: Season, who: string, against: string[], by: "type
     })),
   ];
   return { cols, rows };
+}
+
+/** Everything for a finished week's recap card (and the text version to share). */
+export function weekRecap(s: Season, weekNum: number) {
+  const ids = humans(s.players).map((p) => p.id);
+  const w = s.weeks.find((x) => x.week === weekNum)!;
+  const games = w.games.filter((g) => g.result);
+  const entry = record(games, ENTRY, ids);
+  const people = s.players.map((p) => ({ id: p.id, name: p.name, rec: record(games, p.id, ids) }))
+    .sort((a, b) => b.rec.w - a.rec.w || a.rec.l - b.rec.l);
+  const best = people.filter((p) => p.rec.w === people[0].rec.w && p.rec.l === people[0].rec.l);
+  const last = people.at(-1)!;
+  const worst = people.filter((p) => p.rec.w === last.rec.w && p.rec.l === last.rec.l);
+  const by = (k: "4-0" | "3-1" | "2-2") => record(games.filter((g) => split(g, ids) === k), ENTRY, ids);
+  const elimRow = elimSummary(s).rows.find((r) => r.week === weekNum);
+  const lives = elimSummary(s);
+  const upTo = s.weeks.filter((x) => x.week <= weekNum).flatMap((x) => x.games).filter((g) => g.result);
+  const season = record(upTo, ENTRY, ids);
+  const label = labelOf(w);
+  const text = [
+    `BAKE Pool · ${label}: Entry ${fmtRec(entry)}${w.winnings ? ` · won $${w.winnings}` : ""}`,
+    `Best: ${best.map((p) => p.name).join(", ")} (${fmtRec(best[0].rec)}) · Worst: ${worst.map((p) => p.name).join(", ")} (${fmtRec(worst[0].rec)})`,
+    `All four agreed ${fmtRec(by("4-0"))} · 3-1 ${fmtRec(by("3-1"))} · Claude's tie-breaks ${fmtRec(by("2-2"))}`,
+    elimRow?.team ? `Eliminator: ${elimRow.team} ${elimRow.outcome === "survived" ? "lost, we survived" : elimRow.outcome === "died" ? "won, life lost" : "pending"} · ${lives.livesLeft} ${lives.livesLeft === 1 ? "life" : "lives"} left` : "",
+    `Season entry: ${fmtRec(season)} (${fmtPct(season)})`,
+  ].filter(Boolean).join("\n");
+  return { label, entry, winnings: w.winnings, people, best, worst, agree: by("4-0"), three: by("3-1"), ties: by("2-2"), elim: elimRow, livesLeft: lives.livesLeft, season, text };
 }

@@ -1,5 +1,25 @@
 # Changelog
 
+
+## 0.13.0 — 2026-10-24 · History, reminders, hidden eliminator votes, recap
+- **Pick history:** every pick change is logged (migration 0014): whose pick, from what to what, when, and by which
+  account, or "via the sheet or Claude's routine" when the server made it.
+  - Shown under each game's details.
+  - You see your own until the reveal, then everyone's.
+- **Phone notifications** (web push, migration 0015). Menu → Notifications → Turn on (iPhone: from the Home Screen app).
+  - Thursday reminders 3 hours before picks are due to anyone not locked, plus a last call at 45 minutes.
+  - **Claude safety net:** 30 minutes before picks are due, Brad is alerted if Claude doesn't have a pick in every game.
+  - Each reminder goes out once (`push_log`). A Supabase timer runs every 15 minutes on Thursdays.
+- **Eliminator votes are hidden** until the reveal, like picks (migration 0013).
+  - Everyone sees who has voted, not for whom.
+  - Brad's early entry preview includes the group's eliminator team.
+- **Weekly recap card** on finished weeks, with a Share button that copies a text version for the group chat.
+  - Entry record and winnings.
+  - Best and worst picker.
+  - All-four-agreed and Claude tie-break records.
+  - Eliminator result and lives.
+  - Season entry record.
+
 ## 0.9.2 — 2026-10-22 · This week's Entry card in the sidebar
 - **Desktop sidebar: a card for this week's entry**, set apart with an accent edge under the section list. While the
   week is open it shows the countdown until picks are due (amber during the grace period), your pick count and how
