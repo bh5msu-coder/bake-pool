@@ -141,3 +141,19 @@ export function weekDays(deadlineIso: string): string[] {
   }
   return [...new Set(out)];
 }
+
+/**
+ * Eliminator result for the group's team once its NFL game is final: the pick was a team to LOSE, so a loss (or a
+ * tie, since they didn't win) is "survived" and a win is "died". Null while the game isn't final or isn't found.
+ */
+export function elimOutcome(team: string, events: ScoreEvent[]): "survived" | "died" | null {
+  for (const e of events) {
+    if (e.league !== "NFL" || !e.completed) continue;
+    const mine = teamMatches(team, "NFL", e.home) ? e.home : teamMatches(team, "NFL", e.away) ? e.away : null;
+    if (!mine) continue;
+    const other = mine === e.home ? e.away : e.home;
+    if (mine.score === null || other.score === null) return null;
+    return mine.score > other.score ? "died" : "survived";
+  }
+  return null;
+}

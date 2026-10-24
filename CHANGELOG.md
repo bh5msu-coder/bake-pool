@@ -1,6 +1,13 @@
 # Changelog
 
 
+
+## 0.13.1 — 2026-10-24 · Eliminator results record themselves
+- The 10-minute scores job now also records the eliminator outcome once the group's team has played: a loss or tie
+  is "survived", a win is "life lost". It never overwrites an outcome entered by hand.
+- Week 6 (NY Jets lost 19-26 at New England) was stuck on "pending" because outcomes were only ever entered by hand;
+  it's now recorded as survived.
+
 ## 0.13.0 — 2026-10-24 · History, reminders, hidden eliminator votes, recap
 - **Pick history:** every pick change is logged (migration 0014): whose pick, from what to what, when, and by which
   account, or "via the sheet or Claude's routine" when the server made it.
