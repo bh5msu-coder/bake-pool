@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { labelOf } from "@/lib/scoring";
+import { Notifications } from "./Notifications";
 import { Sheet } from "./ui";
 import { useApp } from "./store";
 
@@ -31,6 +32,7 @@ export function Menu() {
     <Sheet title="Menu" onClose={() => setMenu(false)}>
       <div className="kv"><span className="lab">Signed in</span><span>{p?.name ?? me}{demo && " (demo)"}</span>
         <button className="link" onClick={signOut}>Sign out</button></div>
+      <Notifications />
       {isAdmin && <AdminTools />}
       <p className="hint">Tip: on iPhone, tap Share → Add to Home Screen to use this like an app.</p>
     </Sheet>
