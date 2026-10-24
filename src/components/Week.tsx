@@ -3,15 +3,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDay, fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
-  ENTRY, elimTeam, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
+  ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
   pickedCount, record, revealed, split,
   type Game, type Rec, type Week,
 } from "@/lib/scoring";
-import type { EntryRow } from "@/lib/data";
+import type { EntryRow, HistoryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
 import { EntrySheet } from "./EntrySheet";
 import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor } from "@/lib/teams";
+import { RecapCard } from "./Recap";
 import { Header, Sheet } from "./ui";
 import { useApp } from "./store";
 
@@ -166,6 +167,7 @@ export function WeekTab() {
       <div className="week-layout">
         <div>
           {open && <div className="mob-only"><Status week={week} as={as} setAs={setAs} compact /></div>}
+          {final && <div className="mob-only" style={{ marginTop: 14 }}><RecapCard week={week} /></div>}
           <section style={{ paddingTop: open ? 4 : 14 }}>
             {(open || isAdmin) && (
               <div className="row" style={{ marginBottom: 4, flexWrap: "wrap" }}>
@@ -211,6 +213,7 @@ export function WeekTab() {
         </div>
         <aside className="rail-col desk-only" style={{ paddingTop: 18 }}>
           {open && <div className="card"><Status week={week} as={as} setAs={setAs} /></div>}
+          {final && <div style={{ marginBottom: 12 }}><RecapCard week={week} /></div>}
           {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
           <div style={{ marginTop: 12 }}><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
         </aside>
@@ -378,13 +381,13 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
 
 /** Brad's early look at the group entry and eliminator team, from the database (only he can get it, only after noon). */
 function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
-  const { season, previewEntry, toast } = useApp();
+  const { previewEntry, previewElim, toast } = useApp();
   const [rows, setRows] = useState<EntryRow[] | null>(null);
-  const ids = humans(season.players).map((p) => p.id);
-  const elim = elimTeam(week.elim, ids);
+  const [elim, setElim] = useState<string | null>(null);
   useEffect(() => {
     previewEntry(week.id!).then(setRows).catch((e: Error) => { toast(e.message, true); setRows([]); });
-  }, [week.id, previewEntry, toast]);
+    previewElim(week.id!).then(setElim).catch(() => setElim(null));
+  }, [week.id, previewEntry, previewElim, toast]);
   const byNum = new Map((rows ?? []).map((r) => [r.num, r]));
   const ties = (rows ?? []).filter((r) => r.how === "claude").length;
   async function copy() {
@@ -523,6 +526,29 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
   );
 }
 
+const whenFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
+
+/** Every change to the picks on one game: who, from what to what, and when. */
+function PickHistory({ gameId, hidden }: { gameId: number; hidden: boolean }) {
+  const { season, history } = useApp();
+  const [rows, setRows] = useState<HistoryRow[] | null>(null);
+  useEffect(() => { history(gameId).then(setRows).catch(() => setRows([])); }, [gameId, history]);
+  const name = (id: string | null) => season.players.find((p) => p.id === id)?.name ?? id ?? "";
+  if (!rows?.length) return null;
+  return (<>
+    <p className="eyebrow" style={{ marginTop: 18 }}>Pick history{hidden ? " (yours until the reveal)" : ""}</p>
+    <div className="history">
+      {rows.slice().reverse().map((r, i) => (
+        <div key={i} className="h-row">
+          <span className="h-when">{whenFmt.format(new Date(r.at))}</span>
+          <span><i className="dot" style={cvar(r.player)} /><b>{name(r.player)}</b> {r.from ?? "—"} → {r.to ?? "cleared"}
+            <small>{r.changedBy === null ? " · via the sheet or Claude's routine" : r.changedBy !== r.player ? ` · by ${name(r.changedBy)}` : ""}</small></span>
+        </div>
+      ))}
+    </div>
+  </>);
+}
+
 export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game; week: Week; live?: LiveGame; hidden?: boolean; onClose(): void }) {
   const { season, isAdmin, run } = useApp();
   const ids = humans(season.players).map((p) => p.id);
@@ -569,6 +595,7 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
         </div>
         <p className="hint">Results record themselves when games go final. Enter Claude&apos;s tie-break picks with &quot;Picking as&quot; while the week is open.</p>
       </>)}
+      {g.id && <PickHistory gameId={g.id} hidden={!!hidden} />}
     </Sheet>
   );
 }

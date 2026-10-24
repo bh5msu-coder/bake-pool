@@ -2,7 +2,7 @@ import "server-only";
 // Finds who hasn't locked their picks for the open week and emails them (Resend's HTTP API).
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GRACE_MINUTES, softDeadline } from "./deadline";
-import { REMINDER_LEAD_MINUTES, reminderDue, reminderEmail } from "./reminders";
+import { REMINDER_LEAD_MINUTES, reminderDue, reminderEmail } from "./emailReminders";
 
 export interface Recipient { id: string; name: string; email: string; picked: number; total: number }
 export interface ReminderPlan {

@@ -42,3 +42,18 @@ describe("against the spread", () => {
     expect(weekDays("2026-10-22T19:30:00Z")).toEqual(["20261021", "20261022", "20261023", "20261024", "20261025", "20261026", "20261027"]);
   });
 });
+
+describe("elimOutcome", () => {
+  const ev = (away: [string, number], home: [string, number], completed = true) => ({
+    id: "1", league: "NFL" as const, date: "", state: completed ? "post" as const : "in" as const, detail: "", completed,
+    away: { names: [away[0]], score: away[1] }, home: { names: [home[0]], score: home[1] },
+  });
+  it("survives when the group's team loses or ties, dies when it wins, waits until final", async () => {
+    const { elimOutcome } = await import("./scores");
+    expect(elimOutcome("NY Jets", [ev(["NYJ", 19], ["NE", 26])])).toBe("survived");
+    expect(elimOutcome("NY Jets", [ev(["NYJ", 27], ["NE", 26])])).toBe("died");
+    expect(elimOutcome("NY Jets", [ev(["NYJ", 20], ["NE", 20])])).toBe("survived");
+    expect(elimOutcome("NY Jets", [ev(["NYJ", 3], ["NE", 26], false)])).toBeNull();
+    expect(elimOutcome("NY Jets", [ev(["MIA", 3], ["NE", 26])])).toBeNull();
+  });
+});

@@ -573,3 +573,18 @@ nav.tabs button span { display: none; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 .slice.upcoming:hover { background: transparent; }
 .compare-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.history { display: grid; gap: 6px; font-size: .84rem; }
+.history .h-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: baseline; }
+.history .h-when { color: var(--faint); font-variant-numeric: tabular-nums; }
+.history .dot { margin-right: 5px; }
+.history small { color: var(--faint); }
+.recap .recap-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.recap .recap-head small, .recap-grid small { display: block; color: var(--faint); font-size: .76rem; }
+.recap-big { font: 800 2.4rem/1.05 var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.recap .up { color: var(--win); }
+.recap .down { color: var(--loss); }
+.recap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-top: 14px; }
+.recap-grid span { display: block; font: 600 .7rem var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--faint); }
+.recap-grid b { font: 700 1rem var(--body); font-variant-numeric: tabular-nums; }
+.recap-people { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: .84rem; }
+.recap-people .dot { margin-right: 5px; }

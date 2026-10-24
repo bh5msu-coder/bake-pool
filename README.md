@@ -89,7 +89,7 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
 3. Everyone picks until the deadline. Brad enters Claude's picks with the **AS** selector.
    **Reminder emails**: 60 minutes before picks are due (11 AM CT / noon ET; `reminder_lead_minutes` in the menu),
    whoever hasn't locked gets an email saying how many picks they have left (`/api/reminders`, Supabase timer
-   `pick-reminders` every 15 minutes, migration 0010; `weeks.reminded_at` keeps it to once a week). Brad can preview
+   `pick-reminders` every 15 minutes, migration 0016; `weeks.reminded_at` keeps it to once a week). Brad can preview
    who'd get one, or send right away, from the menu. Needs `RESEND_API_KEY`.
 4. Copy the entry from the Week tab and submit it.
 5. After the games, Brad taps **⋯** on each game to record who covered, and sets the week's winnings in the menu.

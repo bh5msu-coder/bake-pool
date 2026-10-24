@@ -2,7 +2,7 @@
 // App-wide state: the season, who's signed in, and writes that update the
 // screen immediately and roll back if the server refuses them.
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
-import type { EntryRow, Mutations } from "@/lib/data";
+import type { EntryRow, HistoryRow, Mutations } from "@/lib/data";
 import type { Season } from "@/lib/scoring";
 
 type Op = { [K in keyof Mutations]: { kind: K; args: Parameters<Mutations[K]> } }[keyof Mutations];
@@ -83,6 +83,8 @@ interface Ctx {
   run<K extends keyof Mutations>(kind: K, ...args: Parameters<Mutations[K]>): Promise<boolean>;
   toast(msg: string, bad?: boolean): void;
   previewEntry(weekId: number): Promise<EntryRow[]>;
+  previewElim(weekId: number): Promise<string | null>;
+  history(gameId: number): Promise<HistoryRow[]>;
   reload(): Promise<void>;
   signOut(): Promise<void>;
 }
@@ -101,7 +103,7 @@ export function defaultWeekIdx(s: Season, now = Date.now()) {
 }
 
 export function AppProvider(props: {
-  initial: Season; me: string; demo: boolean; mutations: Mutations; previewEntry(weekId: number): Promise<EntryRow[]>;
+  initial: Season; me: string; demo: boolean; mutations: Mutations; previewEntry(weekId: number): Promise<EntryRow[]>; previewElim(weekId: number): Promise<string | null>; history(gameId: number): Promise<HistoryRow[]>;
   reload(): Promise<Season>; signOut(): Promise<void>; children: ReactNode;
 }) {
   const { mutations, me, demo } = props;
@@ -148,8 +150,8 @@ export function AppProvider(props: {
   const isAdmin = !!season.players.find((p) => p.id === me)?.isAdmin;
   const value = useMemo<Ctx>(() => ({
     season, me, isAdmin, demo, tab, setTab, weekIdx, setWeekIdx, filter, setFilter, menu, setMenu, run, toast, reload, signOut: props.signOut,
-    previewEntry: props.previewEntry,
-  }), [season, me, isAdmin, demo, tab, weekIdx, filter, menu, run, toast, reload, props.signOut, props.previewEntry]);
+    previewEntry: props.previewEntry, previewElim: props.previewElim, history: props.history,
+  }), [season, me, isAdmin, demo, tab, weekIdx, filter, menu, run, toast, reload, props.signOut, props.previewEntry, props.previewElim, props.history]);
 
   return (
     <C.Provider value={value}>
