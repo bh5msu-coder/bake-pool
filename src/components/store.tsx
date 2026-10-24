@@ -53,6 +53,7 @@ function applyLocal(s: Season, op: Op): Season {
       else if (k === "ledger") next.ledger = v as Season["ledger"];
       else if (k === "season_fee") next.seasonFee = Number(v);
       else if (k === "grace_minutes") next.graceMinutes = Number(v);
+      else if (k === "reminder_lead_minutes") next.reminderLeadMinutes = Number(v);
       break;
     }
     case "setPlayerEmail": break;

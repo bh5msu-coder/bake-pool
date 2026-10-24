@@ -1,6 +1,16 @@
 # Changelog
 
-
+## 0.13.2 — 2026-10-24 · Thursday reminder emails
+- **Reminder emails**, alongside the phone notifications, go to whoever hasn't locked their picks, 60 minutes before picks are due (11 AM CT, noon ET;
+  the lead time is a menu setting). Each email says how many picks that person has left, or that everything is picked
+  but not locked, when picks are due and lock, and links to the app. After the due time, during the grace period, it
+  says picks were due and when they lock for good.
+- A Supabase timer (`pick-reminders`, every 15 minutes, migration 0016) calls `/api/reminders`; the app decides when
+  it's time, so the clock change and off-Thursday slates need no cron edits, and `weeks.reminded_at` keeps it to one
+  send per week. A missed run still sends as long as the week hasn't locked.
+- Menu: **Who'd get one?** previews the recipients and the scheduled time; **Send now** emails them immediately
+  (without using up the week's scheduled reminder).
+- Sent through Resend's API: set `RESEND_API_KEY` and `REMINDER_FROM` in Vercel.
 
 ## 0.13.1 — 2026-10-24 · Eliminator results record themselves
 - The 10-minute scores job now also records the eliminator outcome once the group's team has played: a loss or tie

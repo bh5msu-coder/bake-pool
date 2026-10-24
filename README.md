@@ -52,6 +52,8 @@ from the sheet, with Week 6 reopened so you can try picking. Demo mode is off in
 | `SHEET_ID` | the long ID in the sheet's URL | no |
 | `CRON_SECRET` | any long random string (`openssl rand -hex 32`) | **yes** |
 | `GOOGLE_SERVICE_ACCOUNT_KEY` | the JSON key of a Google service account that is an **Editor** on the sheet (see below) | **yes** |
+| `RESEND_API_KEY` | [Resend](https://resend.com) → API Keys; needed for the Thursday pick reminder emails | **yes** |
+| `REMINDER_FROM` | the sender, e.g. `BAKE Pool <pool@yourdomain.com>` (a domain verified in Resend; `onboarding@resend.dev` only delivers to the Resend account's own address) | no |
 
 The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The schema is in `supabase/migrations/` and is already applied.
 
@@ -85,6 +87,10 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
    The rest of the season is pre-listed as upcoming weeks with no games (`npm run sheet -- schedule --apply`);
    the sync fills the next one in order when its lines appear.
 3. Everyone picks until the deadline. Brad enters Claude's picks with the **AS** selector.
+   **Reminder emails**: 60 minutes before picks are due (11 AM CT / noon ET; `reminder_lead_minutes` in the menu),
+   whoever hasn't locked gets an email saying how many picks they have left (`/api/reminders`, Supabase timer
+   `pick-reminders` every 15 minutes, migration 0016; `weeks.reminded_at` keeps it to once a week). Brad can preview
+   who'd get one, or send right away, from the menu. Needs `RESEND_API_KEY`.
 4. Copy the entry from the Week tab and submit it.
 5. After the games, Brad taps **⋯** on each game to record who covered, and sets the week's winnings in the menu.
 
