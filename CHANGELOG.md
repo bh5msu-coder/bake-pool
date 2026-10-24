@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.0 — 2026-10-24 · Thursday pick reminders
+- **Reminder emails** go to whoever hasn't locked their picks, 60 minutes before picks are due (11 AM CT, noon ET;
+  the lead time is a menu setting). Each email says how many picks that person has left, or that everything is picked
+  but not locked, when picks are due and lock, and links to the app. After the due time, during the grace period, it
+  says picks were due and when they lock for good.
+- A Supabase timer (`pick-reminders`, every 15 minutes, migration 0010) calls `/api/reminders`; the app decides when
+  it's time, so the clock change and off-Thursday slates need no cron edits, and `weeks.reminded_at` keeps it to one
+  send per week. A missed run still sends as long as the week hasn't locked.
+- Menu: **Who'd get one?** previews the recipients and the scheduled time; **Send now** emails them immediately
+  (without using up the week's scheduled reminder).
+- Sent through Resend's API: set `RESEND_API_KEY` and `REMINDER_FROM` in Vercel.
+
 ## 0.9.2 — 2026-10-22 · This week's Entry card in the sidebar
 - **Desktop sidebar: a card for this week's entry**, set apart with an accent edge under the section list. While the
   week is open it shows the countdown until picks are due (amber during the grace period), your pick count and how

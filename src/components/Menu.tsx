@@ -1,8 +1,17 @@
 "use client";
 import { useState } from "react";
+import { fmtDeadline, fmtTime } from "@/lib/deadline";
 import { labelOf } from "@/lib/scoring";
+import { remindAt } from "@/lib/reminders";
 import { Sheet } from "./ui";
 import { useApp } from "./store";
+
+type ReminderPlan = {
+  label: string; lock: string; due: string; remindAt: boolean; remindedAt: string | null;
+  recipients: { id: string; name: string; email: string; picked: number; total: number }[];
+  skipped: { id: string; name: string; reason: string }[];
+};
+type SendResult = { id: string; name: string; ok: boolean; error?: string };
 
 type Plan = {
   action: "none" | "update" | "create" | "conflict"; week: number; label: string; message: string;
@@ -44,6 +53,7 @@ function AdminTools() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [pushed, setPushed] = useState<string | null>(null);
+  const [rem, setRem] = useState<{ plan: ReminderPlan | null; results?: SendResult[]; message?: string } | null>(null);
 
   async function act(label: string, fn: () => Promise<void>) {
     if (demo) return toast("Not available in demo mode.", true);
@@ -68,6 +78,12 @@ function AdminTools() {
     const r = await post<{ message: string; skipped: string[] }>("/api/sheet/sync", { mode });
     setPushed(r.message + (r.skipped.length ? ` Skipped: ${r.skipped.join("; ")}.` : ""));
     await reload();
+  });
+
+  const remPreview = () => act("rem", async () => setRem(await post("/api/reminders")));
+  const remSend = () => act("remsend", async () => {
+    if (!confirm(`Email everyone who hasn't locked ${rem?.plan?.label ?? "this week"} right now?`)) return;
+    setRem(await post("/api/reminders", { send: true }));
   });
 
   const problems = plan?.games.filter((g) => g.problem) ?? [];
@@ -123,6 +139,31 @@ function AdminTools() {
       <input id="grace" type="number" inputMode="numeric" min={0} max={1440} step={15} defaultValue={season.graceMinutes}
         onBlur={(e) => run("setSetting", "grace_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
     <p className="hint">150 = due at noon, locked at 2:30 PM. Anyone can still pick during the grace period.</p>
+
+    <p className="eyebrow" style={{ marginTop: 22 }}>Pick reminders</p>
+    <div className="row" style={{ gap: 8 }}>
+      <button className="cta ghost" onClick={remPreview} disabled={!!busy}>{busy === "rem" ? "Checking…" : "Who'd get one?"}</button>
+      <button className="cta ghost" onClick={remSend} disabled={!!busy || !rem?.plan?.recipients.length}>{busy === "remsend" ? "Sending…" : "Send now"}</button>
+    </div>
+    {rem && (
+      <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>
+        {!rem.plan ? <p style={{ margin: 0 }}>{rem.message ?? "No open week."}</p> : (<>
+          <p style={{ margin: "0 0 6px", fontWeight: 600 }}>
+            {rem.plan.label}: {rem.plan.recipients.length ? `${rem.plan.recipients.map((r) => `${r.name} (${r.picked}/${r.total})`).join(", ")} ${rem.plan.recipients.length === 1 ? "hasn't" : "haven't"} locked.` : "everyone has locked."}
+          </p>
+          {rem.plan.skipped.some((x) => x.reason === "no email") && <p className="warn" style={{ margin: "0 0 6px" }}>No email for {rem.plan.skipped.filter((x) => x.reason === "no email").map((x) => x.name).join(", ")}.</p>}
+          <p className="hint" style={{ margin: 0 }}>
+            {rem.plan.remindedAt ? `Scheduled reminder went out ${fmtDeadline(rem.plan.remindedAt)}.`
+              : `Scheduled reminder: ${fmtDeadline(remindAt(rem.plan.lock, season.graceMinutes, season.reminderLeadMinutes))} · picks due ${fmtTime(rem.plan.due)}.`}
+          </p>
+          {rem.results && <p style={{ margin: "6px 0 0" }}>{rem.results.map((r) => `${r.name}: ${r.ok ? "sent" : `failed (${r.error})`}`).join(" · ")}</p>}
+        </>)}
+      </div>
+    )}
+    <div className="field" style={{ marginTop: 10 }}><label htmlFor="remlead">Send the reminder this many minutes before picks are due</label>
+      <input id="remlead" type="number" inputMode="numeric" min={0} max={1440} step={15} defaultValue={season.reminderLeadMinutes}
+        onBlur={(e) => run("setSetting", "reminder_lead_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
+    <p className="hint">60 = 11:00 AM CT (noon ET) when picks are due at noon CT. Goes once a week to whoever hasn&apos;t locked, by email, and needs the RESEND_API_KEY and REMINDER_FROM settings in Vercel.</p>
 
     <div className="field" style={{ marginTop: 22 }}><label htmlFor="sfee">Season entry $ (paid up front)</label>
       <input id="sfee" type="number" inputMode="decimal" min={0} defaultValue={season.seasonFee}

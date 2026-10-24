@@ -63,6 +63,8 @@ export interface Season {
   seasonFee: number;
   /** Grace period in minutes between when picks are due and the hard lock (the week's deadline). */
   graceMinutes: number;
+  /** Pick reminder emails go out this many minutes before picks are due. */
+  reminderLeadMinutes: number;
   ledger: LedgerEntry[];
 }
 
