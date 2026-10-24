@@ -1,5 +1,5 @@
 "use client";
-import { elimSummary, elimTeam, humans, isOpen, labelOf, usedElimTeams, type Week } from "@/lib/scoring";
+import { elimSummary, elimTeam, humans, isOpen, labelOf, revealed, usedElimTeams, type Week } from "@/lib/scoring";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import { spreadFor, teamVars } from "@/lib/teams";
 import { Header } from "./ui";
@@ -32,8 +32,11 @@ export function ElimTab() {
   const used = usedElimTeams(season, week.week);
   const cands = candidates(week);
   const cand = cands.find((c) => c.team === team);
-  const votes = Object.values(week.elim.picks).filter(Boolean).length;
-  const tied = !team && votes > 0;
+  // Before the reveal only your own vote is loaded; `voters` says who else has voted.
+  const hidden = !revealed(week, season.players);
+  const voted = (id: string) => !!week.elim.picks[id] || !!week.elim.voters?.includes(id);
+  const votes = hidden ? ids.filter(voted).length : Object.values(week.elim.picks).filter(Boolean).length;
+  const tied = !hidden && !team && votes > 0;
 
   return (<>
     <Header title="Eliminator" sub={`${labelOf(week)} · ${sum.alive ? `${sum.livesLeft} ${sum.livesLeft === 1 ? "life" : "lives"} left` : "Eliminated"}`} right={nav} />
@@ -44,8 +47,9 @@ export function ElimTab() {
         <div className="ticket" style={teamVars(team)}>
           <div className="face">
             <div className="kicker">{labelOf(week)} · group pick to lose</div>
-            <div className="team">{team ?? (tied ? "Tied vote" : "No pick yet")}</div>
-            <div className="vs">{cand ? `${cand.opp} · ${cand.line}` : tied ? "Brad breaks the tie below" : `${votes}/${ids.length} votes in`}</div>
+            <div className="team">{hidden && !week.elim.override ? "Hidden until the lock" : team ?? (tied ? "Tied vote" : "No pick yet")}</div>
+            <div className="vs">{hidden && !week.elim.override ? `${votes}/${ids.length} votes in · revealed when everyone locks or at the deadline`
+              : cand ? `${cand.opp} · ${cand.line}` : tied ? "Brad breaks the tie below" : `${votes}/${ids.length} votes in`}</div>
           </div>
           <div className="perf" />
           <div className="stub">
@@ -74,7 +78,8 @@ export function ElimTab() {
         <p className="eyebrow">Votes</p>
         <div className="progress">
           {humans(season.players).map((p) => (
-            <div key={p.id} className={week.elim.picks[p.id] ? "done" : ""}><i className="dot" style={cvar(p.id)} /><span>{p.name}</span><b>{week.elim.picks[p.id] ?? "—"}</b></div>
+            <div key={p.id} className={voted(p.id) ? "done" : ""}><i className="dot" style={cvar(p.id)} /><span>{p.name}</span>
+              <b>{week.elim.picks[p.id] ?? (voted(p.id) ? "Voted ✓" : "—")}</b></div>
           ))}
         </div>
       </section>

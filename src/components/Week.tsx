@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDay, fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
-  ENTRY, elimTeam, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
+  ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
   pickedCount, record, revealed, split,
   type Game, type Rec, type Week,
 } from "@/lib/scoring";
@@ -378,13 +378,13 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
 
 /** Brad's early look at the group entry and eliminator team, from the database (only he can get it, only after noon). */
 function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
-  const { season, previewEntry, toast } = useApp();
+  const { previewEntry, previewElim, toast } = useApp();
   const [rows, setRows] = useState<EntryRow[] | null>(null);
-  const ids = humans(season.players).map((p) => p.id);
-  const elim = elimTeam(week.elim, ids);
+  const [elim, setElim] = useState<string | null>(null);
   useEffect(() => {
     previewEntry(week.id!).then(setRows).catch((e: Error) => { toast(e.message, true); setRows([]); });
-  }, [week.id, previewEntry, toast]);
+    previewElim(week.id!).then(setElim).catch(() => setElim(null));
+  }, [week.id, previewEntry, previewElim, toast]);
   const byNum = new Map((rows ?? []).map((r) => [r.num, r]));
   const ties = (rows ?? []).filter((r) => r.how === "claude").length;
   async function copy() {

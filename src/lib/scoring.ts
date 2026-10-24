@@ -31,6 +31,8 @@ export interface ElimWeek {
   picks: Record<PlayerId, string>;
   override?: string | null;
   outcome?: "survived" | "died" | null;
+  /** Who has voted, while the votes themselves are hidden (before the reveal). */
+  voters?: PlayerId[];
 }
 
 export interface Week {

@@ -26,9 +26,11 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
   const now = Date.now();
   const openIds = weeks.filter((w) => !w.deadline || Date.parse(w.deadline as string) > now).map((w) => w.id as number);
   const counts = new Map<number, Record<string, number>>();
+  const voters = new Map<number, string[]>();
   await Promise.all(openIds.map(async (id) => {
-    const { data } = await sb.rpc("pick_counts", { w: id });
+    const [{ data }, { data: v }] = await Promise.all([sb.rpc("pick_counts", { w: id }), sb.rpc("elim_voters", { w: id })]);
     counts.set(id, Object.fromEntries(((data ?? []) as { player_id: string; picked: number }[]).map((r) => [r.player_id, r.picked])));
+    voters.set(id, (v ?? []) as string[]);
   }));
   const setting = (k: string) => settings.find((s) => s.key === k)?.value;
   const season = Number(setting("season") ?? new Date().getFullYear());
@@ -75,6 +77,7 @@ export async function loadSeason(sb: SupabaseClient): Promise<Season> {
           picks: Object.fromEntries(elimPicks.filter((e) => e.week_id === w.id).map((e) => [e.player_id, e.team])),
           override: (ew?.override_team as string) ?? null,
           outcome: (ew?.outcome as "survived" | "died") ?? null,
+          voters: voters.get(w.id as number),
         },
         locks: locks.filter((l) => l.week_id === w.id).map((l) => l.player_id as string),
         counts: counts.get(w.id as number),
@@ -90,6 +93,13 @@ export interface EntryRow { num: number; entry: string; how: "majority" | "claud
  * Brad's preview of the group entry once picks are due and Claude is in, before the lock reveals everyone's picks.
  * The database returns nothing to anyone else, or before then.
  */
+/** The group's eliminator team for Brad's early preview (null on a tied vote, or before picks are due). */
+export async function previewElim(sb: SupabaseClient, weekId: number): Promise<string | null> {
+  const { data, error } = await sb.rpc("admin_elim", { w: weekId });
+  if (error) throw new Error(error.message);
+  return (data as string | null) ?? null;
+}
+
 export async function previewEntry(sb: SupabaseClient, weekId: number): Promise<EntryRow[]> {
   const { data, error } = await sb.rpc("admin_entry", { w: weekId });
   if (error) throw new Error(error.message);
