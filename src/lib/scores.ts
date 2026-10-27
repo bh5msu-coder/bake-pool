@@ -4,7 +4,7 @@
 import type { Game } from "./scoring";
 
 export type League = "NFL" | "NCAA";
-export interface ScoreTeam { names: string[]; score: number | null }
+export interface ScoreTeam { names: string[]; score: number | null; id?: string; record?: string | null }
 export interface ScoreEvent {
   id: string; league: League; date: string;
   state: "pre" | "in" | "post"; detail: string; completed: boolean;
@@ -29,6 +29,8 @@ export function parseScoreboard(json: any, league: League): ScoreEvent[] {
       return {
         names: [tm.location, tm.shortDisplayName, tm.displayName, tm.abbreviation, tm.name].filter(Boolean),
         score: Number.isFinite(score) ? score : null,
+        id: tm.id ? String(tm.id) : undefined,
+        record: (x.records ?? []).find((rec: any) => rec.type === "total" || rec.name === "overall")?.summary ?? null,
       };
     };
     const home = side("home"), away = side("away");
@@ -108,6 +110,9 @@ export interface LiveGame {
   awayScore: number | null; homeScore: number | null;
   /** Team currently covering (or that covered), "PUSH", or null before kickoff. */
   covering: string | null;
+  /** Season win-loss records from ESPN ("5-2"), and against-the-spread records ("4-3" or "4-2-1"), when known. */
+  awayRec?: string | null; homeRec?: string | null;
+  awayAts?: string | null; homeAts?: string | null;
 }
 
 /** Who covers given the scores: the favourite must win by more than the spread. */
@@ -126,6 +131,7 @@ export function liveFor(g: Game, m: Matched | null): LiveGame | null {
   const started = e.state !== "pre" && awayScore !== null && homeScore !== null;
   return {
     num: g.num, state: e.state, detail: e.detail, completed: e.completed, start: e.date, awayScore, homeScore,
+    awayRec: (m.flipped ? e.home : e.away).record ?? null, homeRec: (m.flipped ? e.away : e.home).record ?? null,
     covering: started ? coverer(g, awayScore!, homeScore!) : null,
   };
 }

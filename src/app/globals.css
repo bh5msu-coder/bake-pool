@@ -250,7 +250,15 @@ section + section { border-top: 1px solid var(--rule); }
 .sb .team.mine { background: var(--accent-soft); --row: var(--accent-soft); }
 .entry-ck { font-weight: 800; color: var(--ink); margin-right: 4px; }
 .sb .team .who .chip.mine-tag { padding: 0 7px; font-size: .66rem; letter-spacing: .01em; }
-.sb .team .nm { font: 600 1rem/1.2 var(--body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sb .team .nm { font: 600 1rem/1.2 var(--body); min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.sb .team .nm .tn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* Season record under the name (so long names never get cut off): win-loss large and bold, against-the-spread smaller and quieter with an ATS tag. */
+.sb .team .rec { flex: none; display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sb .team .rec b { font: 800 .95rem/1 var(--body); color: var(--ink); }
+.sb .team .rec small { font: 600 .74rem/1 var(--body); color: var(--muted); }
+.sb .team .rec small i { font-style: normal; font-size: .62rem; letter-spacing: .06em; color: var(--faint); }
+.sb .team.out .rec b { color: var(--faint); }
+
 .sb .team .nm .at { color: var(--faint); font-weight: 500; margin-right: 3px; }
 .sb .team.out .nm, .sb .team.out .sc { color: var(--faint); }
 .sb .team .who { display: flex; align-items: center; }

@@ -1,5 +1,16 @@
 # Changelog
 
+
+## 0.14.0 — 2026-10-27 · Team records on every game
+- Each team now shows its season record under its name. The win-loss record is large and bold (from ESPN). The
+  against-the-spread record sits beside it, smaller and grey, tagged "ATS".
+- ESPN doesn't publish ATS records, so the app works them out from every finished NFL and FBS game's score and its
+  closing line (ESPN's DraftKings line). The games are stored in `ats_games` (migration 0017).
+  - It was backfilled with 107 NFL and 566 FBS games.
+  - It's topped up every 3 hours (`/api/teams/sync`).
+  - All 91 pool teams from Weeks 5–7 match.
+- The ATS records use ESPN's closing line, not the pool's line, so they can differ by half a point here and there.
+
 ## 0.13.2 — 2026-10-24 · Thursday reminder emails
 - **Reminder emails**, alongside the phone notifications, go to whoever hasn't locked their picks, 60 minutes before picks are due (11 AM CT, noon ET;
   the lead time is a menu setting). Each email says how many picks that person has left, or that everything is picked

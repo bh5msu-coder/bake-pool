@@ -483,6 +483,9 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
     const mine = g.picks[as] === t;
     const pickerName = season.players.find((p) => p.id === as)?.name;
     const score = started ? (isHome ? live!.homeScore : live!.awayScore) : null;
+    // Season records: straight up from ESPN, against the spread worked out from ESPN's closing lines.
+    const rec = (isHome ? live?.homeRec : live?.awayRec) ?? null;
+    const ats = (isHome ? live?.homeAts : live?.awayAts) ?? null;
     const cls = ["team", mine && "mine", coverTeam === t && "cover", finished && coverTeam && coverTeam !== "PUSH" && coverTeam !== t && "out"].filter(Boolean).join(" ");
     return (
       <button className={cls} disabled={!open || !g.id} aria-pressed={mine}
@@ -493,8 +496,15 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
           if (await run("setPick", g.id, as, t) && wasBlank) onPicked();
         }}>
         <span className="nm">
-          {entry === t && <b className="entry-ck" title="Group entry">✓</b>}
-          {isHome && <span className="at">@</span>}{t}
+          <span className="tn">
+            {entry === t && <b className="entry-ck" title="Group entry">✓</b>}
+            {isHome && <span className="at">@</span>}{t}
+          </span>
+          {(rec || ats) && (
+            <span className="rec" aria-label={`${rec ? `record ${rec}` : ""}${ats ? `, ${ats} against the spread` : ""}`}>
+              {rec && <b>{rec}</b>}{ats && <small>{ats} <i>ATS</i></small>}
+            </span>
+          )}
         </span>
         <span className="who">
           {/* While others are hidden, your pick gets a label instead of a lone chip. */}
