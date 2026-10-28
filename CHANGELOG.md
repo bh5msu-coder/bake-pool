@@ -1,6 +1,13 @@
 # Changelog
 
 
+
+## 0.14.1 — 2026-10-27 · Team colours on picks (option A)
+- Every team row has a stripe in its team colour on the right edge. The left edge stays the green "covering" bar.
+- Your pick is tinted in that team colour, with a team-coloured check after the name.
+- In dark mode the colours are lightened so navy and black teams stay visible.
+- Mockups of the other options are in mockups/team-color-cards.html.
+
 ## 0.14.0 — 2026-10-27 · Team records on every game
 - Each team now shows its season record under its name. The win-loss record is large and bold (from ESPN). The
   against-the-spread record sits beside it, smaller and grey, tagged "ATS".

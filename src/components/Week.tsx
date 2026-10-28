@@ -11,7 +11,7 @@ import type { EntryRow, HistoryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
 import { EntrySheet } from "./EntrySheet";
 import { projected, useLive, type LiveMap } from "./useLive";
-import { spreadFor } from "@/lib/teams";
+import { spreadFor, teamVars } from "@/lib/teams";
 import { RecapCard } from "./Recap";
 import { Header, Sheet } from "./ui";
 import { useApp } from "./store";
@@ -488,7 +488,7 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
     const ats = (isHome ? live?.homeAts : live?.awayAts) ?? null;
     const cls = ["team", mine && "mine", coverTeam === t && "cover", finished && coverTeam && coverTeam !== "PUSH" && coverTeam !== t && "out"].filter(Boolean).join(" ");
     return (
-      <button className={cls} disabled={!open || !g.id} aria-pressed={mine}
+      <button className={cls} style={teamVars(t)} disabled={!open || !g.id} aria-pressed={mine}
         aria-label={`${t} ${spreadFor(t, g.fav, g.spread)}${score !== null ? `, ${score} points` : ""}${mine ? ", your pick" : ""}${coverTeam === t ? (finished ? ", covered" : ", covering") : ""}`}
         onClick={async () => {
           if (mine || !g.id) return;

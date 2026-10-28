@@ -247,7 +247,11 @@ section + section { border-top: 1px solid var(--rule); }
 .sb .team:disabled { cursor: default; opacity: 1; }
 .sb .team::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 4px; border-radius: 0 3px 3px 0; background: transparent; }
 .sb .team.cover::before { background: var(--win-fill); }
-.sb .team.mine { background: var(--accent-soft); --row: var(--accent-soft); }
+/* Team colours: a stripe on the right edge in the team's colour; your pick is tinted with it. */
+.sb .team { box-shadow: inset -5px 0 0 var(--team, transparent); }
+.sb .team.mine { background: color-mix(in srgb, var(--team, var(--accent)) 16%, var(--surface)); --row: color-mix(in srgb, var(--team, var(--accent)) 16%, var(--surface)); }
+.sb .team.mine .tn::after { content: "✓"; display: inline-grid; place-items: center; width: 18px; height: 18px; margin-left: 6px; border-radius: 50%;
+  background: var(--team, var(--accent)); color: #fff; font: 800 .66rem/1 var(--body); vertical-align: 2px; }
 .entry-ck { font-weight: 800; color: var(--ink); margin-right: 4px; }
 .sb .team .who .chip.mine-tag { padding: 0 7px; font-size: .66rem; letter-spacing: .01em; }
 .sb .team .nm { font: 600 1rem/1.2 var(--body); min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
@@ -596,3 +600,9 @@ nav.tabs button span { display: none; }
 .recap-grid b { font: 700 1rem var(--body); font-variant-numeric: tabular-nums; }
 .recap-people { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: .84rem; }
 .recap-people .dot { margin-right: 5px; }
+/* Dark mode: many team colours are near-black navy; lift them so the stripe, tint and check stay visible. */
+@media (prefers-color-scheme: dark) {
+  .sb .team { --team-lit: color-mix(in srgb, var(--team, var(--accent)) 62%, #fff); box-shadow: inset -5px 0 0 var(--team-lit); }
+  .sb .team.mine { background: color-mix(in srgb, var(--team-lit) 18%, var(--surface)); --row: color-mix(in srgb, var(--team-lit) 18%, var(--surface)); }
+  .sb .team.mine .tn::after { background: var(--team-lit); color: #0b0b0b; }
+}
