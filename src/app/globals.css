@@ -380,7 +380,9 @@ section + section { border-top: 1px solid var(--rule); }
 .heat .hc.empty { background: var(--sunk); color: var(--faint); }
 .heat .hc:hover, .heat .hc:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .scale { display: flex; align-items: center; gap: 8px; font: 500 .72rem var(--body); color: var(--faint); margin-top: 10px; }
-.scale i { height: 8px; width: 140px; border-radius: 4px; background: linear-gradient(90deg, var(--div-neg), var(--div-mid), var(--div-pos)); }
+/* Heatmaps run cold (blue, worse) to hot (red, better). */
+:root { --heat-hot: var(--div-neg); --heat-cold: var(--div-pos); }
+.scale i { height: 8px; width: 140px; border-radius: 4px; background: linear-gradient(90deg, var(--heat-cold), var(--div-mid), var(--heat-hot)); }
 .bars .b { display: grid; grid-template-columns: 110px 1fr 64px; gap: 10px; align-items: center; min-height: 32px; font-size: .85rem; }
 .bars .track { height: 16px; position: relative; }
 .bars .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--c, var(--accent)); min-width: 2px; }

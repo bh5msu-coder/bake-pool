@@ -155,7 +155,7 @@ function Compare() {
       </div>
     </div>
     <ChartCard className="s12" title={`${name} vs ${against === "players" ? "everyone" : against === "group" ? "the group" : "everyone and the group"}`}
-      sub="Win-% gap in points by type of game. Blue: better. Red: worse. Entry is what was submitted; Majority counts games with 3+ agreeing."
+      sub="Win-% gap in points by type of game. Red: better (hot). Blue: worse (cold). Entry is what was submitted; Majority counts games with 3+ agreeing."
       table={<DiffTable who={name} cols={byType.cols} rows={byType.rows} />}>
       <DiffHeatmap who={name} cols={byType.cols} rows={byType.rows} />
     </ChartCard>

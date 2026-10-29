@@ -136,11 +136,12 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
 
 export interface HeatRow { id: string; name: string; cells: { rec: Rec | null; pct: number | null }[] }
 
-/** Diverging fill around .500: blue above, red below, grey at even. Saturates at ±.250. */
+/** Heat around .500: red (hot) above, blue (cold) below, grey at even. Saturates at ±.250. */
 function heatStyle(p: number | null): CSSProperties {
   if (p === null) return {};
   const t = Math.max(-1, Math.min(1, (p - 0.5) / 0.25));
-  const pole = t >= 0 ? "var(--div-pos)" : "var(--div-neg)";
+  // Heat: red (hot) for better, blue (cold) for worse.
+  const pole = t >= 0 ? "var(--heat-hot)" : "var(--heat-cold)";
   const amt = Math.round(Math.abs(t) * 100);
   return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.55 ? "#fff" : "var(--ink)" };
 }
@@ -162,7 +163,7 @@ export function Heatmap({ cols, rows, rowHead = 92, minCol = 52 }: { cols: strin
           {rows.map((r) => (<RowCells key={r.id} r={r} cols={cols} show={show} />))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span style={{ marginLeft: 8 }}>win rate · grey = 50%</span></div>
+      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span style={{ marginLeft: 8 }}>win rate · red = hot · blue = cold · grey = 50%</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );
@@ -185,10 +186,11 @@ function RowCells({ r, cols, show }: { r: HeatRow; cols: string[]; show(e: React
   </>);
 }
 
-/** Win-% gap in points: blue when the row picker did better, red when worse, grey at even. Full colour at ±15 pts. */
+/** Win-% gap in points: red (hot) when the row picker did better, blue (cold) when worse, grey at even. Full colour at ±15 pts. */
 function diffStyle(d: number): CSSProperties {
   const t = Math.max(-1, Math.min(1, d / 15));
-  const pole = t >= 0 ? "var(--div-pos)" : "var(--div-neg)";
+  // Heat: red (hot) for better, blue (cold) for worse.
+  const pole = t >= 0 ? "var(--heat-hot)" : "var(--heat-cold)";
   const amt = Math.round(Math.abs(t) * 100);
   return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.55 ? "#fff" : "var(--ink)" };
 }
@@ -226,7 +228,7 @@ export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60 }: { w
           </Fragment>))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span style={{ marginLeft: 8 }}>win-% points · blue = {who} better · grey = even</span></div>
+      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span style={{ marginLeft: 8 }}>win-% points · red = {who} hotter · blue = colder · grey = even</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );

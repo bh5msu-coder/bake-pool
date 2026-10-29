@@ -2,6 +2,11 @@
 
 
 
+
+## 0.14.1 — 2026-10-29 · Heatmaps read hot and cold
+- All heatmaps (Compare, Head to head, Week by week, Where each picker wins) now run **red = hot = better** and
+  **blue = cold = worse**, grey at even. Legends and captions say so.
+
 ## 0.14.1 — 2026-10-27 · Team colours on picks (option A)
 - Every team row has a stripe in its team colour on the right edge. The left edge stays the green "covering" bar.
 - Your pick is tinted in that team colour, with a team-coloured check after the name.
