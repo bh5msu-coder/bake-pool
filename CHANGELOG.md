@@ -3,6 +3,13 @@
 
 
 
+
+## 0.14.2 — 2026-10-29 · Compare: clearer, and a W-L-T view
+- The Compare captions now say what a cell is: win % across the games (18 of 30 = 60%), one picker minus the
+  other, in points. It isn't who won the week.
+- New **Win % gap / W-L-T** switch. W-L-T shows both records in each cell (yours on top, theirs below), and the
+  colour still shows the win-% gap.
+
 ## 0.14.1 — 2026-10-29 · Heatmaps read hot and cold
 - All heatmaps (Compare, Head to head, Week by week, Where each picker wins) now run **red = hot = better** and
   **blue = cold = worse**, grey at even. Legends and captions say so.

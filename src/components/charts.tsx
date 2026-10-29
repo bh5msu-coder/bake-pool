@@ -199,7 +199,14 @@ const signed = (d: number) => (d > 0 ? `+${d}` : d < 0 ? `−${-d}` : "0");
 export interface DiffRow { id: string; name: string; cells: { a: Rec; b: Rec; diff: number | null }[] }
 
 /** Heatmap of one picker's win-% gap against each column (another player, the entry, the majority). */
-export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60 }: { who: string; cols: string[]; rows: DiffRow[]; rowHead?: number; minCol?: number }) {
+/**
+ * `mode` "pct" shows the win-% gap in points; "rec" shows both records (W-L-T) in the cell. The colour is the
+ * win-% gap either way.
+ */
+export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60, mode = "pct" }: {
+  who: string; cols: string[]; rows: DiffRow[]; rowHead?: number; minCol?: number; mode?: "pct" | "rec";
+}) {
+  if (mode === "rec") minCol = Math.max(minCol, 78);
   const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => { if (!tip) return; const t = setTimeout(() => setTip(null), 4000); return () => clearTimeout(t); }, [tip]);
@@ -219,16 +226,16 @@ export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60 }: { w
               const text = `${r.name}: ${who} ${fmtRec(c.a)} (${fmtPct(c.a)}) · ${cols[i]} ${fmtRec(c.b)} (${fmtPct(c.b)})`
                 + (c.diff === null ? "" : ` · ${signed(c.diff)} pts`);
               return c.diff === null ? <span key={i} className="hc empty" aria-label={text}>—</span> : (
-                <button key={i} className="hc" style={diffStyle(c.diff)} aria-label={text}
+                <button key={i} className={`hc${mode === "rec" ? " rec2" : ""}`} style={diffStyle(c.diff)} aria-label={text}
                   onPointerEnter={(e) => show(e, text)} onFocus={(e) => show(e, text)} onClick={(e) => show(e, text)}>
-                  {signed(c.diff)}
+                  {mode === "rec" ? <><b>{fmtRec(c.a)}</b><small>vs {fmtRec(c.b)}</small></> : signed(c.diff)}
                 </button>
               );
             })}
           </Fragment>))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span style={{ marginLeft: 8 }}>win-% points · red = {who} hotter · blue = colder · grey = even</span></div>
+      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span style={{ marginLeft: 8 }}>{mode === "rec" ? "colour = win-% gap" : "win-% points"} · red = {who} better · blue = worse · grey = even</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );

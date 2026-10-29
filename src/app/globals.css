@@ -608,3 +608,6 @@ nav.tabs button span { display: none; }
   .sb .team.mine { background: color-mix(in srgb, var(--team-lit) 18%, var(--surface)); --row: color-mix(in srgb, var(--team-lit) 18%, var(--surface)); }
   .sb .team.mine .tn::after { background: var(--team-lit); color: #0b0b0b; }
 }
+.heat .hc.rec2 { display: flex; flex-direction: column; justify-content: center; gap: 1px; min-height: 42px; line-height: 1.1; }
+.heat .hc.rec2 b { font-weight: 700; font-size: .8rem; }
+.heat .hc.rec2 small { font-size: .66rem; font-weight: 500; opacity: .85; }

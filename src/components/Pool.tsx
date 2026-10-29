@@ -135,6 +135,7 @@ function Compare() {
   const { season, me } = useApp();
   const [who, setWho] = useState(me);
   const [against, setAgainst] = useState<Against>("both");
+  const [show, setShow] = useState<"pct" | "rec">("pct");
   const name = season.players.find((p) => p.id === who)?.name ?? who;
   const players = season.players.filter((p) => p.id !== who).map((p) => p.id);
   const cols = against === "players" ? players : against === "group" ? [ENTRY, MAJORITY] : [...players, ENTRY, MAJORITY];
@@ -148,6 +149,11 @@ function Compare() {
           {season.players.map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
         </select>
       </label>
+      <div className="pills" role="group" aria-label="Show as">
+        {([["pct", "Win % gap"], ["rec", "W-L-T"]] as ["pct" | "rec", string][]).map(([k, l]) => (
+          <button key={k} className="pill" aria-pressed={show === k} onClick={() => setShow(k)}>{l}</button>
+        ))}
+      </div>
       <div className="pills" role="group" aria-label="Against">
         {([["players", "vs players"], ["group", "vs group"], ["both", "Both"]] as [Against, string][]).map(([k, l]) => (
           <button key={k} className="pill" aria-pressed={against === k} onClick={() => setAgainst(k)}>{l}</button>
@@ -155,13 +161,18 @@ function Compare() {
       </div>
     </div>
     <ChartCard className="s12" title={`${name} vs ${against === "players" ? "everyone" : against === "group" ? "the group" : "everyone and the group"}`}
-      sub="Win-% gap in points by type of game. Red: better (hot). Blue: worse (cold). Entry is what was submitted; Majority counts games with 3+ agreeing."
+      sub={show === "pct"
+        ? `By type of game, all graded games: ${name}'s win % minus the other's, in points (60% vs 55% = +5). Red: better (hot). Blue: worse (cold). Entry is what was submitted; Majority counts games with 3+ agreeing.`
+        : `By type of game, all graded games: ${name}'s record (wins-losses-pushes) on top, the other's below. Colour shows the win-% gap.`}
       table={<DiffTable who={name} cols={byType.cols} rows={byType.rows} />}>
-      <DiffHeatmap who={name} cols={byType.cols} rows={byType.rows} />
+      <DiffHeatmap who={name} cols={byType.cols} rows={byType.rows} mode={show} />
     </ChartCard>
-    <ChartCard className="s12" title={`${name} week by week`} sub="Win-% gap in points each week"
+    <ChartCard className="s12" title={`${name} week by week`}
+      sub={show === "pct"
+        ? `Win % across that week's games (18 of 30 right = 60%), ${name} minus the other, in points. It isn't who won the week: +7 means ${name} got about 2 more of the 30 right.`
+        : `${name}'s record across that week's games (wins-losses-pushes) on top, the other's below. Colour shows the win-% gap.`}
       table={<DiffTable who={name} cols={byWeek.cols} rows={byWeek.rows} />}>
-      <DiffHeatmap who={name} cols={byWeek.cols} rows={byWeek.rows} rowHead={64} minCol={52} />
+      <DiffHeatmap who={name} cols={byWeek.cols} rows={byWeek.rows} rowHead={64} minCol={52} mode={show} />
     </ChartCard>
   </>);
 }
