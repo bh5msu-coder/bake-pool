@@ -1,14 +1,15 @@
 import "server-only";
-// Finds who hasn't locked their picks for the open week and emails them (Resend's HTTP API).
+// Finds who hasn't locked their picks for the open week and reminds them with a phone notification (web push).
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GRACE_MINUTES, nextDeadline, softDeadline } from "./deadline";
 import { REMINDER_LEAD_MINUTES, reminderDue, reminderEmail } from "./emailReminders";
+import { notify } from "./notify";
 
-export interface Recipient { id: string; name: string; email: string; picked: number; total: number }
+export interface Recipient { id: string; name: string; picked: number; total: number }
 export interface ReminderPlan {
   weekId: number; label: string; lock: string; due: string; remindAt: boolean; remindedAt: string | null;
   recipients: Recipient[];
-  /** People who won't get one and why (already locked, no email). */
+  /** People who won't get one and why (already locked). */
   skipped: { id: string; name: string; reason: string }[];
 }
 
@@ -31,7 +32,7 @@ export async function planReminders(sb: SupabaseClient, now = new Date()): Promi
   if (!week?.deadline) return null;
 
   const [{ data: players }, { data: locks }, { data: picks }] = await Promise.all([
-    sb.from("players").select("id,name,email,kind,sort").eq("kind", "human").order("sort"),
+    sb.from("players").select("id,name,kind,sort").eq("kind", "human").order("sort"),
     sb.from("pick_locks").select("player_id").eq("week_id", week.id),
     sb.from("picks").select("player_id, games!inner(week_id)").eq("games.week_id", week.id),
   ]);
@@ -43,8 +44,7 @@ export async function planReminders(sb: SupabaseClient, now = new Date()): Promi
   const recipients: Recipient[] = [], skipped: ReminderPlan["skipped"] = [];
   for (const p of players ?? []) {
     if (locked.has(p.id)) skipped.push({ id: p.id, name: p.name, reason: "locked" });
-    else if (!p.email) skipped.push({ id: p.id, name: p.name, reason: "no email" });
-    else recipients.push({ id: p.id, name: p.name, email: p.email, picked: counts.get(p.id) ?? 0, total });
+    else recipients.push({ id: p.id, name: p.name, picked: counts.get(p.id) ?? 0, total });
   }
   return {
     weekId: week.id, label: week.label ?? `Week ${week.week}`, lock: week.deadline, due: softDeadline(week.deadline, s.grace),
@@ -55,37 +55,28 @@ export async function planReminders(sb: SupabaseClient, now = new Date()): Promi
 
 export interface SendResult { id: string; name: string; ok: boolean; error?: string }
 
-/** Emails every recipient on the plan. Needs RESEND_API_KEY; REMINDER_FROM is the sender ("BAKE Pool <pool@example.com>"). */
-export async function sendReminders(plan: ReminderPlan, url: string, graceMin: number, now = Date.now()): Promise<SendResult[]> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error("RESEND_API_KEY is not set, so reminder emails can't be sent.");
-  const from = process.env.REMINDER_FROM || "BAKE Pool <onboarding@resend.dev>";
+/** Sends every recipient a phone notification. A person with notifications off on every device counts as failed. */
+export async function sendReminders(sb: SupabaseClient, plan: ReminderPlan, url: string, graceMin: number, now = Date.now()): Promise<SendResult[]> {
   const out: SendResult[] = [];
   for (const r of plan.recipients) {
     const m = reminderEmail({ name: r.name, picked: r.picked, total: r.total, label: plan.label, lockIso: plan.lock, graceMin, url, now });
+    const body = m.text.split("\n\n")[1].replace("\n", " ");
     try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-        body: JSON.stringify({ from, to: [r.email], subject: m.subject, text: m.text, html: m.html }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string };
-        out.push({ id: r.id, name: r.name, ok: false, error: body.message ?? `Resend returned ${res.status}` });
-      } else out.push({ id: r.id, name: r.name, ok: true });
+      const sent = await notify(sb, [r.id], { title: m.subject, body, url: "/", tag: `due-${plan.weekId}` });
+      out.push(sent ? { id: r.id, name: r.name, ok: true } : { id: r.id, name: r.name, ok: false, error: "notifications not turned on" });
     } catch (e) { out.push({ id: r.id, name: r.name, ok: false, error: (e as Error).message }); }
   }
   return out;
 }
 
-/** A sample reminder to one address, so the Resend setup can be checked without waiting for a Thursday. */
-export async function sendTestReminder(to: { name: string; email: string }, url: string, graceMin: number) {
+/** A sample reminder to one player's phones, so notifications can be checked without waiting for a Thursday. */
+export async function sendTestReminder(sb: SupabaseClient, to: { id: string; name: string }, url: string, graceMin: number) {
   const nextLock = nextDeadline().toISOString();
   const plan: ReminderPlan = {
     weekId: 0, label: "Test week", lock: nextLock, due: softDeadline(nextLock, graceMin), remindAt: false, remindedAt: null,
-    recipients: [{ id: "test", name: to.name, email: to.email, picked: 22, total: 30 }], skipped: [],
+    recipients: [{ id: to.id, name: to.name, picked: 22, total: 30 }], skipped: [],
   };
-  return sendReminders(plan, url, graceMin);
+  return sendReminders(sb, plan, url, graceMin);
 }
 
 export async function markReminded(sb: SupabaseClient, weekId: number, at = new Date()) {

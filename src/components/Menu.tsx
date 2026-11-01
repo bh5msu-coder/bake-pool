@@ -86,10 +86,10 @@ function AdminTools() {
   const remTest = () => act("remtest", async () => {
     const r = await post<{ results: SendResult[] }>("/api/reminders", { test: true });
     const x = r.results[0];
-    toast(x?.ok ? "Test email sent to you." : `Couldn't send: ${x?.error ?? "unknown error"}`, !x?.ok);
+    toast(x?.ok ? "Test reminder sent to your phone." : `Couldn't send: ${x?.error ?? "unknown error"}`, !x?.ok);
   });
   const remSend = () => act("remsend", async () => {
-    if (!confirm(`Email everyone who hasn't locked ${rem?.plan?.label ?? "this week"} right now?`)) return;
+    if (!confirm(`Send a phone reminder to everyone who hasn't locked ${rem?.plan?.label ?? "this week"} right now?`)) return;
     setRem(await post("/api/reminders", { send: true }));
   });
 
@@ -151,7 +151,7 @@ function AdminTools() {
     <div className="row" style={{ gap: 8 }}>
       <button className="cta ghost" onClick={remPreview} disabled={!!busy}>{busy === "rem" ? "Checking…" : "Who'd get one?"}</button>
       <button className="cta ghost" onClick={remSend} disabled={!!busy || !rem?.plan?.recipients.length}>{busy === "remsend" ? "Sending…" : "Send now"}</button>
-      <button className="cta ghost" onClick={remTest} disabled={!!busy}>{busy === "remtest" ? "Sending…" : "Email me a test"}</button>
+      <button className="cta ghost" onClick={remTest} disabled={!!busy}>{busy === "remtest" ? "Sending…" : "Send me a test"}</button>
     </div>
     {rem && (
       <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>
@@ -159,7 +159,6 @@ function AdminTools() {
           <p style={{ margin: "0 0 6px", fontWeight: 600 }}>
             {rem.plan.label}: {rem.plan.recipients.length ? `${rem.plan.recipients.map((r) => `${r.name} (${r.picked}/${r.total})`).join(", ")} ${rem.plan.recipients.length === 1 ? "hasn't" : "haven't"} locked.` : "everyone has locked."}
           </p>
-          {rem.plan.skipped.some((x) => x.reason === "no email") && <p className="warn" style={{ margin: "0 0 6px" }}>No email for {rem.plan.skipped.filter((x) => x.reason === "no email").map((x) => x.name).join(", ")}.</p>}
           <p className="hint" style={{ margin: 0 }}>
             {rem.plan.remindedAt ? `Scheduled reminder went out ${fmtDeadline(rem.plan.remindedAt)}.`
               : `Scheduled reminder: ${fmtDeadline(remindAt(rem.plan.lock, season.graceMinutes, season.reminderLeadMinutes))} · picks due ${fmtTime(rem.plan.due)}.`}
@@ -171,7 +170,7 @@ function AdminTools() {
     <div className="field" style={{ marginTop: 10 }}><label htmlFor="remlead">Send the reminder this many minutes before picks are due</label>
       <input id="remlead" type="number" inputMode="numeric" min={0} max={1440} step={15} defaultValue={season.reminderLeadMinutes}
         onBlur={(e) => run("setSetting", "reminder_lead_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
-    <p className="hint">60 = 11:00 AM CT (noon ET) when picks are due at noon CT. Goes once a week to whoever hasn&apos;t locked, by email, and needs the RESEND_API_KEY and REMINDER_FROM settings in Vercel.</p>
+    <p className="hint">60 = 11:00 AM CT (noon ET) when picks are due at noon CT. Goes once a week, as a phone notification, to whoever hasn&apos;t locked. Each person needs notifications turned on (Menu → Notifications).</p>
 
     <div className="field" style={{ marginTop: 22 }}><label htmlFor="sfee">Season entry $ (paid up front)</label>
       <input id="sfee" type="number" inputMode="decimal" min={0} defaultValue={season.seasonFee}

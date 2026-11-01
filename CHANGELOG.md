@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.3 — 2026-11-01 · Pick reminders by phone, not email
+- The Thursday "you haven't locked" reminder now goes out as a phone notification through the app itself, not as a
+  Resend email. No email service or verified domain is needed, so the "yourdomain.com is not verified" error is gone.
+- Menu: **Email me a test** is now **Send me a test** (goes to your phone). Each person needs notifications on.
+- `RESEND_API_KEY` and `REMINDER_FROM` are no longer used and can be deleted from Vercel.
+
 
 
 
