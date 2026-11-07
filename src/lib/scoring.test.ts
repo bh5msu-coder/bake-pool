@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fixtureRaw, fixtureSeason } from "./fixture";
-import {
+import { entryHow,
   band, elimSummary, entryLines, entryPick, ENTRY, fmtPct, grade, headToHead, majority, MAJORITY,
   money, record, soloPicker, split, type Game,
 } from "./scoring";
@@ -18,10 +18,16 @@ describe("majority and entry", () => {
     expect(majority(g({ brad: "A", andrew: "A", kevin: "A", eric: "H" }), HUMANS)).toBe("A");
     expect(majority(g({ brad: "A", andrew: "A", kevin: "H", eric: "H" }), HUMANS)).toBeNull();
   });
-  it("breaks a 2-2 tie with Claude, and nothing can force the entry", () => {
+  it("breaks a 2-2 tie with Claude, and a human call decides the submitted pick", () => {
     const tie = g({ brad: "A", andrew: "A", kevin: "H", eric: "H", claude: "H" });
     expect(entryPick(tie, HUMANS)).toBe("H");
-    expect(entryPick({ ...tie, entryOverride: "A" }, HUMANS)).toBe("H");
+    expect(entryHow(tie, HUMANS)).toBe("claude");
+    expect(entryPick({ ...tie, entryOverride: "A" }, HUMANS)).toBe("A");
+    expect(entryHow({ ...tie, entryOverride: "A" }, HUMANS)).toBe("human");
+    const three = g({ brad: "A", andrew: "A", kevin: "A", eric: "H", claude: "H" });
+    expect(entryPick(three, HUMANS)).toBe("A");
+    expect(entryHow(three, HUMANS)).toBe("majority");
+    expect(entryPick({ ...three, entryOverride: "H" }, HUMANS)).toBe("H");
   });
   it("reports splits only once everyone has picked", () => {
     expect(split(g({ brad: "A", andrew: "H", kevin: "H", eric: "H" }), HUMANS)).toBe("3-1");

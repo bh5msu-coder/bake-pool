@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { fixtureSeason } from "./fixture";
 import type { Week } from "./scoring";
 import { parseCsv, parsePicksTab, parseSummaryTab } from "./sheet";
-import { planElim, planPicks } from "./sheetWrite";
+import { planCalls, planElim, planPicks } from "./sheetWrite";
 
 const tab = (t: string) => parseCsv(readFileSync(path.join(__dirname, "../fixtures/sheet", `${t}.csv`), "utf8"));
 const picksTab = tab("Picks"), elimTab = tab("Eliminator");
@@ -37,6 +37,25 @@ describe("writing picks to the real sheet layout", () => {
     const games = [...sheetW6].reverse().map((g, i) => ({ ...g, num: i + 1, result: null, entryOverride: null }));
     const plan = planPicks(picksTab, periods[5], { ...season.weeks[5], label: "Week 6", games });
     expect(plan.writes.find((w) => w.range === "Picks!G169")?.values).toEqual([["Seattle"]]);
+  });
+
+  it("writes a human call to N, clears it when the app clears it, and reads calls typed into the sheet", () => {
+    const sheetW6 = parsePicksTab(picksTab).get("Week 6")!;
+    const base = sheetW6.map((g) => ({ ...g, result: null, entryOverride: null, entryOverrideAt: null }));
+    const mk = (games: typeof base): Week => ({ ...season.weeks[5], label: "Week 6", games });
+    const g1 = base[0];
+    const call = planPicks(picksTab, periods[5], mk([{ ...g1, entryOverride: g1.home, entryOverrideAt: "2026-11-07" }, ...base.slice(1)]));
+    expect(call.writes.find((w) => w.range === "Picks!N169")?.values).toEqual([[g1.home]]);
+    // The sheet already has a call on that row (copy the grid so the fixture stays untouched).
+    const tabWithCall = picksTab.map((r) => [...r]);
+    while (tabWithCall[168].length < 14) tabWithCall[168].push("");
+    tabWithCall[168][13] = g1.away;
+    const cleared = planPicks(tabWithCall, periods[5], mk([{ ...g1, entryOverrideAt: "2026-11-07" }, ...base.slice(1)]));
+    expect(cleared.writes.find((w) => w.range === "Picks!N169")?.values).toEqual([[""]]);
+    const untouched = planPicks(tabWithCall, periods[5], mk(base));
+    expect(untouched.writes.some((w) => w.range === "Picks!N169")).toBe(false); // never set in the app: leave the sheet alone
+    expect(planCalls(tabWithCall, periods[5], { ...mk(base), games: base.map((g, i) => ({ ...g, id: i + 1 })) }).calls)
+      .toEqual([{ gameId: 1, team: g1.away }]);
   });
 
   it("fills an empty week block with games, lines and picks in app order", () => {

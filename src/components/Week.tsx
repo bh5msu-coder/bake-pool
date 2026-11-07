@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtDay, fmtDeadline, fmtShort, fmtTime, phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import {
-  ENTRY, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, isGraded, isOpen, majority, MAJORITY,
-  pickedCount, record, revealed, split,
+  BOT, ENTRY, entryHow, entryLines, labelOf, entryPick, fmtPct, fmtRec, grade, groupLocked, humans, HUMANS_LABEL, isGraded, isOpen,
+  majority, MAJORITY, pickedCount, record, revealed, split, SUBMITTED_LABEL,
   type Game, type Rec, type Week,
 } from "@/lib/scoring";
 import type { EntryRow, HistoryRow } from "@/lib/data";
@@ -372,7 +372,8 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
       )}
       {!compact && (
         <p className="hint" style={{ margin: 0 }}>
-          Majority (3 of 4) makes the entry; Claude breaks 2-2 splits. It goes into the sheet as soon as everyone locks, or at the deadline.
+          Submitted = a human&apos;s call if one is made, else the Humans majority (3 of 4), else Claude as the 2-2 tiebreaker.
+          It goes into the sheet as soon as everyone locks, or at the deadline.
         </p>
       )}
     </section>
@@ -390,6 +391,7 @@ function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
   }, [week.id, previewEntry, previewElim, toast]);
   const byNum = new Map((rows ?? []).map((r) => [r.num, r]));
   const ties = (rows ?? []).filter((r) => r.how === "claude").length;
+  const calls = (rows ?? []).filter((r) => r.how === "human").length;
   async function copy() {
     try { await navigator.clipboard.writeText(week.games.map((g) => byNum.get(g.num)?.entry ?? "").join("\n")); toast("Entry copied"); }
     catch { toast("Couldn't reach the clipboard.", true); }
@@ -400,7 +402,8 @@ function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
         <p className="hint">Not available yet: it opens once picks are due (noon Thursday) and Claude has a pick in every game.</p>
       ) : (<>
         <p className="hint" style={{ marginTop: 0 }}>
-          Only you can see this until picks lock. {rows.length - ties} games by majority, {ties} decided by Claude on a 2-2 split.
+          Only you can see this until picks lock. {rows.length - ties - calls} by the Humans majority, {ties} by Claude on a 2-2 split
+          {calls ? `, ${calls} by a human call` : ""}.
           Individual picks stay hidden.
         </p>
         <div className="kv" style={{ marginBottom: 8 }}>
@@ -414,7 +417,7 @@ function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
               <div className="kv" key={g.num}>
                 <span className="lab">{g.num}. {g.away} @ {g.home} <small style={{ color: "var(--faint)" }}>{g.line}</small></span>
                 <span><b>{r?.entry ?? "—"}</b></span>
-                {r?.how === "claude" ? <span className="tag signal">Claude</span> : <span />}
+                {r?.how === "claude" ? <span className="tag signal">Claude</span> : r?.how === "human" ? <span className="tag accent">Human call</span> : <span />}
               </div>
             );
           })}
@@ -448,7 +451,7 @@ function WeekStandings({ week, games }: { week: Week; games: Game[] }) {
   const { season, me } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const counted = games.filter((g) => g.result).length;
-  const rows = [...season.players.map((p) => ({ id: p.id, name: p.name })), { id: ENTRY, name: "Entry" }, { id: MAJORITY, name: "Majority" }]
+  const rows = [...season.players.map((p) => ({ id: p.id, name: p.name })), { id: MAJORITY, name: HUMANS_LABEL }, { id: ENTRY, name: SUBMITTED_LABEL }]
     .map((r) => ({ ...r, rec: record(games, r.id, ids) }))
     .sort((a, b) => b.rec.w - a.rec.w || a.rec.l - b.rec.l);
   return (<>
@@ -560,16 +563,29 @@ function PickHistory({ gameId, hidden }: { gameId: number; hidden: boolean }) {
 }
 
 export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game; week: Week; live?: LiveGame; hidden?: boolean; onClose(): void }) {
-  const { season, isAdmin, run } = useApp();
+  const { season, me, isAdmin, run } = useApp();
   const ids = humans(season.players).map((p) => p.id);
-  const maj = majority(g, ids), entry = entryPick(g, ids);
-  const rows: [string, string, string | null, string?][] = [
-    ...season.players.map((p) => [p.id, p.name, g.picks[p.id] ?? null, hidden && !g.picks[p.id] ? "hidden until everyone locks" : undefined] as [string, string, string | null, string?]),
-    ...(hidden ? [] : [
-    [MAJORITY, "Majority", maj, maj ? undefined : Object.keys(g.picks).length ? "no majority" : undefined],
-    [ENTRY, "Entry", entry, !maj && entry ? "Claude breaks the tie" : undefined],
-    ] as [string, string, string | null, string?][]),
+  const maj = majority(g, ids), entry = entryPick(g, ids), how = entryHow(g, ids);
+  const sp = split(g, ids);
+  const nameOf = (id?: string | null) => season.players.find((p) => p.id === id)?.name ?? null;
+  type Row = [string, string, string | null, string?];
+  const pickRow = (p: { id: string; name: string }): Row =>
+    [p.id, p.name, g.picks[p.id] ?? null, hidden && !g.picks[p.id] ? "hidden until everyone locks" : undefined];
+  const claude = season.players.find((p) => p.id === BOT);
+  // Brad, Andrew, Kevin, Eric · Humans (only with a 3-of-4 majority) · Claude (tiebreaker only) · Submitted.
+  const rows: Row[] = [
+    ...humans(season.players).map(pickRow),
+    ...(hidden ? (claude ? [pickRow(claude)] : []) : [
+      [MAJORITY, HUMANS_LABEL, maj, maj ? (sp ?? undefined) : sp ? `no majority (${sp})` : undefined] as Row,
+      ...(claude ? [[claude.id, claude.name, g.picks[BOT] ?? null, how === "claude" ? "tiebreaker" : g.picks[BOT] ? "not used" : undefined] as Row] : []),
+      [ENTRY, SUBMITTED_LABEL, entry,
+        how === "human" ? `human call${nameOf(g.entryOverrideBy) ? ` by ${nameOf(g.entryOverrideBy)}` : ""}`
+        : how === "majority" ? "Humans" : how === "claude" ? "Claude tiebreak" : undefined] as Row,
+    ]),
   ];
+  const isHuman = ids.includes(me);
+  // A human can make the call once picks are revealed (Brad any time), until the result is in.
+  const canCall = !!g.id && !g.result && isHuman && (!hidden || isAdmin);
   const opts = useMemo(() => [g.away, g.home], [g.away, g.home]);
 
   return (
@@ -596,6 +612,18 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
           );
         })}
       </div>
+      {canCall && (<>
+        <p className="eyebrow" style={{ marginTop: 18 }}>Submitted pick: human call</p>
+        <div className="pills">
+          {opts.map((t) => <button key={t} className="pill" aria-pressed={g.entryOverride === t} onClick={() => run("setEntryCall", g.id!, t)}>{t}</button>)}
+          {g.entryOverride && <button className="pill" onClick={() => run("setEntryCall", g.id!, null)}>Clear call</button>}
+        </div>
+        <p className="hint">
+          {g.entryOverride
+            ? "This call is what gets submitted. Clear it to go back to the Humans majority, then Claude on a 2-2 split."
+            : "Leave it empty and the Humans majority is submitted, with Claude only breaking 2-2 splits. Any of the four can make the call."}
+        </p>
+      </>)}
       {isAdmin && g.id && (<>
         <p className="eyebrow" style={{ marginTop: 18 }}>Result: who covered</p>
         <div className="pills">

@@ -45,7 +45,7 @@ describe("compareGrid", () => {
     const s = fixtureSeason();
     const ids = ["brad", "andrew", "kevin", "eric"];
     const g = compareGrid(s, "brad", ["kevin", ENTRY, MAJORITY], "type");
-    expect(g.cols).toEqual(["Kevin", "Entry", "Majority"]);
+    expect(g.cols).toEqual(["Kevin", "Submitted", "Humans"]);
     expect(g.rows[0].name).toBe("Overall");
     const games = s.weeks.flatMap((w) => w.games).filter((x) => x.result);
     const want = Math.round((pct(record(games, "brad", ids))! - pct(record(games, "kevin", ids))!) * 100);

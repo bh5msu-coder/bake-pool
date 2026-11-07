@@ -72,7 +72,7 @@ export function PoolTab() {
                 <span className="pc">{fmtPct(r)}</span>
               </div>
             ))}
-            {([[ENTRY, "Entry", "what was submitted"], [MAJORITY, "Majority", "games with 3+ agreeing"]] as const).map(([id, n, sub]) => {
+            {([[MAJORITY, "Humans", "games with 3+ agreeing"], [ENTRY, "Submitted", "what was submitted"]] as const).map(([id, n, sub]) => {
               const r = record(done, id, ids);
               return (
                 <div key={id} className="st bench">
@@ -162,7 +162,7 @@ function Compare() {
     </div>
     <ChartCard className="s12" title={`${name} vs ${against === "players" ? "everyone" : against === "group" ? "the group" : "everyone and the group"}`}
       sub={show === "pct"
-        ? `By type of game, all graded games: ${name}'s win % minus the other's, in points (60% vs 55% = +5). Red: better (hot). Blue: worse (cold). Entry is what was submitted; Majority counts games with 3+ agreeing.`
+        ? `By type of game, all graded games: ${name}'s win % minus the other's, in points (60% vs 55% = +5). Red: better (hot). Blue: worse (cold). Submitted is what was entered; Humans counts games with 3+ agreeing.`
         : `By type of game, all graded games: ${name}'s record (wins-losses-pushes) on top, the other's below. Colour shows the win-% gap.`}
       table={<DiffTable who={name} cols={byType.cols} rows={byType.rows} />}>
       <DiffHeatmap who={name} cols={byType.cols} rows={byType.rows} mode={show} />

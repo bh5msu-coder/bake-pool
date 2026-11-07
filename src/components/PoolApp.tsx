@@ -28,7 +28,7 @@ async function demoSeason(): Promise<Season> {
   return s;
 }
 const demoMutations: Mutations = {
-  setPick: noop, setLock: noop, setElimPick: noop, setResult: noop, updateWeek: noop, setElimWeek: noop, setPlayerEmail: noop, setSetting: noop,
+  setPick: noop, setLock: noop, setElimPick: noop, setResult: noop, setEntryCall: noop, updateWeek: noop, setElimWeek: noop, setPlayerEmail: noop, setSetting: noop,
 };
 
 function Screens() {

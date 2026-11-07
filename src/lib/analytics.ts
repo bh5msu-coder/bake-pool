@@ -7,7 +7,7 @@ import {
 export interface Picker { id: string; name: string }
 
 /** Everyone who gets a line on the charts: players, then the group entry. */
-export const pickers = (s: Season): Picker[] => [...s.players.map((p) => ({ id: p.id, name: p.name })), { id: ENTRY, name: "Entry" }];
+export const pickers = (s: Season): Picker[] => [...s.players.map((p) => ({ id: p.id, name: p.name })), { id: ENTRY, name: "Submitted" }];
 
 const graded = (s: Season) => s.weeks.filter((w) => w.games.some((g) => g.result));
 
@@ -126,7 +126,7 @@ function versus(games: Game[], who: string, other: string, ids: string[]): Compa
  */
 export function compareGrid(s: Season, who: string, against: string[], by: "type" | "week"): { cols: string[]; rows: CompareRow[] } {
   const ids = humans(s.players).map((p) => p.id);
-  const all = pickers(s).concat({ id: MAJORITY, name: "Majority" });
+  const all = pickers(s).concat({ id: MAJORITY, name: "Humans" });
   const cols = against.map((id) => all.find((p) => p.id === id)?.name ?? id);
   const games = s.weeks.flatMap((w) => w.games).filter((g) => g.result);
   if (by === "week") {

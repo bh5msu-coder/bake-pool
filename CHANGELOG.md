@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.15.0 — 2026-11-07 · Humans, Claude, Submitted (and the human call)
+- Each game now reads **Brad, Andrew, Kevin, Eric, Humans, Claude, Submitted**. **Humans** only shows when 3 of the 4
+  agree; on a 2-2 split it says "no majority (2-2)".
+- **Claude** is only the tiebreaker. **Submitted** is a human call if one is made, else Humans, else Claude.
+- New **Submitted pick: human call** on each game: any of the four can set or clear it once picks are revealed, until
+  the game has a result (Brad any time). It's written to the sheet's Human call column (N); calls typed into N in the
+  sheet come into the app.
+- Week 9's 2-2 calls made in the sheet are recorded as human calls.
+- Labels: "Entry" is now **Submitted** and "Majority" is now **Humans** across Pool, Explore and Compare.
+- Needs migration `0018_human_entry_call`.
+
 ## 0.14.3 — 2026-11-01 · Pick reminders by phone, not email
 - The Thursday "you haven't locked" reminder now goes out as a phone notification through the app itself, not as a
   Resend email. No email service or verified domain is needed, so the "yourdomain.com is not verified" error is gone.

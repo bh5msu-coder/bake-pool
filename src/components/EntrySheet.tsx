@@ -1,8 +1,8 @@
 "use client";
-// This week's entry, line by line: the team on the entry, how it got there (4-0, 3-1, Claude's tie-break or Brad's
-// override), who's on it, and how it's doing.
+// This week's submitted entry, line by line: the team, how it got there (a human's call, a 4-0 or 3-1 Humans
+// majority, or Claude's 2-2 tiebreak), who's on it, and how it's doing.
 import { chipClass, colorOf } from "@/lib/players";
-import { ENTRY, entryLines, entryPick, fmtRec, grade, humans, labelOf, majority, record, revealed, split, type Week } from "@/lib/scoring";
+import { ENTRY, entryHow, entryLines, entryPick, fmtRec, grade, humans, labelOf, record, revealed, split, type Week } from "@/lib/scoring";
 import { spreadFor } from "@/lib/teams";
 import { useApp } from "./store";
 import { Sheet } from "./ui";
@@ -17,10 +17,13 @@ export function EntrySheet({ week, live, onClose }: { week: Week; live: LiveMap;
   const rows = week.games.map((g) => {
     const pick = entryPick(g, ids);
     const sp = split(g, ids);
-    // How the line got there: Brad's override, a 4-0 or 3-1 majority, or Claude (a 2-2 split, or no majority because
-    // someone didn't pick).
-    const how = !pick ? null : g.entryOverride ? "Override" : majority(g, ids) ? "Majority" : "Claude";
-    const label = how === "Majority" ? (sp ?? "Majority") : how === "Claude" && sp ? `${sp} · Claude` : how;
+    // How the line got there: a human's call, a 4-0 or 3-1 Humans majority, or Claude (only on a 2-2 split, or no
+    // majority because someone didn't pick).
+    const h = entryHow(g, ids);
+    const how = !pick ? null : h === "human" ? "Human call" : h === "majority" ? "Majority" : "Claude";
+    const caller = season.players.find((p) => p.id === g.entryOverrideBy)?.name;
+    const label = how === "Majority" ? `Humans ${sp ?? ""}`.trim() : how === "Claude" && sp ? `${sp} · Claude tiebreak`
+      : how === "Human call" ? `${sp ? `${sp} · ` : ""}human call${caller ? ` (${caller})` : ""}` : how;
     const backers = season.players.filter((p) => g.picks[p.id] === pick && (p.kind === "human" || how === "Claude"));
     const l = live.get(g.num);
     const res = grade(pick, g.result);
@@ -38,7 +41,7 @@ export function EntrySheet({ week, live, onClose }: { week: Week; live: LiveMap;
   };
 
   return (
-    <Sheet title={`${labelOf(week)} entry`} onClose={onClose}
+    <Sheet title={`${labelOf(week)} submitted entry`} onClose={onClose}
       action={isAdmin && shown && picked > 0 ? <button className="link" onClick={copy}>Copy</button> : undefined}>
       {!shown ? (
         <div className="empty"><b>Hidden until everyone locks</b>
@@ -52,7 +55,7 @@ export function EntrySheet({ week, live, onClose }: { week: Week; live: LiveMap;
           <span className="tag">4-0 · {n("4-0")}</span>
           <span className="tag">3-1 · {n("3-1")}</span>
           <span className="tag">Claude · {n("Claude")}</span>
-          {n("Override") > 0 && <span className="tag signal">Override · {n("Override")}</span>}
+          {n("Human call") > 0 && <span className="tag signal">Human call · {n("Human call")}</span>}
         </p>
         <div className="list">
           {rows.map(({ g, pick, label, backers, res, liveSide, final }) => (
@@ -76,7 +79,7 @@ export function EntrySheet({ week, live, onClose }: { week: Week; live: LiveMap;
             </div>
           ))}
         </div>
-        <p className="hint">Majority (3 of 4) makes the entry; Claude breaks 2-2 splits; Brad can override a line.</p>
+        <p className="hint">Submitted = a human&apos;s call if made, else the Humans majority (3 of 4), else Claude as the 2-2 tiebreaker. Tap a game to make the call.</p>
       </>)}
     </Sheet>
   );

@@ -11,8 +11,13 @@ the weekly lines from John's sheet.
 
 ## Pool rules the app applies
 
-- **Majority** = 3 or more of the 4 humans on one side.
-- **Entry pick** = Brad's override if set, else the majority, else Claude's pick (this breaks 2-2 ties).
+- Each game shows, in order: **Brad, Andrew, Kevin, Eric**, then **Humans**, **Claude**, **Submitted**.
+- **Humans** = 3 or more of the 4 humans on one side (4-0 or 3-1). Blank on a 2-2 split.
+- **Claude** = only used as the tiebreaker on a 2-2 split (or when there's no majority because someone didn't pick).
+- **Submitted** = a human call if one is made, else the Humans majority, else Claude's pick.
+- **Human call**: any of the four can set (or clear) the submitted pick on a game once picks are revealed (everyone
+  locked or the deadline passed), until the game has a result. Brad can set it any time. Calls typed into the sheet's
+  Human call column (N) are picked up by the app too.
 - **Grading** is against the spread. The admin records which team covered (or a push).
 - **Eliminator** = the group's vote (most votes; a tie needs Brad to pick). If that team wins, the group loses a life. Teams can't be reused.
   The group starts with 1 life and can buy another for $100 (one buy-back so far; Brad adjusts it on the Elim tab).
@@ -96,10 +101,11 @@ The Supabase project is **bake-pool** (`ivucfpduvaiyxjcqbsqa`, us-east-2). The s
 
 Five minutes after each deadline (Thursday 2:30 PM Central), a Supabase timer (`pg_cron`) calls `/api/sheet/push`.
 It writes each person's picks into that week's block on the **Picks** tab (columns G–J for Brad/Andrew/Kevin/Eric, L for
-Claude, N for an entry override, O for results), plus eliminator votes on the **Eliminator** tab.
+Claude, N for a human call (blank when a call is cleared), O for results), plus eliminator votes on the **Eliminator** tab.
 - The block's rows come from the Summary tab's Line Start/End. An empty block also gets the games and lines (A–C).
 - If the sheet already lists the games, each one is matched by team names, so the row order doesn't matter.
-- Only non-empty values are written, and formula columns (Majority, Win/Loss, …) are never touched.
+- Only non-empty values are written, and formula columns (Humans K, Submitted M, Win/Loss, …) are never touched. The
+  one blank the app ever writes is clearing a human call in N.
 - The daily 8 AM job repeats the write for any week locked in the last 9 days, which picks up results entered later.
 - Brad can also use **Menu → Push to sheet now**.
 

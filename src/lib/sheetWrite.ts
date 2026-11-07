@@ -5,8 +5,13 @@ import { matchTeam, type Grid, type Period } from "./sheet";
 
 export interface CellWrite { range: string; values: string[][] }
 
-/** Picks tab columns (A = 1). The sheet's own formulas (Majority, Win/Loss…) are never touched. */
+/**
+ * Picks tab columns (A = 1). Display order: Brad G, Andrew H, Kevin I, Eric J, Humans K (formula: the 3-of-4 majority
+ * only), Claude L, Submitted M (formula: N if set, else K, else L), Human call N, Result O.
+ * The sheet's own formulas (Humans, Submitted, Win/Loss…) are never touched.
+ */
 export const COL = { away: "A", home: "B", line: "C", brad: "G", andrew: "H", kevin: "I", eric: "J", claude: "L", override: "N", result: "O" } as const;
+const OVERRIDE_IDX = 13;
 export const PICKERS = ["brad", "andrew", "kevin", "eric", "claude"] as const;
 
 export const cell = (g: Grid, r: number, c: number) => (g[r - 1]?.[c] ?? "").trim(); // r is the 1-based sheet row
@@ -56,14 +61,18 @@ export function planPicks(picksTab: Grid, period: Period, week: Week): PicksPlan
     used.add(row);
     if (empty) writes.push({ range: `Picks!${COL.away}${row}:${COL.line}${row}`, values: [[g.away, g.home, g.line]] });
     for (const p of PICKERS) if (g.picks[p]) writes.push({ range: `Picks!${COL[p]}${row}`, values: [[g.picks[p]]] });
-    if (g.entryOverride) writes.push({ range: `Picks!${COL.override}${row}`, values: [[g.entryOverride]] });
+    const sheetCall = cell(picksTab, row, OVERRIDE_IDX);
+    if (g.entryOverride) { if (sheetCall !== g.entryOverride) writes.push({ range: `Picks!${COL.override}${row}`, values: [[g.entryOverride]] }); }
+    // A call cleared in the app clears the sheet's Human call cell (the only blank the app ever writes).
+    else if (g.entryOverrideAt && sheetCall) writes.push({ range: `Picks!${COL.override}${row}`, values: [[""]] });
     if (g.result && g.result !== "PUSH") writes.push({ range: `Picks!${COL.result}${row}`, values: [[g.result]] });
   });
   // Safety net: a week's write never reaches another week's rows (past or future) and never blanks a cell.
   const first = start, last = start + size - 1;
   for (const w of writes) {
     const r = Number(/(\d+)$/.exec(w.range)?.[1]);
-    if (!(r >= first && r <= last) || w.values.flat().some((v) => !v)) throw new Error(`Refusing to write ${w.range}: outside ${labelOf(week)}'s rows ${first}-${last}.`);
+    const clearsCall = w.range.startsWith(`Picks!${COL.override}`);
+    if (!(r >= first && r <= last) || (!clearsCall && w.values.flat().some((v) => !v))) throw new Error(`Refusing to write ${w.range}: outside ${labelOf(week)}'s rows ${first}-${last}.`);
   }
   return { writes, rows: week.games.length - unmatched.length, unmatched, filledGames: empty };
 }
@@ -77,4 +86,25 @@ export function planElim(elimTab: Grid, season: Season, week: Week): CellWrite[]
   const cols = ["B", "C", "D", "E"];
   return humans(season.players).slice(0, 4).flatMap((p, i) =>
     week.elim.picks[p.id] ? [{ range: `Eliminator!${cols[i]}${r + 1}`, values: [[week.elim.picks[p.id]]] }] : []);
+}
+
+export interface SheetCall { gameId: number; team: string }
+
+/**
+ * Human calls typed straight into the sheet's Human call column (N) that the app doesn't have yet.
+ * Only taken when the app has never set or cleared a call for that game, so the app's own choice always wins.
+ */
+export function planCalls(picksTab: Grid, period: Period, week: Week): { calls: SheetCall[]; skipped: string[] } {
+  const { rows } = weekRows(picksTab, period, week);
+  const calls: SheetCall[] = [], skipped: string[] = [];
+  for (const g of week.games) {
+    const row = rows.get(g.num);
+    if (!row || !g.id || g.entryOverride || g.entryOverrideAt || g.result) continue;
+    const raw = cell(picksTab, row, OVERRIDE_IDX);
+    if (!raw) continue;
+    const team = matchTeam(raw, g.away, g.home);
+    if (!team) { skipped.push(`G${g.num} human call: "${raw}" isn't ${g.away} or ${g.home}`); continue; }
+    calls.push({ gameId: g.id, team });
+  }
+  return { calls, skipped };
 }

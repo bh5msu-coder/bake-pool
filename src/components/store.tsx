@@ -29,6 +29,7 @@ function applyLocal(s: Season, op: Op): Season {
       break;
     }
     case "setResult": { const g = game(op.args[0]); if (g) g.result = op.args[1]; break; }
+    case "setEntryCall": { const g = game(op.args[0]); if (g) g.entryOverride = op.args[1]; break; }
     case "updateWeek": {
       const [wid, p] = op.args, w = week(wid);
       if (w) {

@@ -32,7 +32,7 @@ export function ExploreTab() {
     return true;
   });
   const games = rows.map((r) => r.g);
-  const pickerName = F.picker === ENTRY ? "Entry" : season.players.find((p) => p.id === F.picker)?.name ?? F.picker;
+  const pickerName = F.picker === ENTRY ? "Submitted" : season.players.find((p) => p.id === F.picker)?.name ?? F.picker;
   const active = FACETS.filter((f) => F[f.k].size).length + (F.result !== "any" ? 1 : 0);
   const cols = [...season.players.map((p) => ({ id: p.id, i: p.initial })), { id: ENTRY, i: "N" }];
 
@@ -56,7 +56,7 @@ export function ExploreTab() {
           <div>
             <p className="eyebrow">Whose picks</p>
             <div className="pills">
-              {[...season.players.map((p) => [p.id, p.name]), [ENTRY, "Entry"]].map(([id, n]) => (
+              {[...season.players.map((p) => [p.id, p.name]), [ENTRY, "Submitted"]].map(([id, n]) => (
                 <button key={id} className="pill" aria-pressed={F.picker === id} onClick={() => setFilter({ ...F, picker: id })}>
                   <i className="dot" style={cvar(id)} />{n}
                 </button>
@@ -102,7 +102,7 @@ export function ExploreTab() {
           </div>
           <p className="hint" style={{ marginTop: 8 }}>&quot;Side&quot; and wins/losses follow {pickerName}&apos;s pick. Each row shows every picker&apos;s result:</p>
           <div className="legend" style={{ marginTop: 6 }}>
-            {cols.map((c) => <span key={c.id}><i className="dot" style={cvar(c.id)} />{c.i} {c.id === ENTRY ? "Entry" : season.players.find((p) => p.id === c.id)?.name}</span>)}
+            {cols.map((c) => <span key={c.id}><i className="dot" style={cvar(c.id)} />{c.i} {c.id === ENTRY ? "Submitted" : season.players.find((p) => p.id === c.id)?.name}</span>)}
           </div>
           <div className="results">
             {rows.map(({ g, w }) => (
@@ -127,7 +127,7 @@ export function ExploreTab() {
     {facet === "picker" && (
       <Sheet title="Whose picks" onClose={() => setFacet(null)}>
         <div className="pills">
-          {[...season.players.map((p) => [p.id, p.name]), [ENTRY, "Entry"]].map(([id, n]) => (
+          {[...season.players.map((p) => [p.id, p.name]), [ENTRY, "Submitted"]].map(([id, n]) => (
             <button key={id} className="pill" aria-pressed={F.picker === id} onClick={() => setFilter({ ...F, picker: id })}>{n}</button>
           ))}
         </div>

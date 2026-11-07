@@ -23,7 +23,12 @@ export interface Game {
   spread: number;
   line: string;
   result: string | null; // team that covered, or "PUSH"
+  /** A human's call on the submitted pick (beats the majority and Claude). */
   entryOverride?: string | null;
+  /** Who made the call. */
+  entryOverrideBy?: PlayerId | null;
+  /** When the call was last set or cleared (null = never touched in the app). */
+  entryOverrideAt?: string | null;
   picks: Record<PlayerId, string>;
 }
 
@@ -105,10 +110,23 @@ export function split(game: Game, humanIds: PlayerId[]): string | null {
   return `${Math.max(a, teams.length - a)}-${Math.min(a, teams.length - a)}`;
 }
 
-/** The pick that goes on the submitted entry: the majority (3 of 4), and Claude breaks 2-2 ties. Nobody can force it. */
+/** The pick that goes on the submitted entry: a human's call if one is set, else the Humans majority (3 of 4),
+ *  else Claude, who is only the tiebreaker. */
 export function entryPick(game: Game, humanIds: PlayerId[]): string | null {
-  return majority(game, humanIds) || game.picks[BOT] || null;
+  return game.entryOverride || majority(game, humanIds) || game.picks[BOT] || null;
 }
+
+export type EntryHow = "human" | "majority" | "claude";
+/** How the submitted pick was decided, or null when there's no pick yet. */
+export function entryHow(game: Game, humanIds: PlayerId[]): EntryHow | null {
+  if (game.entryOverride) return "human";
+  if (majority(game, humanIds)) return "majority";
+  return game.picks[BOT] ? "claude" : null;
+}
+
+/** Display names for the virtual pickers. */
+export const HUMANS_LABEL = "Humans";
+export const SUBMITTED_LABEL = "Submitted";
 
 /** Players who were alone on their side in a 3-1 split. */
 export function soloPicker(game: Game, humanIds: PlayerId[]): PlayerId | null {

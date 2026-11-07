@@ -5,7 +5,7 @@ import { loadSeason } from "./data";
 import { sheetsClient, type SheetsClient } from "./google";
 import { labelOf, type Season, type Week } from "./scoring";
 import { parseSummaryTab } from "./sheet";
-import { planElim, planPicks } from "./sheetWrite";
+import { planCalls, planElim, planPicks } from "./sheetWrite";
 
 export interface PushResult { week: string; cells: number; games: number; unmatched: string[]; filledGames: boolean }
 
@@ -13,6 +13,13 @@ async function pushOne(sb: SupabaseClient, client: SheetsClient, season: Season,
   const [summary, picksTab, elimTab] = await Promise.all([client.read("Summary"), client.read("Picks"), client.read("Eliminator")]);
   const period = parseSummaryTab(summary).periods.find((p) => p.label === labelOf(week));
   if (!period?.start) throw new Error(`The Summary tab has no row range for ${labelOf(week)}.`);
+  // Human calls typed into the sheet come into the app first (they're attributed to nobody: "via the sheet").
+  for (const c of planCalls(picksTab, period, week).calls) {
+    const res = await sb.from("games").update({ entry_override: c.team, entry_override_by: null, entry_override_at: new Date().toISOString() }).eq("id", c.gameId);
+    if (res.error) throw new Error(res.error.message);
+    const g = week.games.find((x) => x.id === c.gameId);
+    if (g) { g.entryOverride = c.team; g.entryOverrideAt = new Date().toISOString(); }
+  }
   const picks = planPicks(picksTab, period, week);
   const cells = await client.write([...picks.writes, ...planElim(elimTab, season, week)]);
   if (week.id) await sb.from("weeks").update({ sheet_pushed_at: new Date().toISOString() }).eq("id", week.id);

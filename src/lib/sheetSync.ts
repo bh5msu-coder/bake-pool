@@ -7,6 +7,7 @@ import { sheetsClient } from "./google";
 import { planSync, syncKey, type SyncMode } from "./pickSync";
 import { isOpen, labelOf } from "./scoring";
 import { parseSummaryTab } from "./sheet";
+import { planCalls } from "./sheetWrite";
 
 export interface SyncResult { week: string | null; toApp: number; toSheet: number; skipped: string[]; message: string }
 
@@ -32,6 +33,10 @@ export async function syncOpenWeek(sb: SupabaseClient, sheetId: string, mode: Sy
     const res = c.team
       ? await sb.from("picks").upsert({ game_id: c.gameId, player_id: c.player, team: c.team })
       : await sb.from("picks").delete().match({ game_id: c.gameId, player_id: c.player });
+    if (res.error) throw new Error(res.error.message);
+  }
+  for (const c of planCalls(picksTab, period, week).calls) {
+    const res = await sb.from("games").update({ entry_override: c.team, entry_override_by: null, entry_override_at: new Date().toISOString() }).eq("id", c.gameId);
     if (res.error) throw new Error(res.error.message);
   }
   await client.write(plan.toSheet);
