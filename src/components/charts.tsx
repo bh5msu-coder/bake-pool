@@ -1,6 +1,6 @@
 "use client";
 // Small SVG/HTML chart kit following the dataviz rules: thin marks, hairline grid,
-// one axis, legend for 2+ series, selective direct labels, hover tooltips that
+// one axis, every line labelled at its end (no legend), hover tooltips that
 // never gate a value (every chart has a table view), text in ink tokens only.
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { colorOf, cvar } from "@/lib/players";
@@ -66,9 +66,9 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
   const [hover, setHover] = useState<number | null>(null);
   const all = series.flatMap((s) => s.values);
   const yt = ticks(Math.min(0, ...all), Math.max(0, ...all));
-  // Leave room on the right for the end labels of highlighted series.
-  const endChars = Math.max(0, ...series.filter((s) => highlight.includes(s.id)).map((s) => `${s.name} ${format(s.values.at(-1) ?? 0)}`.length));
-  const m = { t: 12, r: Math.max(64, endChars * 6.6 + 16), b: 28, l: 36 };
+  // Every line is named at its end (no legend to match colours against), so leave room for the longest label.
+  const endChars = Math.max(0, ...series.map((s) => `${s.name} ${format(s.values.at(-1) ?? 0)}`.length));
+  const m = { t: 12, r: Math.max(72, endChars * 7 + 34), b: 28, l: 36 };
   const W = Math.max(width, 280), H = height;
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const x = (i: number) => m.l + (labels.length < 2 ? iw / 2 : (i / (labels.length - 1)) * iw);
@@ -78,9 +78,9 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
   // Draw highlighted series last so they sit on top.
   const ordered = [...series].sort((a, b) => Number(highlight.includes(a.id)) - Number(highlight.includes(b.id)));
 
-  // End labels only for highlighted series, nudged apart if they collide.
-  const ends = series.filter((s) => highlight.includes(s.id)).map((s) => ({ s, y: y(s.values[last]) })).sort((a, b) => a.y - b.y);
-  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+  // End labels for every series, in value order, nudged apart so they never collide.
+  const ends = series.map((s) => ({ s, y: y(s.values[last]) })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
 
   function onMove(e: React.PointerEvent<SVGRectElement>) {
     const box = e.currentTarget.getBoundingClientRect();
@@ -106,14 +106,18 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
           {ordered.map((s) => {
             const hi = highlight.length === 0 || highlight.includes(s.id);
             return (
-              <g key={s.id} style={{ opacity: hi ? 1 : 0.55 }}>
+              <g key={s.id} className="series" style={{ opacity: hi ? 1 : 0.55 }}>
                 <path d={path(s.values)} fill="none" stroke={colorOf(s.id)} strokeWidth={s.id === "entry" ? 2.5 : 2} strokeLinejoin="round" strokeLinecap="round" />
                 <circle cx={x(hover ?? last)} cy={y(s.values[hover ?? last])} r={4} fill={colorOf(s.id)} stroke="var(--surface)" strokeWidth={2} />
               </g>
             );
           })}
           {ends.map(({ s, y: ly }) => (
-            <text key={s.id} className="lbl" x={W - m.r + 10} y={ly + 4}>{s.name} {format(s.values[last])}</text>
+            <g key={s.id}>
+              {/* Name in ink beside a swatch of the line's colour: amber and green lines are too light to be text. */}
+              <rect className="sw" x={W - m.r + 10} y={ly - 2} width={10} height={4} fill={colorOf(s.id)} />
+              <text className="lbl" x={W - m.r + 24} y={ly + 4}>{s.name} {format(s.values[last])}</text>
+            </g>
           ))}
           <rect x={m.l} y={m.t} width={iw} height={ih} fill="transparent" style={{ touchAction: "pan-y" }}
             onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setHover(null)} />

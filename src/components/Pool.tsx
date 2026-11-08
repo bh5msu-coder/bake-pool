@@ -6,7 +6,7 @@ import {
   band, BANDS, ENTRY, elimSummary, fmtPct, fmtRec, humans, MAJORITY, money, pct, pickOf, record, shortLabel, side, soloPicker, split,
   type Game, type Rec,
 } from "@/lib/scoring";
-import { ChartCard, DiffHeatmap, DiffTable, Heatmap, HeatTable, Legend, LineChart, WinBars } from "./charts";
+import { ChartCard, DiffHeatmap, DiffTable, Heatmap, HeatTable, LineChart, WinBars } from "./charts";
 import { Header } from "./ui";
 import { emptyFilter, useApp, type ExploreFilter } from "./store";
 
@@ -85,7 +85,6 @@ export function PoolTab() {
         </div>
 
         <ChartCard className="s7" title="Season race" sub="Games over .500 after each week (wins minus losses)"
-          legend={<Legend items={traj.series} />}
           table={<table className="grid"><thead><tr><th>Picker</th>{traj.labels.slice(1).map((l) => <th key={l}>{l}</th>)}</tr></thead>
             <tbody>{traj.series.map((s) => <tr key={s.id}><td>{s.name}</td>{s.values.slice(1).map((v, i) => <td key={i}>{v > 0 ? `+${v}` : v}</td>)}</tr>)}</tbody></table>}>
           <LineChart labels={traj.labels} series={traj.series} highlight={[ENTRY, me]} />

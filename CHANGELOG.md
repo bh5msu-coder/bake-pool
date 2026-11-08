@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.1 — 2026-11-08 · Cleaner chips and charts (Pool Console look)
+- Week board: the players' pick dots are full size (24px) and sit side by side on their own line under the team,
+  instead of tiny overlapping dots squeezed beside the name. Initials are dark on every color so they're readable.
+- Filter buttons (All games, To pick) are one slimmer pill style with a clearer outline; still easy to tap.
+- Status tags (Locked, records, Claude, Override) share one size and shape.
+- Season race and Chasing the money name every line at its end, in order, with a color swatch. No more legend.
+- Cards get a soft shadow in light mode and slightly rounder corners. Brad's blue is a touch lighter.
+
 ## 0.15.0 — 2026-11-07 · Humans, Claude, Submitted (and the human call)
 - Each game now reads **Brad, Andrew, Kevin, Eric, Humans, Claude, Submitted**. **Humans** only shows when 3 of the 4
   agree; on a 2-2 split it says "no majority (2-2)".

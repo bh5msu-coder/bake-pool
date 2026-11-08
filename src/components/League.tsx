@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, type CSSProperties } from "react";
 import type { LeagueView } from "@/lib/leagueData";
-import { ChartCard, Legend, LineChart } from "./charts";
+import { ChartCard, LineChart } from "./charts";
 import { Header } from "./ui";
 import { useApp } from "./store";
 
@@ -124,7 +124,6 @@ function Overview({ data, us }: { data: LeagueView; us?: Row }) {
     </ChartCard>
 
     <ChartCard className="s7" title="Chasing the money" sub={`${data.entry}'s wins minus the leader's and minus 4th place, after each week · above zero = ahead`}
-      legend={<Legend items={gap.series} />}
       table={<table className="grid"><thead><tr><th>Week</th><th>{data.entry}</th><th>Leader</th><th>4th place</th></tr></thead>
         <tbody>{data.race.map((r) => <tr key={r.period}><td>{periodShort(r.period)}</td><td>{r.us}</td><td>{r.leader}</td><td>{r.cutoff}</td></tr>)}</tbody></table>}>
       <LineChart labels={gap.labels} series={gap.series} highlight={["leader", "cutoff"]} />
