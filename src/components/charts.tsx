@@ -75,6 +75,9 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
   const y = (v: number) => m.t + ih - ((v - yt[0]) / (yt.at(-1)! - yt[0] || 1)) * ih;
   const path = (vals: number[]) => vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
   const last = labels.length - 1;
+  // Show only as many x labels as fit side by side at the chart's real width.
+  const xFit = Math.max(2, Math.floor(iw / (Math.max(2, ...labels.map((l) => l.length)) * 7 + 10)));
+  const xEvery = Math.max(1, Math.ceil(labels.length / xFit));
   // Draw highlighted series last so they sit on top.
   const ordered = [...series].sort((a, b) => Number(highlight.includes(a.id)) - Number(highlight.includes(b.id)));
 
@@ -99,7 +102,7 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
             </g>
           ))}
           {labels.map((l, i) => (
-            (labels.length <= 10 || (i % Math.ceil(labels.length / 8) === 0 && last - i >= Math.ceil(labels.length / 8) / 2) || i === last) &&
+            ((i % xEvery === 0 && last - i >= xEvery / 2) || i === last) &&
             <text key={l} className="tick" x={x(i)} y={H - 8} textAnchor="middle">{l}</text>
           ))}
           {hover !== null && <line className="cross" x1={x(hover)} x2={x(hover)} y1={m.t} y2={m.t + ih} />}

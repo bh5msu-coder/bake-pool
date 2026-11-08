@@ -10,7 +10,7 @@ import {
   seasonGrid, seasonsOf, SMALL, soloRecords, SPLITS, streaks, SUBMITTED, teamRecords, tendencies, trajectory, weekRecords,
   type HistoryFile, type SG, type TeamRec,
 } from "@/lib/stats";
-import { ChartCard, Heatmap, HeatTable, Legend, LineChart, WinBars } from "./charts";
+import { ChartCard, Heatmap, HeatTable, LineChart, WinBars } from "./charts";
 import { useApp } from "./store";
 import { Header } from "./ui";
 
@@ -121,7 +121,6 @@ function Overview({ games, who, scope }: P) {
     </div>
 
     <ChartCard className="s7" title="The long race" sub="Games over .500, week by week (wins minus losses)"
-      legend={<Legend items={traj.series} />}
       table={<table className="grid"><thead><tr><th>Picker</th>{traj.labels.slice(1).map((l, i) => <th key={i}>{l}</th>)}</tr></thead>
         <tbody>{traj.series.map((s) => <tr key={s.id}><td>{s.name}</td>{s.values.slice(1).map((v, i) => <td key={i}>{v > 0 ? `+${v}` : v}</td>)}</tr>)}</tbody></table>}>
       <LineChart labels={traj.labels} series={traj.series} highlight={traj.series.map((s) => s.id)} />
