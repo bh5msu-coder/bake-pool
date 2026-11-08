@@ -8,7 +8,7 @@ import { useApp } from "./store";
 type Sub = "overview" | "board" | "money";
 type Row = LeagueView["rows"][number];
 
-const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
+const usd = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
 const pct = (p: number) => (p >= 0.995 ? ">99%" : p > 0 && p < 0.005 ? "<1%" : `${Math.round(p * 100)}%`);
 const rankText = (r: { rank: number; tied: boolean }) => `${r.tied ? "T" : ""}${r.rank}`;
 const periodShort = (p: string) => (/^\d+$/.test(p) ? `W${p}` : p);

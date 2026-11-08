@@ -531,7 +531,7 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
     <article className="sb" data-num={g.num} data-blank={g.picks[as] ? undefined : "1"}>
       <button className="stat" onClick={onMore} aria-label={`Details for ${g.away} at ${g.home}`}>
         {head}
-        <small>{g.league}{sp ? ` · ${sp}` : ""}</small>
+        <small><span className={`lg ${g.league === "NFL" ? "nfl" : "cfb"}`}>{g.league}</span>{sp ? <span>{sp}</span> : null}</small>
         {my && <span className={`tag res ${my === "W" ? "win" : my === "L" ? "loss" : "signal"}`}>{my === "P" ? "Push" : my === "W" ? "Win" : "Loss"}</span>}
       </button>
       <div>{team(g.away, false)}{team(g.home, true)}</div>

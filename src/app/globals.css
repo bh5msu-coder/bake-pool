@@ -6,7 +6,7 @@
   --page: #f3f2ee; --surface: #fcfcfb; --sunk: #eceae4; --hover: #f1f0eb;
   --ink: #0b0b0b; --muted: #4a4946; --faint: #6b6963; --rule: #e3e2db; --axis: #c3c2b7;
   /* scoreboard band: header + desktop sidebar, same in both themes */
-  --band: #0f1419; --band-2: #1a222b; --band-ink: #ffffff; --band-muted: rgba(255,255,255,.66); --band-line: rgba(255,255,255,.12);
+  --band: #0f1419; --band-2: #1a222b; --band-ink: #ffffff; --band-muted: rgba(255,255,255,.66); --band-line: rgba(255,255,255,.14);
   --band-accent: #6da7ec;
   --ring: rgba(11, 11, 11, .10);
   --accent: #184f95; --accent-ink: #ffffff; --accent-soft: #e4eefb;
@@ -14,7 +14,7 @@
   /* Pool Console additions: outline-control border (3:1), avatar initials, band records, league marks */
   --control-line: #8b897f; --avatar-ink: #0b0b0b; --band-up: #39d98a; --band-down: #ff7b7b;
   --league-nfl: #184f95; --league-cfb: #8a5a00;
-  --shadow-card: 0 1px 2px rgba(11,11,11,.06);
+  --shadow-card: 0 1px 2px rgba(11,11,11,.06); --shadow-sheet: 0 -8px 24px rgba(11,11,11,.14);
   --win: #006300; --win-fill: #0ca30c; --win-soft: #e2f3e2;
   --loss: #b02a2a; --loss-fill: #d03b3b; --loss-soft: #fbe6e6;
   /* players: categorical slots 1-5, fixed order (never by rank) */
@@ -28,8 +28,14 @@
   --display: var(--body);
   --mono: var(--body);
   --tabs-h: 64px;
-  --radius: 14px; --radius-sm: 6px; --radius-md: 10px; --radius-pill: 999px;
-  --chip-h: 28px; --avatar: 24px; --tap-min: 44px;
+  --radius: 14px; --radius-lg: var(--radius); --radius-sm: 6px; --radius-md: 10px; --radius-pill: 999px;
+  --chip-h: 28px; --avatar: 24px; --tap-min: 44px; --content-max: 640px;
+  /* Pool Console: 4px spacing scale and type scale */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --font-sans: var(--body);
+  --record-xl: 700 32px/1 var(--body); --record-lg: 700 24px/1 var(--body); --kicker: 700 11px/14px var(--body);
+  --title: 700 20px/24px var(--body); --heading: 600 16px/22px var(--body); --team: 600 16px/20px var(--body);
+  --label: 600 13px/16px var(--body); --caption: 500 12px/16px var(--body);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -39,7 +45,7 @@
     --ring: rgba(255, 255, 255, .10);
     --accent: #6da7ec; --accent-ink: #0d0d0d; --accent-soft: #15253a;
     --signal: #fab219; --signal-soft: #2e2410;
-    --control-line: #6e6c64; --league-nfl: #6da7ec; --league-cfb: #fab219; --shadow-card: none;
+    --control-line: #6e6c64; --league-nfl: #6da7ec; --league-cfb: #fab219; --shadow-card: none; --shadow-sheet: 0 -8px 24px rgba(0,0,0,.6);
     --win: #2fbf2f; --win-fill: #0ca30c; --win-soft: #12261a;
     --loss: #ef7373; --loss-fill: #d03b3b; --loss-soft: #2c1617;
     --p-brad: #3987e5; --p-andrew: #d95926; --p-kevin: #199e70; --p-eric: #c98500; --p-claude: #d55181;
@@ -63,7 +69,7 @@ button:disabled { cursor: default; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
 .wrap {
-  max-width: 640px; margin: 0 auto;
+  max-width: var(--content-max); margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
@@ -164,7 +170,7 @@ section + section { border-top: 1px solid var(--rule); }
 .pill[aria-pressed="true"] small { color: inherit; opacity: .7; }
 .rail { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
 .rail::-webkit-scrollbar { display: none; }
-.tag { font: 600 .75rem/1 var(--body); height: 24px; padding: 0 8px; border-radius: var(--radius-sm); background: var(--sunk); color: var(--muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; letter-spacing: .01em; }
+.tag { font: 600 12px/1 var(--body); height: var(--chip-h); padding: 0 8px; border-radius: var(--radius-sm); background: var(--sunk); color: var(--muted); white-space: nowrap; display: inline-flex; align-items: center; gap: var(--space-1); vertical-align: middle; letter-spacing: .06em; text-transform: uppercase; }
 .tag.signal { background: var(--signal-soft); color: var(--signal); }
 .tag.win { background: var(--win-soft); color: var(--win); }
 .tag.loss { background: var(--loss-soft); color: var(--loss); }
@@ -241,7 +247,10 @@ section + section { border-top: 1px solid var(--rule); }
   display: flex; flex-direction: column; justify-content: center; gap: 3px; font: 700 .82rem/1.2 var(--body); color: var(--ink); min-width: 0;
 }
 .sb .stat:hover { background: var(--hover); }
-.sb .stat small { font: 600 .72rem var(--body); color: var(--faint); }
+.sb .stat small { font: 600 .72rem var(--body); color: var(--faint); display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.sb .stat small .lg { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); letter-spacing: .04em; }
+.sb .stat small .lg::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--faint)); flex: none; }
+.lg.nfl { --dot: var(--league-nfl); } .lg.cfb { --dot: var(--league-cfb); }
 .sb .stat .clock { color: var(--loss); display: flex; align-items: center; gap: 4px; white-space: nowrap; font-size: .8rem; }
 .sb .stat .clock .live-dot { width: 6px; height: 6px; flex: none; margin: 0; }
 .sb .stat .fin { color: var(--muted); text-transform: uppercase; font-size: .76rem; letter-spacing: .03em; }
@@ -264,7 +273,7 @@ section + section { border-top: 1px solid var(--rule); }
 .entry-ck { font-weight: 800; color: var(--ink); margin-right: 4px; }
 .sb .team .who .chip.mine-tag { padding: 0 9px; font-size: .72rem; letter-spacing: .01em; }
 .sb .team .nm { grid-area: nm; font: 600 1rem/1.2 var(--body); min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.sb .team .nm .tn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sb .team .nm .tn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 100%; }
 /* Season record under the name (so long names never get cut off): win-loss large and bold, against-the-spread smaller and quieter with an ATS tag. */
 .sb .team .rec { flex: none; display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .sb .team .rec b { font: 800 .95rem/1 var(--body); color: var(--ink); }
@@ -463,7 +472,7 @@ section + section { border-top: 1px solid var(--rule); }
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--page); border-radius: 16px 16px 0 0;
   max-height: 90vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  animation: rise .18s ease-out; color: var(--ink);
+  animation: rise .18s ease-out; color: var(--ink); box-shadow: var(--shadow-sheet);
 }
 @keyframes rise { from { transform: translateY(24px); opacity: 0; } }
 .grab { width: 38px; height: 4px; border-radius: 2px; background: var(--axis); margin: 9px auto 2px; }
@@ -558,7 +567,7 @@ nav.tabs button span { display: none; }
   .week-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
   .week-layout .rail-col { position: sticky; top: 92px; }
   .week-layout .rail-col .progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .week-layout .games { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .week-layout .games { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 10px; }
   .subtabs { max-width: 520px; }
   .dash { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; padding-block: 20px; }
   .dash > * { grid-column: span 12; }
