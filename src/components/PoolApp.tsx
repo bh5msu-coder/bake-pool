@@ -12,6 +12,7 @@ import { LeagueTab } from "./League";
 import { Login } from "./Login";
 import { Menu } from "./Menu";
 import { PoolTab } from "./Pool";
+import { StatsTab } from "./Stats";
 import { AppProvider, useApp } from "./store";
 import { SideNav, TabBar } from "./ui";
 import { WeekTab } from "./Week";
@@ -44,6 +45,7 @@ function Screens() {
     <div className="shell">
       {tab === "week" && <WeekTab />}
       {tab === "pool" && <PoolTab />}
+      {tab === "stats" && <StatsTab />}
       {tab === "league" && <LeagueTab />}
       {tab === "elim" && <ElimTab />}
       {tab === "explore" && <ExploreTab />}

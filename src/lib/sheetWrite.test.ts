@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixtureSeason } from "./fixture";
-import type { Week } from "./scoring";
+import type { Game, Week } from "./scoring";
 import { parseCsv, parsePicksTab, parseSummaryTab } from "./sheet";
 import { planCalls, planElim, planPicks } from "./sheetWrite";
 
@@ -41,7 +41,7 @@ describe("writing picks to the real sheet layout", () => {
 
   it("writes a human call to N, clears it when the app clears it, and reads calls typed into the sheet", () => {
     const sheetW6 = parsePicksTab(picksTab).get("Week 6")!;
-    const base = sheetW6.map((g) => ({ ...g, result: null, entryOverride: null, entryOverrideAt: null }));
+    const base: Game[] = sheetW6.map((g) => ({ ...g, result: null, entryOverride: null, entryOverrideAt: null }));
     const mk = (games: typeof base): Week => ({ ...season.weeks[5], label: "Week 6", games });
     const g1 = base[0];
     const call = planPicks(picksTab, periods[5], mk([{ ...g1, entryOverride: g1.home, entryOverrideAt: "2026-11-07" }, ...base.slice(1)]));

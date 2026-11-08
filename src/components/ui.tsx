@@ -3,7 +3,7 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { colorOf } from "@/lib/players";
 import { ENTRY, elimSummary, fmtRec, humans, money, record } from "@/lib/scoring";
 import { EntryCard } from "./EntryCard";
-import { IconElim, IconExplore, IconLeague, IconPool, IconWeek } from "./icons";
+import { IconElim, IconExplore, IconLeague, IconPool, IconWeek, IconStats } from "./icons";
 import { useApp, type Tab } from "./store";
 
 export function Header({ title, sub, right, strip, onTitle, score }: {
@@ -51,6 +51,7 @@ export function Sheet({ title, onClose, children, action }: { title: string; onC
 const TABS: [Tab, string, string, () => ReactNode][] = [
   ["week", "Week", "This week's picks", IconWeek],
   ["pool", "Pool", "Standings & stats", IconPool],
+  ["stats", "Stats", "All-time stats", IconStats],
   ["league", "League", "The Pool league", IconLeague],
   ["elim", "Elim", "Eliminator", IconElim],
   ["explore", "Explore", "Every game", IconExplore],

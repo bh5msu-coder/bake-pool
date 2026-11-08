@@ -16,3 +16,6 @@ export const IconLeague = () => (
 export const IconExplore = () => (
   <svg viewBox="0 0 24 24" aria-hidden {...P}><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
 );
+export const IconStats = () => (
+  <svg viewBox="0 0 24 24" aria-hidden {...P}><path d="M12 3v9l6.4 6.4A9 9 0 1 1 12 3z" /><path d="M15 3.5a9 9 0 0 1 5.5 5.5H15z" /></svg>
+);

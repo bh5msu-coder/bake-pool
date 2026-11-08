@@ -99,7 +99,7 @@ export function LineChart({ labels, series, highlight = [], format = (v) => `${v
             </g>
           ))}
           {labels.map((l, i) => (
-            (labels.length <= 10 || i % Math.ceil(labels.length / 8) === 0 || i === last) &&
+            (labels.length <= 10 || (i % Math.ceil(labels.length / 8) === 0 && last - i >= Math.ceil(labels.length / 8) / 2) || i === last) &&
             <text key={l} className="tick" x={x(i)} y={H - 8} textAnchor="middle">{l}</text>
           ))}
           {hover !== null && <line className="cross" x1={x(hover)} x2={x(hover)} y1={m.t} y2={m.t + ih} />}
@@ -146,7 +146,8 @@ function heatStyle(p: number | null): CSSProperties {
   return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.55 ? "#fff" : "var(--ink)" };
 }
 
-export function Heatmap({ cols, rows, rowHead = 92, minCol = 52 }: { cols: string[]; rows: HeatRow[]; rowHead?: number; minCol?: number }) {
+/** `thinBelow`: cells with fewer decided games than this are hatched as a small sample (0 = off). */
+export function Heatmap({ cols, rows, rowHead = 92, minCol = 52, thinBelow = 0 }: { cols: string[]; rows: HeatRow[]; rowHead?: number; minCol?: number; thinBelow?: number }) {
   const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => { if (!tip) return; const t = setTimeout(() => setTip(null), 4000); return () => clearTimeout(t); }, [tip]);
@@ -160,24 +161,25 @@ export function Heatmap({ cols, rows, rowHead = 92, minCol = 52 }: { cols: strin
         <div className="heat" style={{ gridTemplateColumns: `${rowHead}px repeat(${cols.length}, minmax(${minCol}px, 1fr))`, minWidth: rowHead + cols.length * (minCol + 2) }}>
           <span />
           {cols.map((c) => <span key={c} className="hd">{c}</span>)}
-          {rows.map((r) => (<RowCells key={r.id} r={r} cols={cols} show={show} />))}
+          {rows.map((r) => (<RowCells key={r.id} r={r} cols={cols} show={show} thinBelow={thinBelow} />))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span style={{ marginLeft: 8 }}>win rate · red = hot · blue = cold · grey = 50%</span></div>
+      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span style={{ marginLeft: 8 }}>win rate · red = hot · blue = cold · grey = 50%{thinBelow ? ` · hatched = under ${thinBelow} games` : ""}</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );
 }
 
-function RowCells({ r, cols, show }: { r: HeatRow; cols: string[]; show(e: React.SyntheticEvent<HTMLElement>, t: string): void }) {
+function RowCells({ r, cols, show, thinBelow }: { r: HeatRow; cols: string[]; show(e: React.SyntheticEvent<HTMLElement>, t: string): void; thinBelow: number }) {
   return (<>
     <span className="rh"><i className="dot" style={cvar(r.id)} />{r.name}</span>
     {r.cells.map((c, i) => {
       const text = `${r.name} · ${cols[i]}: ${c.rec ? `${fmtRec(c.rec)} (${fmtPct(c.rec)})` : "—"}`;
+      const thin = !!c.rec && c.rec.w + c.rec.l < thinBelow;
       return c.pct === null ? (
         <span key={i} className="hc empty" aria-label={text}>—</span>
       ) : (
-        <button key={i} className="hc" style={heatStyle(c.pct)} aria-label={text}
+        <button key={i} className={`hc${thin ? " thin" : ""}`} style={heatStyle(c.pct)} aria-label={thin ? `${text} · small sample` : text}
           onPointerEnter={(e) => show(e, text)} onFocus={(e) => show(e, text)} onClick={(e) => show(e, text)}>
           {Math.round(c.pct * 100)}%
         </button>
@@ -264,21 +266,38 @@ export function HeatTable({ cols, rows }: { cols: string[]; rows: HeatRow[] }) {
 }
 
 /** Horizontal win-% bars from a 0 baseline, with a .500 reference. One colour unless items carry identity. */
-export function WinBars({ items }: { items: { id: string; label: string; sub?: string; rec: Rec; pct: number | null; color?: string }[] }) {
+/** `mark`: an extra dashed reference, e.g. the 52.4% you need at −110.
+ *  `diverge`: bars grow left/right from .500 instead of from 0, full width at ±`diverge` (e.g. 0.15 = 35%–65%). */
+export function WinBars({ items, mark, diverge }: {
+  items: { id: string; label: string; sub?: string; rec: Rec; pct: number | null; color?: string }[]; mark?: { at: number; label: string }; diverge?: number;
+}) {
+  const pos = (v: number) => (diverge ? 50 + Math.max(-1, Math.min(1, (v - 0.5) / diverge)) * 50 : v * 100);
   return (
     <div className="bars">
-      {items.map((it) => (
-        <div className="b" key={it.id} title={`${it.label}: ${fmtRec(it.rec)} (${fmtPct(it.rec)})`}>
-          <span>{it.label}{it.sub && <span className="sub">{it.sub}</span>}</span>
-          <span className="track">
-            <span style={{ position: "absolute", left: "50%", top: -4, bottom: -4, width: 1, background: "var(--axis)" }} aria-hidden />
-            <span className="fill" style={{ display: "block", width: `${(it.pct ?? 0) * 100}%`, ["--c" as string]: it.color ?? "var(--accent)" } as CSSProperties} />
-          </span>
-          <span className="v">{fmtPct(it.rec)}<span className="sub">{fmtRec(it.rec)}</span></span>
-        </div>
-      ))}
+      {items.map((it) => {
+        const v = it.pct ?? 0.5;
+        const fill: CSSProperties = diverge
+          ? { position: "absolute", top: 0, height: "100%", left: `${Math.min(50, pos(v))}%`, width: `${Math.abs(pos(v) - 50)}%`, borderRadius: v >= 0.5 ? "0 4px 4px 0" : "4px 0 0 4px" }
+          : { display: "block", width: `${(it.pct ?? 0) * 100}%` };
+        return (
+          <div className="b" key={it.id} title={`${it.label}: ${fmtRec(it.rec)} (${fmtPct(it.rec)})`}>
+            <span>{it.label}{it.sub && <span className="sub">{it.sub}</span>}</span>
+            <span className="track">
+              <span style={{ position: "absolute", left: "50%", top: -4, bottom: -4, width: 1, background: "var(--axis)" }} aria-hidden />
+              {mark && <span style={{ position: "absolute", left: `${pos(mark.at)}%`, top: -4, bottom: -4, borderLeft: "1px dashed var(--muted)" }} aria-hidden />}
+              <span className="fill" style={{ ...fill, ["--c" as string]: it.color ?? "var(--accent)" } as CSSProperties} />
+            </span>
+            <span className="v">{fmtPct(it.rec)}<span className="sub">{fmtRec(it.rec)}</span></span>
+          </div>
+        );
+      })}
       <div className="b" aria-hidden style={{ minHeight: 0 }}>
-        <span /><span style={{ position: "relative", fontSize: ".72rem", color: "var(--faint)" }}><span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>.500</span></span><span />
+        <span /><span style={{ position: "relative", fontSize: ".72rem", color: "var(--faint)", minHeight: 14 }}>
+          {diverge && !mark && <span style={{ position: "absolute", left: 0 }}>{Math.round((0.5 - diverge) * 100)}%</span>}
+          <span style={{ position: "absolute", left: "50%", transform: mark ? "translateX(-100%)" : "translateX(-50%)", paddingRight: 3 }}>.500</span>
+          {mark && <span style={{ position: "absolute", left: `${pos(mark.at)}%`, paddingLeft: 3 }}>{mark.label}</span>}
+          {diverge && !mark && <span style={{ position: "absolute", right: 0 }}>{Math.round((0.5 + diverge) * 100)}%</span>}
+        </span><span />
       </div>
     </div>
   );
