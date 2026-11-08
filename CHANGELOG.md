@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.16.2 — 2026-11-08 · Pool Console theme, finished
+- Week board on a laptop: game cards switch to one column when the middle of the screen is too narrow for two, so
+  team names and spreads no longer run into each other.
+- Each game's league shows as a colored dot plus NFL or NCAA (blue NFL, amber college).
+- Spreads and money use a true minus sign (−3.5, −$288).
+- Status tags (Win, Loss, Push, Locked) are one 28px chip, in uppercase.
+- Bottom sheets get the theme's sheet shadow; scoreboard dividers a touch brighter.
+- The full Pool Console token set (spacing, type scale, sheet shadow, content width) is now in globals.css.
+
 ## 0.16.1 — 2026-11-08 · Cleaner chips and charts (Pool Console look)
 - Week board: the players' pick dots are full size (24px) and sit side by side on their own line under the team,
   instead of tiny overlapping dots squeezed beside the name. Initials are dark on every color so they're readable.

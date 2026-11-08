@@ -98,7 +98,7 @@ export function SideNav() {
       <EntryCard />
       <div className="season">
         <div><span>Entry record</span><b>{fmtRec(entry)}</b></div>
-        <div><span>Net each</span><b className={m.each < 0 ? "neg" : "pos"}>{m.each < 0 ? "-" : ""}${Math.abs(m.each).toFixed(0)}</b></div>
+        <div><span>Net each</span><b className={m.each < 0 ? "neg" : "pos"}>{m.each < 0 ? "−" : ""}${Math.abs(m.each).toFixed(0)}</b></div>
         <div><span>Eliminator</span><b>{elim.alive ? `${elim.livesLeft} ${elim.livesLeft === 1 ? "life" : "lives"}` : "Out"}</b></div>
       </div>
       <button className="me" onClick={() => setMenu(true)}>

@@ -10,7 +10,7 @@ import { ChartCard, DiffHeatmap, DiffTable, Heatmap, HeatTable, LineChart, WinBa
 import { Header } from "./ui";
 import { emptyFilter, useApp, type ExploreFilter } from "./store";
 
-const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+const usd = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 type Sub = "standings" | "compare" | "matchups" | "breakdowns";
 
