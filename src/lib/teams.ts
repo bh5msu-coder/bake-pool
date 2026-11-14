@@ -8,6 +8,6 @@ export function teamVars(team: string | null | undefined): React.CSSProperties {
   return (c ? { "--team": `#${c.b}`, "--tb": `#${c.b}`, "--tt": `#${c.t}` } : {}) as React.CSSProperties;
 }
 
-/** "+3.5" for the underdog, "-3.5" for the favourite. */
+/** "+3.5" for the underdog, "−3.5" (true minus sign) for the favourite. Display only. */
 export const spreadFor = (team: string, fav: string, spread: number) =>
-  spread === 0 ? "PK" : `${team === fav ? "-" : "+"}${spread}`;
+  spread === 0 ? "PK" : `${team === fav ? "−" : "+"}${spread}`;
