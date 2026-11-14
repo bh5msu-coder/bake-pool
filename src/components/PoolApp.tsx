@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { loadSeason, pickHistory, previewElim, previewEntry, supabaseMutations, type EntryRow, type Mutations } from "@/lib/data";
 import { elimTeam, entryPick, humans, majority } from "@/lib/scoring";
@@ -14,9 +14,23 @@ import { PoolTab } from "./Pool";
 import { StatsTab } from "./Stats";
 import { AppProvider, useApp } from "./store";
 import { SideNav, Skeleton, TabBar } from "./ui";
+import { useRealtime } from "./useRealtime";
 import { WeekTab } from "./Week";
 
 const noop = async () => {};
+
+// The last season this phone loaded, kept for a fast start and for when there's no signal. Only ever shown to the
+// same signed-in person, and cleared on sign-out.
+const CACHE_KEY = "bake-season";
+type Kept = { email: string; me: string; season: Season };
+function readCache(email: string): Kept | null {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY) ?? "null") as Kept | null;
+    return c && c.email === email && c.season?.weeks ? c : null;
+  } catch { return null; }
+}
+function saveCache(c: Kept) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch { /* storage full or private mode */ } }
+function clearCache() { try { localStorage.removeItem(CACHE_KEY); } catch { /* private mode */ } }
 
 /** Demo data with the latest week reopened, so picking can be tried out. */
 async function demoSeason(): Promise<Season> {
@@ -32,7 +46,14 @@ const demoMutations: Mutations = {
 };
 
 function Screens() {
-  const { tab, menu, reload } = useApp();
+  const { tab, menu, reload, demo, setLive } = useApp();
+  // Other people's picks, locks and results show up within a second or two.
+  const live = useRealtime(!demo, reload);
+  useEffect(() => setLive(live), [live, setLive]);
+  // Keeps the app's files on the phone so it opens without signal (the published site only; not while developing).
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
   // Pick up other people's picks when the app comes back to the foreground.
   useEffect(() => {
     const onVis = () => document.visibilityState === "visible" && void reload();
@@ -73,24 +94,31 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
     return () => sub.subscription.unsubscribe();
   }, [sb]);
 
+  // Every successful load is also kept on the phone, so the app opens at once next time and still opens with no signal.
+  const who = useRef<{ email: string; me: string } | null>(null);
   const load = useCallback(async () => {
     if (!sb) return demoSeason();
-    return loadSeason(sb);
+    const s = await loadSeason(sb);
+    if (who.current) saveCache({ ...who.current, season: s });
+    return s;
   }, [sb]);
 
   useEffect(() => {
     if (!sb || !session?.user.email) return;
     const email = session.user.email.toLowerCase();
-    load().then((s) => {
-      setSeason(s);
-      return sb.from("players").select("id").ilike("email", email).maybeSingle();
-    }).then((r) => {
-      if (!r?.data) setError(`${email} isn't on the pool list. Ask Brad to add it.`);
-      else setMe(r.data.id);
-    }).catch((e: Error) => setError(e.message));
+    const kept = readCache(email);
+    if (kept) { who.current = { email, me: kept.me }; setSeason(kept.season); setMe(kept.me); }
+    load().then(async (s) => {
+      const r = await sb.from("players").select("id").ilike("email", email).maybeSingle();
+      if (!r.data) { setError(`${email} isn't on the pool list. Ask Brad to add it.`); return; }
+      who.current = { email, me: r.data.id };
+      saveCache({ email, me: r.data.id, season: s });
+      setSeason(s); setMe(r.data.id);
+    }).catch((e: Error) => { if (!kept) setError(navigator.onLine ? e.message : "You're offline, and this phone hasn't loaded the pool before. Connect and try again."); });
   }, [sb, session, load]);
 
   const signOut = useCallback(async () => {
+    clearCache();
     if (sb) await sb.auth.signOut();
     window.location.href = "/";
   }, [sb]);

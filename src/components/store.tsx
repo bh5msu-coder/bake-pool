@@ -83,6 +83,8 @@ interface Ctx {
   subOf(t: Tab): string; setSub(t: Tab, sub: string): void;
   /** False while the phone has no connection: the screen shows the last loaded data and picks can't be saved. */
   online: boolean;
+  /** True while the live-update connection is up (changes from other people arrive on their own). */
+  live: boolean; setLive(on: boolean): void;
   weekIdx: number; setWeekIdx(i: number): void;
   filter: ExploreFilter; setFilter(f: ExploreFilter): void;
   menu: boolean; setMenu(open: boolean): void;
@@ -122,6 +124,13 @@ export function AppProvider(props: {
   const [season, setSeason] = useState(props.initial);
   const current = useRef(season);
   current.current = season;
+  // The app can start from the copy saved on the phone; when the fresh season arrives a moment later, swap it in.
+  const given = useRef(props.initial);
+  useEffect(() => {
+    if (props.initial === given.current) return;
+    given.current = props.initial;
+    setSeason(props.initial);
+  }, [props.initial]);
   // Where the app is lives in the address (/pool/compare, /week/9), so the back swipe, a refresh and
   // notification links all work. Tab changes add a history step; week and sub-view changes replace it.
   const first = useRef(typeof window === "undefined" ? { tab: "week" as Tab } : parseRoute(window.location.pathname)).current;
@@ -177,6 +186,7 @@ export function AppProvider(props: {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  const [live, setLive] = useState(false);
   const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
   useEffect(() => {
     const on = () => setOnline(true), off = () => setOnline(false);
@@ -212,6 +222,7 @@ export function AppProvider(props: {
   // Reloading also moves the app forward: when a new week's lines arrive, the screen goes to it (the open week).
   // Nothing moves while the same week stays the default, so browsing an old week isn't interrupted.
   const reload = useCallback(async () => {
+    if (!navigator.onLine) return; // offline: keep showing what we have
     try {
       const next = await props.reload();
       const before = defaultWeekIdx(current.current), after = defaultWeekIdx(next);
@@ -222,9 +233,9 @@ export function AppProvider(props: {
 
   const isAdmin = !!season.players.find((p) => p.id === me)?.isAdmin;
   const value = useMemo<Ctx>(() => ({
-    season, me, isAdmin, demo, tab, setTab, subOf, setSub, online, weekIdx, setWeekIdx, filter, setFilter, menu, setMenu, run, toast, reload, signOut: props.signOut,
+    season, me, isAdmin, demo, tab, setTab, subOf, setSub, online, live, setLive, weekIdx, setWeekIdx, filter, setFilter, menu, setMenu, run, toast, reload, signOut: props.signOut,
     previewEntry: props.previewEntry, previewElim: props.previewElim, history: props.history,
-  }), [season, me, isAdmin, demo, tab, setTab, subOf, setSub, online, weekIdx, setWeekIdx, filter, menu, run, toast, reload, props.signOut, props.previewEntry, props.previewElim, props.history]);
+  }), [season, me, isAdmin, demo, tab, setTab, subOf, setSub, online, live, weekIdx, setWeekIdx, filter, menu, run, toast, reload, props.signOut, props.previewEntry, props.previewElim, props.history]);
 
   return (
     <C.Provider value={value}>

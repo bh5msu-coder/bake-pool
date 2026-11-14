@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.17.0 — 2026-11-14 · Stadium Night: new look, real links, live updates
+**Look**
+- Dark-first "Stadium Night" theme: near-black page, bright blue for you and for actions, green for wins and live
+  games, red for losses. Scores, records and titles use a bold condensed typeface and are bigger.
+- Menu → **Appearance**: Dark, Light, or Match phone. Remembered on each device.
+- New Home Screen icon (same BAKE mark, brighter), iPhone splash screens, and a status bar that matches the header.
+
+**Getting around**
+- Five tabs instead of six: **Week, Pool, Elim, League, Stats**. Explore is now **Stats → Games**.
+- iPad gets a slim icon rail down the side instead of a stretched phone layout.
+- Every screen has its own link (`/pool/compare`, `/week/9`, `/stats/games`). The back swipe works, a refresh keeps
+  your place, and swiping back closes an open sheet instead of leaving the app.
+- Long team names wrap instead of being cut off. Wide tables keep their first column in view while you scroll.
+- Admin tools in the Menu are grouped into sections that open and close. "Are you sure?" questions use the app's own
+  sheet instead of the browser pop-up.
+
+**New**
+- **Live updates**: picks, locks and results from other people appear within a second or two (a small "Live" dot
+  shows in the header). Needs migration `0019_realtime_and_prefs`; until then the app re-checks as before.
+- **Notifications**: week results, eliminator result and "picks revealed" pushes, each with its own on/off switch in
+  Menu → Notifications. A push for every final score is available but off unless you turn it on. Tapping a
+  notification opens the right screen.
+- **Works without signal**: the app opens with the last data it loaded and says so. Picks can't be saved while offline.
+- Loading shows placeholder shapes instead of "Loading…". Old seasons' stats load only when you open Stats.
+
+**Fixed**
+- One "picks are due" reminder per deadline. The second reminder system (3 hours and 45 minutes before) is retired;
+  Brad's "Claude's picks aren't in" alert is kept.
+- Stats → Games no longer shows a partial Humans/Submitted pick for a week whose picks are still hidden.
+- If writing locked picks to the sheet fails, the app now says so instead of failing silently.
+
 ## 0.16.1 — 2026-11-08 · Cleaner chips and charts (Pool Console look)
 - Week board: the players' pick dots are full size (24px) and sit side by side on their own line under the team,
   instead of tiny overlapping dots squeezed beside the name. Initials are dark on every color so they're readable.

@@ -2,6 +2,7 @@ import "server-only";
 // Live scores for a week, and the job that records finished games as results.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { pushDue } from "./push";
+import type { FinalGame } from "./resultNotes";
 import { elimTeam, type Game } from "./scoring";
 import { elimOutcome, fetchScoreboard, liveFor, matchGame, weekDays, type League, type LiveGame, type ScoreEvent } from "./scores";
 
@@ -29,6 +30,7 @@ export async function gradeFinals(sb: SupabaseClient, now = Date.now()) {
   const { data: weeks, error } = await sb.from("weeks").select("id,week,label,deadline");
   if (error) throw new Error(error.message);
   const report: { week: string; graded: string[]; unmatched: string[] }[] = [];
+  const finals: FinalGame[] = []; // games graded on this run, for "final score" notifications
   for (const w of (weeks ?? []).filter((x) => inWindow(x.deadline, now))) {
     const { data: rows } = await sb.from("games").select("id,num,league,away,home,fav,spread,line,result").eq("week_id", w.id);
     const games = (rows ?? []).map((r) => ({ ...r, spread: Number(r.spread), picks: {} })) as (Game & { id: number })[];
@@ -42,7 +44,11 @@ export async function gradeFinals(sb: SupabaseClient, now = Date.now()) {
       const live = liveFor(g, m);
       if (!live?.completed || !live.covering) continue;
       const { error: uErr } = await sb.from("games").update({ result: live.covering }).eq("id", g.id).is("result", null);
-      if (!uErr) graded.push(`${g.away} at ${g.home} → ${live.covering} (${live.awayScore}-${live.homeScore})`);
+      if (uErr) continue;
+      graded.push(`${g.away} at ${g.home} → ${live.covering} (${live.awayScore}-${live.homeScore})`);
+      const { data: picks } = await sb.from("picks").select("player_id,team").eq("game_id", g.id);
+      finals.push({ week: w.week, label: w.label ?? `Week ${w.week}`, away: g.away, home: g.home, awayScore: live.awayScore ?? 0, homeScore: live.homeScore ?? 0,
+        covering: live.covering, picks: Object.fromEntries((picks ?? []).map((p) => [p.player_id as string, p.team as string])) });
     }
     report.push({ week: w.label ?? `Week ${w.week}`, graded, unmatched });
   }
@@ -51,7 +57,7 @@ export async function gradeFinals(sb: SupabaseClient, now = Date.now()) {
   const pushed = changed && process.env.GOOGLE_SERVICE_ACCOUNT_KEY && process.env.SHEET_ID
     ? await pushDue(sb, process.env.SHEET_ID).then((p) => p.map((x) => `${x.week}: ${x.cells} cells`)).catch((e: Error) => e.message)
     : null;
-  return { report, elim, pushed };
+  return { report, elim, pushed, finals };
 }
 
 /** Records the eliminator outcome (survived / life lost) for locked weeks once the group's team has played. */

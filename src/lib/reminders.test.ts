@@ -13,17 +13,11 @@ function season(patch: Partial<Season["weeks"][number]> = {}): Season {
 const at = (utc: string) => Date.parse(`2026-10-22T${utc}Z`);
 
 describe("Thursday reminders", () => {
-  it("says nothing more than 3 hours before picks are due", () => {
-    expect(reminderPlan(season(), at("13:30:00"))).toEqual([]);
-  });
-
-  it("reminds everyone who hasn't locked from 3 hours out, and gives a last call at 45 minutes", () => {
+  it("leaves the picks-due reminder to the single scheduled one (no extra nudges to players)", () => {
     const s = season({ locks: ["kevin"] });
-    const keys = reminderPlan(s, at("14:30:00")).map((p) => p.key);
-    expect(keys).toEqual(["due3h:99:brad", "due3h:99:andrew", "due3h:99:eric"]);
-    const late = reminderPlan(s, at("16:20:00")).map((p) => p.key);
-    expect(late).toContain("due45:99:andrew");
-    expect(late.some((k) => k.endsWith(":kevin"))).toBe(false);
+    expect(reminderPlan(s, at("13:30:00"))).toEqual([]);
+    expect(reminderPlan(s, at("14:30:00"))).toEqual([]);
+    expect(reminderPlan(s, at("16:20:00"))).toEqual([]);
   });
 
   it("alerts Brad 30 minutes before when Claude's picks are missing, and not when they're in", () => {

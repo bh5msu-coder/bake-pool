@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { NOTE_KINDS } from "@/lib/resultNotes";
 import { adminClient, userClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,17 @@ export async function POST(req: Request) {
   const { error } = await adminClient().from("push_subs").upsert({ endpoint, player_id: player, p256dh, auth });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
+}
+
+// Choose which kinds of notification this device gets: { endpoint, prefs: { recap: true, final: false, … } }.
+export async function PUT(req: Request) {
+  const player = await me();
+  if (!player) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  const body = await req.json().catch(() => ({}));
+  const prefs = Object.fromEntries(NOTE_KINDS.map((k) => [k.kind, typeof body.prefs?.[k.kind] === "boolean" ? body.prefs[k.kind] : k.byDefault]));
+  const { error } = await adminClient().from("push_subs").update({ prefs }).eq("endpoint", String(body.endpoint ?? "")).eq("player_id", player);
+  if (error) return NextResponse.json({ error: "Notification choices aren't available yet. Try again after the next update." }, { status: 503 });
+  return NextResponse.json({ ok: true, prefs });
 }
 
 // Turn them off for this device: { endpoint }.

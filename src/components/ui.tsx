@@ -9,13 +9,14 @@ import { useApp, type Tab } from "./store";
 export function Header({ title, sub, right, strip, onTitle, score }: {
   title: string; sub?: string; right?: ReactNode; strip?: ReactNode; onTitle?(): void; score?: ReactNode;
 }) {
-  const { season, me, setMenu, online } = useApp();
+  const { season, me, setMenu, online, live } = useApp();
   const p = season.players.find((x) => x.id === me);
   return (
     <header className="top">
       <div className="wrap bar">
         <h1>{onTitle ? <button className="titlebtn" onClick={onTitle} aria-label={`${title}, choose week`}>{title}</button> : title}{sub && <small>{sub}</small>}</h1>
         {score}
+        {live && online && <span className="conn" title="Live updates on"><i />Live</span>}
         {right}
         <button className="avatar" style={{ "--who": colorOf(me) } as CSSProperties} onClick={() => setMenu(true)} aria-label="Menu">
           {p?.initial ?? "?"}

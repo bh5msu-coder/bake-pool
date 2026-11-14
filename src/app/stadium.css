@@ -183,3 +183,26 @@ header.top { box-shadow: none; border-bottom: 1px solid var(--band-line); }
 .progress.votes div b { white-space: nowrap; }
 
 span.avatar { display: inline-grid; place-items: center; flex: none; }
+
+/* ---------- notification choices ---------- */
+.switches { margin-top: 10px; border: 1px solid var(--ring); border-radius: var(--radius); background: var(--surface); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 8px 14px; }
+.switch-row + .switch-row { border-top: 1px solid var(--rule); }
+.switch-row span { display: grid; min-width: 0; }
+.switch-row b { font: 600 .95rem var(--body); }
+.switch-row small { font-size: .78rem; color: var(--faint); line-height: 1.35; }
+.switch-row input[role="switch"] {
+  appearance: none; -webkit-appearance: none; flex: none; width: 52px; height: 32px; border-radius: var(--radius-pill); background: var(--control-line);
+  position: relative; cursor: pointer; transition: background .18s var(--ease); margin: 0;
+}
+.switch-row input[role="switch"]::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35); transition: transform .18s var(--ease);
+}
+.switch-row input[role="switch"]:checked { background: var(--win-fill); }
+.switch-row input[role="switch"]:checked::after { transform: translateX(20px); }
+.on-note { font-size: .9rem; color: var(--win); font-weight: 600; }
+.hint.flush { margin-top: 0; }
+/* phones: the Live label shrinks to its dot so the week arrows keep their room */
+@media (max-width: 767px) { .conn { font-size: 0; gap: 0; } }
+.fold > .cta { width: calc(100% - 28px); }

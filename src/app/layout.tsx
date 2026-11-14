@@ -8,11 +8,19 @@ const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600
 const plexCond = IBM_Plex_Sans_Condensed({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-plex-cond" });
 
 const PAGE_DARK = "#0a0d12";
+const SPLASH = [[430, 932, 3], [393, 852, 3], [428, 926, 3], [390, 844, 3], [375, 812, 3], [414, 896, 2], [375, 667, 2]] as const;
 
 export const metadata: Metadata = {
   title: "BAKE Pool",
   description: "Weekly picks, standings and eliminator for the BAKE pool.",
-  appleWebApp: { capable: true, title: "BAKE Pool", statusBarStyle: "black-translucent" },
+  appleWebApp: {
+    capable: true, title: "BAKE Pool", statusBarStyle: "black-translucent",
+    // What an iPhone shows while the app opens from the Home Screen (made by scripts/make-icons.mjs).
+    startupImage: SPLASH.map(([w, h, d]) => ({
+      url: `/splash-${w}x${h}@${d}x.png`,
+      media: `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${d}) and (orientation: portrait)`,
+    })),
+  },
   icons: { icon: [{ url: "/favicon.png", sizes: "48x48", type: "image/png" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }], apple: "/apple-icon.png" },
 };
 
