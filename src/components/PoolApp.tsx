@@ -143,7 +143,7 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
   if (!demo && !session) return <Login error={loginError} />;
   if (error) return (
     <main className="login"><div className="card"><p className="warn err">{error}</p>
-      <button className="cta ghost" style={{ marginTop: 12 }} onClick={signOut}>Sign out</button></div></main>
+      <button className="cta ghost gap-s" onClick={signOut}>Sign out</button></div></main>
   );
   if (!season || !me) return boot;
 

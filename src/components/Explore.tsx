@@ -99,8 +99,8 @@ export function ExploreView() {
             {F.picker !== ENTRY && <span className="q">Entry {fmtRec(record(games, ENTRY, ids))}</span>}
             {active > 0 && <button className="link tally-clear" onClick={() => setFilter(emptyFilter(F.picker))}>Clear filters</button>}
           </div>
-          <p className="hint" style={{ marginTop: 8 }}>&quot;Side&quot; and wins/losses follow {pickerName}&apos;s pick. Each row shows every picker&apos;s result:</p>
-          <div className="legend" style={{ marginTop: 6 }}>
+          <p className="hint">&quot;Side&quot; and wins/losses follow {pickerName}&apos;s pick. Each row shows every picker&apos;s result:</p>
+          <div className="legend gap-xs">
             {cols.map((c) => <span key={c.id}><i className="dot" style={cvar(c.id)} />{c.i} {c.id === ENTRY ? "Submitted" : season.players.find((p) => p.id === c.id)?.name}</span>)}
           </div>
           <div className="results">
@@ -108,7 +108,7 @@ export function ExploreView() {
               <button key={`${w.week}-${g.num}`} className="xg" onClick={() => setDetail({ g, w })}>
                 <span className="l1"><span className="num">{shortLabel(w)} · {String(g.num).padStart(2, "0")}</span><span>{g.league}</span><span>{g.line}</span>
                   {split(g, ids) && <span className={`tag${split(g, ids) === "2-2" ? " signal" : ""}`}>{split(g, ids)}</span>}</span>
-                <span className="mu" style={{ display: "block" }}>{g.away} at {g.home}</span>
+                <span className="mu">{g.away} at {g.home}</span>
                 <span className="cells" style={{ gridTemplateColumns: `repeat(${cols.length}, 1fr)` }}>
                   {cols.map((c) => {
                     const v = grade(pickOf(g, c.id, ids), g.result);
@@ -129,7 +129,7 @@ export function ExploreView() {
             <button key={id} className="pill" aria-pressed={F.picker === id} onClick={() => setFilter({ ...F, picker: id })}>{n}</button>
           ))}
         </div>
-        <p className="eyebrow" style={{ marginTop: 18 }}>Result</p>
+        <p className="eyebrow gap-t">Result</p>
         <div className="pills">
           {(["any", "W", "L"] as const).map((r) => (
             <button key={r} className="pill" aria-pressed={F.result === r} onClick={() => setFilter({ ...F, result: r })}>

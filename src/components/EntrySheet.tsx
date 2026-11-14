@@ -72,7 +72,7 @@ export function EntrySheet({ week, live, onClose }: { week: Week; live: LiveMap;
               <span className="r">
                 {res ? <span className={`tag ${res === "W" ? "win" : res === "L" ? "loss" : "signal"}`}>{res === "P" ? "Push" : res === "W" ? "Win" : "Loss"}</span>
                   : liveSide ? <span className={`tag ${liveSide === pick ? "win" : liveSide === "PUSH" ? "signal" : "loss"}`}>
-                      {liveSide === "PUSH" ? "Push" : liveSide === pick ? "Covering" : "Behind"}{final ? "" : " ·"}{final ? "" : <span className="live-dot" style={{ marginLeft: 4 }} />}
+                      {liveSide === "PUSH" ? "Push" : liveSide === pick ? "Covering" : "Behind"}{final ? "" : " ·"}{final ? "" : <span className="live-dot after" />}
                     </span>
                   : null}
               </span>

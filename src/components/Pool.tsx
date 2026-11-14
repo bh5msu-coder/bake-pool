@@ -7,6 +7,7 @@ import {
   type Game, type Rec,
 } from "@/lib/scoring";
 import { ChartCard, DiffHeatmap, DiffTable, Heatmap, HeatTable, LineChart, WinBars } from "./charts";
+import { IconChevronRight } from "./icons";
 import { Header } from "./ui";
 import { emptyFilter, useApp, useSub, type ExploreFilter } from "./store";
 import { usd } from "@/lib/format";
@@ -96,7 +97,7 @@ export function PoolTab() {
         {sub === "breakdowns" && (<>
         <ChartCard className="s12" title="Week by week" sub="Win % each week · hover or tap a cell for the record"
           table={<HeatTable cols={weekly.cols} rows={weekly.rows} />}>
-          <Heatmap cols={weekly.cols} rows={weekly.rows} minCol={40} rowHead={78} />
+          <Heatmap cols={weekly.cols} rows={weekly.rows} minCol={40} rowHead={96} />
         </ChartCard>
 
         <ChartCard className="s12" title="Where each picker wins" sub="Win % by type of game · Favourites/Underdogs follow each picker's own side"
@@ -141,9 +142,9 @@ function Compare() {
   const byWeek = compareGrid(season, who, cols, "week");
   return (<>
     <div className="compare-bar s12">
-      <label className="row" style={{ gap: 8 }}>
+      <label className="row">
         <span className="lab">Compare</span>
-        <select className="btn" value={who} onChange={(e) => setWho(e.target.value)} style={{ minHeight: 36 }}>
+        <select className="btn" value={who} onChange={(e) => setWho(e.target.value)}>
           {season.players.map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
         </select>
       </label>
@@ -184,12 +185,12 @@ function MoneyAndWeeks() {
   return (
     <div className="chart-card s12">
       <div className="chart-head"><div><h3>Money &amp; weekly records</h3><p>The week&apos;s best player is in bold</p></div></div>
-      <div className="money" style={{ marginBottom: 14 }}>
+      <div className="money gap-b">
         <div><span>Paid in</span><b>{usd(m.fees)}</b></div>
         <div><span>Won</span><b className="pos">{usd(m.won)}</b></div>
         <div><span>Group net</span><b className={m.net < 0 ? "neg" : "pos"}>{usd(m.net)}</b></div>
       </div>
-      <div className="tablewrap">
+      <div className="tablewrap" tabIndex={0} role="region" aria-label="Records table">
         <table className="grid">
           <thead><tr><th>Week</th>{ps.map((p) => <th key={p.id}><span className="row" style={{ gap: 5, justifyContent: "center" }}><i className="dot" style={cvar(p.id)} />{p.name}</span></th>)}<th>$</th></tr></thead>
           <tbody>
@@ -199,7 +200,7 @@ function MoneyAndWeeks() {
               return (
                 <tr key={w.week}>
                   <td>{shortLabel(w)}</td>
-                  {recs.map((r, i) => <td key={i} style={{ fontWeight: i < recs.length - 1 && r.w === best ? 700 : 400 }}>{fmtRec(r)}</td>)}
+                  {recs.map((r, i) => <td key={i} className={i < recs.length - 1 && r.w === best ? "strong" : undefined}>{fmtRec(r)}</td>)}
                   <td className={w.winnings ? "pos" : ""}>{w.winnings ? usd(w.winnings) : "·"}</td>
                 </tr>
               );
@@ -237,7 +238,7 @@ function Breakdown() {
   return (
     <div className="chart-card s12">
       <div className="chart-head"><div><h3>Drill into games</h3><p>Tap a row to open those games in Explore</p></div></div>
-      <div className="rail" style={{ marginBottom: 6 }}>
+      <div className="rail gap-bs">
         {season.players.map((p) => (
           <button key={p.id} className="pill" aria-pressed={who === p.id} onClick={() => setWho(p.id)}><i className="dot" style={cvar(p.id)} />{p.name}</button>
         ))}
@@ -247,7 +248,7 @@ function Breakdown() {
           <button key={s.k} className="slice" onClick={() => s.f && open(s.f)} disabled={!s.f}>
             <span className="k">{s.k}</span>
             <span className="r">{fmtRec(s.r)} · {fmtPct(s.r)}</span>
-            <span className="go">{s.f ? "›" : ""}</span>
+            <span className="go">{s.f && <IconChevronRight className="icon sm" />}</span>
           </button>
         ))}
       </div>

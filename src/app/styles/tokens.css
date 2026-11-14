@@ -1,0 +1,65 @@
+/* BAKE Pool design tokens: "Scoreboard, sharpened" (see .ux-profile.md).
+   Dark-first: near-black page, raised slate cards, and four bright roles used sparingly:
+   blue = you / action, green = win / live, red = loss, amber = heads-up. Each player keeps a fixed colour.
+   Light theme is the alternate (html[data-theme="light"], set before first paint).
+   Every size, gap, radius and control height in the app comes from the scales below. */
+:root {
+  /* layers: page (L0) < surface (L1 cards, lists) < sunk / hover (L2) ; sheets sit on surface with a shadow */
+  --page: #0a0d12; --surface: #141a22; --sunk: #1b232d; --hover: #212b37;
+  --ink: #f4f6f8; --muted: #a9b3bf; --faint: #8893a1; --rule: #242d39; --axis: #3a4554;
+  --ring: rgba(255, 255, 255, .09); --control-line: #5d6877;
+  --edge: inset 0 1px 0 rgba(255, 255, 255, .05);
+  --shadow-card: 0 0 #0000; --shadow-pop: 0 12px 32px rgba(0, 0, 0, .5); --shadow-tip: 0 8px 24px rgba(0, 0, 0, .4);
+  --scrim: rgba(4, 6, 10, .62); --shade: rgba(0, 0, 0, .28);
+  /* scoreboard band: header + sidebar, dark in both themes */
+  --band: #0a0d12; --band-2: #171e27; --band-ink: #ffffff; --band-muted: rgba(255, 255, 255, .68); --band-line: rgba(255, 255, 255, .14);
+  --band-accent: #4d9bff; --band-soft: #12263f; --band-up: #2ee68a; --band-down: #ff6b6f; --band-signal: #ffb020;
+  --accent: #4d9bff; --accent-ink: #06101d; --accent-soft: #12263f;
+  --signal: #ffb020; --signal-soft: #33260a;
+  --win: #2ee68a; --win-fill: #1fc974; --win-soft: #0f2a1d;
+  --loss: #ff6b6f; --loss-fill: #d63a3f; --loss-soft: #331518; --on-fill: #ffffff;
+  --avatar-ink: #0b0b0b;
+  --league-nfl: #4d9bff; --league-cfb: #ffb020;
+  /* players: categorical slots 1-5, fixed order (never by rank) */
+  --p-brad: #3987e5; --p-andrew: #eb6834; --p-kevin: #1baf7a; --p-eric: #eda100; --p-claude: #e87ba4;
+  --p-entry: #f4f6f8; --p-majority: #8893a1; --p-leader: #9d93ff; --p-cutoff: #2ee68a;
+  /* diverging (win % around .500): blue <-> red, slate midpoint. Heatmaps run cold (blue) to hot (red). */
+  --div-neg: #ef5b60; --div-mid: #2a3340; --div-pos: #3d8bf2;
+  --heat-hot: var(--div-neg); --heat-cold: var(--div-pos); --heat-on-mid: #ffffff; --heat-on-high: #0a0d12;
+  --team-mix: 62%; --team-lift: #fff;
+
+  /* type: two faces, three weights, nine sizes */
+  --body: var(--font-plex-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: var(--font-plex-cond), var(--font-plex-sans), system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --t-meta: .75rem; --t-sec: .875rem; --t-body: 1rem; --t-h3: 1.1875rem; --t-h2: 1.4375rem; --t-h1: 1.75rem;
+  --t-d1: 2.5rem; --t-d2: 3rem; --t-d3: 3.625rem;
+  --label: 600 var(--t-meta)/1.4 var(--display); --label-track: .08em;
+
+  /* space, corners, control heights */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
+  --h-sm: 32px; --h-md: 44px; --h-lg: 52px;
+  --tabs-h: 68px; --head-h: 57px; --content-max: 640px;
+
+  /* motion */
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 320ms; --ease: cubic-bezier(.2, .8, .2, 1);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --page: #f1f3f6; --surface: #ffffff; --sunk: #edf0f4; --hover: #f3f5f8;
+  --ink: #0b0f14; --muted: #46505c; --faint: #5d6774; --rule: #e2e6ec; --axis: #bcc4ce;
+  --ring: rgba(11, 15, 20, .10); --control-line: #7b8490;
+  --edge: 0 0 #0000;
+  --shadow-card: 0 1px 3px rgba(11, 15, 20, .06); --shadow-pop: 0 12px 32px rgba(11, 15, 20, .18); --shadow-tip: 0 8px 24px rgba(11, 15, 20, .12);
+  --scrim: rgba(11, 15, 20, .45); --shade: rgba(11, 15, 20, .14);
+  --accent: #1560d4; --accent-ink: #ffffff; --accent-soft: #e1ecfc;
+  --signal: #8a5a00; --signal-soft: #fdf0d5;
+  --win: #006b2d; --win-fill: #0ca350; --win-soft: #def5e6;
+  --loss: #b3262b; --loss-fill: #d63a3f; --loss-soft: #fbe6e7;
+  --league-nfl: #1560d4; --league-cfb: #8a5a00;
+  --p-entry: #0b0f14; --p-majority: #858e9a; --p-leader: #6250d6; --p-cutoff: #008300;
+  --div-neg: #d03b3b; --div-mid: #eef0f3; --div-pos: #2a78d6; --heat-on-mid: #0b0f14; --heat-on-high: #ffffff;
+  --team-mix: 100%;
+  color-scheme: light;
+}

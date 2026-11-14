@@ -1,12 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import "./globals.css";
-import "./stadium.css";
+import "./styles/tokens.css";
+import "./styles/base.css";
+import "./styles/shell.css";
+import "./styles/components.css";
+import "./styles/screens.css";
 
-const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans" });
-// Condensed cut of the same family for scores, records and screen titles.
-const plexCond = IBM_Plex_Sans_Condensed({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-plex-cond" });
+const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans" });
+// Condensed cut of the same family for every number, title, section header and label.
+const plexCond = IBM_Plex_Sans_Condensed({ subsets: ["latin"], weight: ["600"], variable: "--font-plex-cond" });
 
 const PAGE_DARK = "#0a0d12";
 const SPLASH = [[430, 932, 3], [393, 852, 3], [428, 926, 3], [390, 844, 3], [375, 812, 3], [414, 896, 2], [375, 667, 2]] as const;

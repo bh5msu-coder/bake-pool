@@ -57,12 +57,12 @@ export function ElimTab() {
         <p className="hint">Pick an NFL team you think loses outright. If they win, the group loses a life. Each team can only be used once.
           {" "}The group starts with 1 life; each buy-back adds one for ${season.elimBuybackCost}.</p>
         {isAdmin && (
-          <div className="row" style={{ marginTop: 12 }}>
-            <span style={{ fontSize: ".85rem", color: "var(--muted)" }}>Buy-backs (${season.elimBuybackCost} each)</span>
+          <div className="row gap-s">
+            <span style={{ fontSize: "var(--t-sec)", color: "var(--muted)" }}>Buy-backs (${season.elimBuybackCost} each)</span>
             <span className="spacer" />
             <button className="iconbtn" aria-label="Remove a buy-back" disabled={season.elimBuybacks <= 0}
               onClick={() => run("setSetting", "elim_buybacks", season.elimBuybacks - 1)}>−</button>
-            <b className="num" style={{ minWidth: 24, textAlign: "center" }}>{season.elimBuybacks}</b>
+            <b className="num count">{season.elimBuybacks}</b>
             <button className="iconbtn" aria-label="Add a buy-back"
               onClick={() => run("setSetting", "elim_buybacks", season.elimBuybacks + 1)}>+</button>
           </div>
@@ -74,7 +74,7 @@ export function ElimTab() {
         <div className="progress votes">
           {humans(season.players).map((p) => (
             <div key={p.id} className={voted(p.id) ? "done" : ""}><i className="dot" style={cvar(p.id)} /><span>{p.name}</span>
-              <b>{week.elim.picks[p.id] ?? (voted(p.id) ? "Voted ✓" : "—")}</b></div>
+              <b>{week.elim.picks[p.id] ?? (voted(p.id) ? "Voted" : "—")}</b></div>
           ))}
         </div>
       </section>
@@ -90,26 +90,26 @@ export function ElimTab() {
               const mine = week.elim.picks[me] === c.team;
               const backers = humans(season.players).filter((p) => week.elim.picks[p.id] === c.team);
               return (
-                <button key={c.team} className={`cand${mine ? " mine" : ""}`} style={{ opacity: burned ? 0.45 : 1 }}
+                <button key={c.team} className={`cand${mine ? " mine" : ""}${burned ? " used" : ""}`}
                   disabled={burned || !open}
                   onClick={() => run("setElimPick", week.id!, me, mine ? null : c.team)}>
                   <span><span className="t" style={burned ? { textDecoration: "line-through" } : undefined}>{c.team}</span>
-                    <span className="o" style={{ display: "block" }}>{c.opp} · {c.line}{burned ? " · already used" : ""}</span></span>
-                  <span className="row" style={{ gap: 3 }}>{backers.map((p) => <span key={p.id} className={`chip${chipClass(p.id)}${p.id === me ? " me" : ""}`} style={{ background: colorOf(p.id) }}>{p.initial}</span>)}</span>
+                    <span className="o">{c.opp} · {c.line}{burned ? " · already used" : ""}</span></span>
+                  <span className="row tight">{backers.map((p) => <span key={p.id} className={`chip${chipClass(p.id)}${p.id === me ? " me" : ""}`} style={{ background: colorOf(p.id) }}>{p.initial}</span>)}</span>
                 </button>
               );
             })}
             {!cands.length && <p className="hint">No NFL games on this week&apos;s slate.</p>}
           </div>
           {isAdmin && (<>
-            <p className="eyebrow" style={{ marginTop: 18 }}>Admin: group pick</p>
-            <div className="field" style={{ marginTop: 0 }}>
+            <p className="eyebrow gap-t">Admin: group pick</p>
+            <div className="field flush">
               <select value={week.elim.override ?? ""} onChange={(e) => run("setElimWeek", week.id!, { override_team: e.target.value || null })}>
                 <option value="">Follow the vote</option>
                 {cands.filter((c) => !used.has(c.team)).map((c) => <option key={c.team} value={c.team}>Force {c.team}</option>)}
               </select>
             </div>
-            <p className="eyebrow" style={{ marginTop: 14 }}>Admin: outcome</p>
+            <p className="eyebrow gap-t">Admin: outcome</p>
             <div className="pills">
               {(["survived", "died"] as const).map((o) => (
                 <button key={o} className="pill" aria-pressed={week.elim.outcome === o}
@@ -140,14 +140,14 @@ function SeasonSoFar() {
               <span className="rk">{r.short}</span>
               <span className="nm">{r.team}</span>
               <span />
-              <span className={`tag ${r.outcome === "died" ? "loss" : r.outcome === "survived" ? "win" : ""}`} style={{ justifySelf: "end" }}>
+              <span className={`tag ${r.outcome === "died" ? "loss" : r.outcome === "survived" ? "win" : ""} end`}>
                 {r.outcome === "died" ? "Life lost" : r.outcome === "survived" ? "Survived" : "Pending"}
               </span>
             </div>
           ))}
         </div>
         {sum.burned.length > 0 && (<>
-          <p className="eyebrow" style={{ marginTop: 18 }}>Used: can&apos;t pick again</p>
+          <p className="eyebrow gap-t">Used: can&apos;t pick again</p>
           <div className="burned">{sum.burned.map((b) => <span key={b.team}>{b.team} · {b.short}</span>)}</div>
         </>)}
       </section>

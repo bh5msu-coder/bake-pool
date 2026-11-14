@@ -23,7 +23,7 @@ export function ChartCard({ title, sub, legend, table, children, className = "" 
 }) {
   const [view, setView] = useState<"chart" | "table">("chart");
   return (
-    <figure className={`chart-card ${className}`} style={{ margin: 0 }}>
+    <figure className={`chart-card ${className}`}>
       <div className="chart-head">
         <div><h3>{title}</h3>{sub && <p>{sub}</p>}</div>
         <div className="toggle" role="group" aria-label={`${title} view`}>
@@ -31,7 +31,7 @@ export function ChartCard({ title, sub, legend, table, children, className = "" 
           <button aria-pressed={view === "table"} onClick={() => setView("table")}>Table</button>
         </div>
       </div>
-      {view === "chart" ? (<>{legend}{children}</>) : <div className="tablewrap">{table}</div>}
+      {view === "chart" ? (<>{legend}{children}</>) : <div className="tablewrap" tabIndex={0} role="region" aria-label="Table">{table}</div>}
     </figure>
   );
 }
@@ -150,7 +150,7 @@ function heatStyle(p: number | null): CSSProperties {
   // Heat: red (hot) for better, blue (cold) for worse.
   const pole = t >= 0 ? "var(--heat-hot)" : "var(--heat-cold)";
   const amt = Math.round(Math.abs(t) * 100);
-  return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.55 ? "#fff" : "var(--ink)" };
+  return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.8 ? "var(--heat-on-high)" : Math.abs(t) > 0.55 ? "var(--heat-on-mid)" : "var(--ink)" };
 }
 
 /** `thinBelow`: cells with fewer decided games than this are hatched as a small sample (0 = off). */
@@ -164,14 +164,14 @@ export function Heatmap({ cols, rows, rowHead = 92, minCol = 52, thinBelow = 0 }
   };
   return (
     <div className="viz" ref={box} onPointerLeave={() => setTip(null)}>
-      <div className="tablewrap">
+      <div className="tablewrap" tabIndex={0} role="region" aria-label="Table">
         <div className="heat" style={{ gridTemplateColumns: `${rowHead}px repeat(${cols.length}, minmax(${minCol}px, 1fr))`, minWidth: rowHead + cols.length * (minCol + 2) }}>
           <span />
           {cols.map((c) => <span key={c} className="hd">{c}</span>)}
           {rows.map((r) => (<RowCells key={r.id} r={r} cols={cols} show={show} thinBelow={thinBelow} />))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span style={{ marginLeft: 8 }}>win rate · red = hot · blue = cold · grey = 50%{thinBelow ? ` · hatched = under ${thinBelow} games` : ""}</span></div>
+      <div className="scale" aria-hidden><span>25%</span><i /><span>75%</span><span className="note">win rate · red = hot · blue = cold · grey = 50%{thinBelow ? ` · hatched = under ${thinBelow} games` : ""}</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );
@@ -201,7 +201,7 @@ function diffStyle(d: number): CSSProperties {
   // Heat: red (hot) for better, blue (cold) for worse.
   const pole = t >= 0 ? "var(--heat-hot)" : "var(--heat-cold)";
   const amt = Math.round(Math.abs(t) * 100);
-  return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.55 ? "#fff" : "var(--ink)" };
+  return { background: `color-mix(in oklab, ${pole} ${amt}%, var(--div-mid))`, color: Math.abs(t) > 0.8 ? "var(--heat-on-high)" : Math.abs(t) > 0.55 ? "var(--heat-on-mid)" : "var(--ink)" };
 }
 const signed = (d: number) => (d > 0 ? `+${d}` : d < 0 ? `−${-d}` : "0");
 
@@ -225,7 +225,7 @@ export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60, mode 
   };
   return (
     <div className="viz" ref={box} onPointerLeave={() => setTip(null)}>
-      <div className="tablewrap">
+      <div className="tablewrap" tabIndex={0} role="region" aria-label="Table">
         <div className="heat" style={{ gridTemplateColumns: `${rowHead}px repeat(${cols.length}, minmax(${minCol}px, 1fr))`, minWidth: rowHead + cols.length * (minCol + 2) }}>
           <span />
           {cols.map((c) => <span key={c} className="hd">vs {c}</span>)}
@@ -244,7 +244,7 @@ export function DiffHeatmap({ who, cols, rows, rowHead = 128, minCol = 60, mode 
           </Fragment>))}
         </div>
       </div>
-      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span style={{ marginLeft: 8 }}>{mode === "rec" ? "colour = win-% gap" : "win-% points"} · red = {who} better · blue = worse · grey = even</span></div>
+      <div className="scale" aria-hidden><span>−15</span><i /><span>+15</span><span className="note">{mode === "rec" ? "colour = win-% gap" : "win-% points"} · red = {who} better · blue = worse · grey = even</span></div>
       {tip && <div className="tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
     </div>
   );
@@ -284,26 +284,26 @@ export function WinBars({ items, mark, diverge }: {
       {items.map((it) => {
         const v = it.pct ?? 0.5;
         const fill: CSSProperties = diverge
-          ? { position: "absolute", top: 0, height: "100%", left: `${Math.min(50, pos(v))}%`, width: `${Math.abs(pos(v) - 50)}%`, borderRadius: v >= 0.5 ? "0 4px 4px 0" : "4px 0 0 4px" }
-          : { display: "block", width: `${(it.pct ?? 0) * 100}%` };
+          ? { position: "absolute", top: 0, height: "100%", left: `${Math.min(50, pos(v))}%`, width: `${Math.abs(pos(v) - 50)}%`, borderRadius: v >= 0.5 ? "0 var(--r-sm) var(--r-sm) 0" : "var(--r-sm) 0 0 var(--r-sm)" }
+          : { width: `${(it.pct ?? 0) * 100}%` };
         return (
           <div className="b" key={it.id} title={`${it.label}: ${fmtRec(it.rec)} (${fmtPct(it.rec)})`}>
             <span>{it.label}{it.sub && <span className="sub">{it.sub}</span>}</span>
             <span className="track">
-              <span style={{ position: "absolute", left: "50%", top: -4, bottom: -4, width: 1, background: "var(--axis)" }} aria-hidden />
-              {mark && <span style={{ position: "absolute", left: `${pos(mark.at)}%`, top: -4, bottom: -4, borderLeft: "1px dashed var(--muted)" }} aria-hidden />}
+              <span className="mid" aria-hidden />
+              {mark && <span className="mark" style={{ left: `${pos(mark.at)}%` }} aria-hidden />}
               <span className="fill" style={{ ...fill, ["--c" as string]: it.color ?? "var(--accent)" } as CSSProperties} />
             </span>
             <span className="v">{fmtPct(it.rec)}<span className="sub">{fmtRec(it.rec)}</span></span>
           </div>
         );
       })}
-      <div className="b" aria-hidden style={{ minHeight: 0 }}>
-        <span /><span style={{ position: "relative", fontSize: ".72rem", color: "var(--faint)", minHeight: 14 }}>
-          {diverge && !mark && <span style={{ position: "absolute", left: 0 }}>{Math.round((0.5 - diverge) * 100)}%</span>}
-          <span style={{ position: "absolute", left: "50%", transform: mark ? "translateX(-100%)" : "translateX(-50%)", paddingRight: 3 }}>.500</span>
-          {mark && <span style={{ position: "absolute", left: `${pos(mark.at)}%`, paddingLeft: 3 }}>{mark.label}</span>}
-          {diverge && !mark && <span style={{ position: "absolute", right: 0 }}>{Math.round((0.5 + diverge) * 100)}%</span>}
+      <div className="b axis" aria-hidden>
+        <span /><span className="ticks">
+          {diverge && !mark && <span style={{ left: 0 }}>{Math.round((0.5 - diverge) * 100)}%</span>}
+          <span className={mark ? "before" : "centre"}>.500</span>
+          {mark && <span className="after" style={{ left: `${pos(mark.at)}%` }}>{mark.label}</span>}
+          {diverge && !mark && <span style={{ right: 0 }}>{Math.round((0.5 + diverge) * 100)}%</span>}
         </span><span />
       </div>
     </div>

@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.20.0 — 2026-11-14 · Scoreboard, sharpened (stage 2)
+- **The rest of the app follows the same rules.** Pool, Eliminator, The Pool league, Stats, Explore, the charts,
+  the Menu and the sign-in screen now take every gap, size and weight from the shared set. The last one-off
+  styles written into those screens are gone.
+- **No more text arrows.** Movement in the league leaderboard, the sort direction on its columns and the "open"
+  arrow on Pool breakdown rows are drawn icons. The league headline says "up 2 this week" in words.
+- **League leaderboard columns sort from the keyboard**, not only by tap or click, and wide tables can be scrolled
+  with the keyboard.
+- **Heat maps are easier to read.** Numbers on the strongest red and blue cells switch colour so they stay legible
+  in both themes. Upcoming rows are no longer faded to the point of being hard to read.
+- **Tablets:** Stats and league charts sit two across where they fit, instead of one long phone column. Bar-chart
+  labels have room so "Submitted · Home" stays on one line, and "Submitted" is no longer clipped on the Pool
+  week-by-week heat map.
+- Housekeeping: removed 14 old component preview files from before the redesign.
+
+## 0.19.0 — 2026-11-14 · Scoreboard, sharpened (stage 1)
+- **One scoreboard voice.** The tall condensed typeface now carries every score, record, title, section header and
+  small label, not just the big numbers.
+- **Simpler game cards.** The status column on the left is gone. Each card has one line across the top (time or
+  Final, league, how the humans split, and how your pick did), then the two teams. Each team has one colour bar, the
+  covering spread turns green, and your pick's row is tinted blue with a ring on your chip.
+- **Nine text sizes and three weights** across the whole app, down from 47 sizes. Nothing is smaller than 12px.
+- **Real depth.** Page, cards and raised controls are distinct layers with a thin border; sheets sit above them with
+  a shadow. Lists keep hairline rows.
+- **Blue means you or an action.** The current tab and your own standings row use a soft blue tint with a blue edge;
+  solid blue is saved for the main button.
+- **Drawn icons** for the week arrows, the week chooser, locks, check marks and Share, in the same line style as the
+  tab icons. (Pool, League and Eliminator still have a few text arrows; those are stage 2.)
+- **The tab bar is solid**, not see-through, and the phone-size sheets also centre on tablets.
+- Under the hood: the two old stylesheets, where the second overrode 96 rules of the first, are replaced by five
+  ordered files (`src/app/styles/`), and every size, gap, corner and control height comes from one set of values.
+  The rules are written down in `.ux-profile.md`.
+- The shared recap image uses the same three weights.
+- **Easier to tap and read.** Small buttons (week title, avatar, sub-tabs, compact buttons) keep their size but
+  answer to a full 44px touch. White text on red buttons and error toasts, the faintest grey in the light theme and
+  light-theme pill outlines are a little stronger so they pass the contrast standard.
+- The green-spread key now shows on finished weeks too, and the week title sits properly on tablets.
+
 ## 0.18.0 — 2026-11-14 · Recap image for the group chat
 - **Share on a finished week's recap now makes a picture.** It opens a preview with two choices: **Share image**
   (straight into Messages or any app on a phone; on a computer it saves the PNG) and **Share text** (the text

@@ -3,7 +3,7 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { colorOf } from "@/lib/players";
 import { ENTRY, elimSummary, fmtRec, humans, money, record } from "@/lib/scoring";
 import { EntryCard } from "./EntryCard";
-import { IconElim, IconLeague, IconPool, IconWeek, IconStats } from "./icons";
+import { IconChevronDown, IconChevronLeft, IconChevronRight, IconElim, IconLeague, IconPool, IconWeek, IconStats } from "./icons";
 import { useApp, type Tab } from "./store";
 
 export function Header({ title, sub, right, strip, onTitle, score }: {
@@ -14,9 +14,9 @@ export function Header({ title, sub, right, strip, onTitle, score }: {
   return (
     <header className="top">
       <div className="wrap bar">
-        <h1>{onTitle ? <button className="titlebtn" onClick={onTitle} aria-label={`${title}, choose week`}>{title}</button> : title}{sub && <small>{sub}</small>}</h1>
+        <h1>{onTitle ? <button className="titlebtn" onClick={onTitle} aria-label={`${title}, choose week`}>{title}<IconChevronDown className="icon" /></button> : title}{sub && <small>{sub}</small>}</h1>
         {score}
-        {live && online && <span className="conn" title="Live updates on"><i />Live</span>}
+        {live && online && <span className="conn" title="Live updates on"><i /><span>Live</span></span>}
         {right}
         <button className="avatar" style={{ "--who": colorOf(me) } as CSSProperties} onClick={() => setMenu(true)} aria-label="Menu">
           {p?.initial ?? "?"}
@@ -33,8 +33,8 @@ export function WeekNav() {
   const { season, weekIdx, setWeekIdx } = useApp();
   return (
     <div className="wknav">
-      <button className="iconbtn" disabled={weekIdx <= 0} onClick={() => setWeekIdx(weekIdx - 1)} aria-label="Previous week">‹</button>
-      <button className="iconbtn" disabled={weekIdx >= season.weeks.length - 1} onClick={() => setWeekIdx(weekIdx + 1)} aria-label="Next week">›</button>
+      <button className="iconbtn" disabled={weekIdx <= 0} onClick={() => setWeekIdx(weekIdx - 1)} aria-label="Previous week"><IconChevronLeft className="icon" /></button>
+      <button className="iconbtn" disabled={weekIdx >= season.weeks.length - 1} onClick={() => setWeekIdx(weekIdx + 1)} aria-label="Next week"><IconChevronRight className="icon" /></button>
     </div>
   );
 }
@@ -110,7 +110,7 @@ export function Skeleton({ rows = 5, hero = false }: { rows?: number; hero?: boo
 }
 
 // id, short label (phone bar and tablet rail), long label (desktop sidebar), icon
-const TABS: [Tab, string, string, () => ReactNode][] = [
+const TABS: [Tab, string, string, typeof IconWeek][] = [
   ["week", "Week", "This week's picks", IconWeek],
   ["pool", "Pool", "Standings & money", IconPool],
   ["elim", "Elim", "Eliminator", IconElim],

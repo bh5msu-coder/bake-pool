@@ -1,0 +1,63 @@
+/* Page defaults, the two type helpers every screen uses, and motion rules. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page); color: var(--ink); font: 400 var(--t-body)/1.5 var(--body);
+  -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
+  padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + var(--sp-3));
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+b, strong { font-weight: 600; }
+small { font-size: var(--t-meta); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+header.top :focus-visible, .side-nav :focus-visible { outline-color: var(--band-accent); }
+
+/* Numbers line up in columns everywhere. */
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+/* The one small uppercase label: section captions, tile titles, column heads. */
+.eyebrow { font: var(--label); letter-spacing: var(--label-track); text-transform: uppercase; color: var(--faint); margin: 0 0 var(--sp-2); }
+.hint { font-size: var(--t-sec); line-height: 1.5; color: var(--muted); margin: var(--sp-3) 0 0; max-width: 70ch; }
+.hint.flush { margin-top: 0; }
+
+/* Drawn icons (components/icons.tsx): sized by where they sit, coloured by their text. */
+.icon { width: 20px; height: 20px; flex: none; }
+.icon.sm { width: 16px; height: 16px; }
+
+.wrap {
+  max-width: var(--content-max); margin: 0 auto;
+  padding-left: max(var(--sp-4), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sp-4), env(safe-area-inset-right, 0px));
+}
+.row { display: flex; align-items: center; gap: var(--sp-2); }
+.row.wrap-row { flex-wrap: wrap; }
+.spacer { flex: 1; }
+.stack { display: grid; gap: var(--sp-2); }
+@media (min-width: 420px) { .stack.two { grid-template-columns: 1fr 1fr; } }
+.gap-t { margin-top: var(--sp-6); }
+.gap-s { margin-top: var(--sp-3); }
+.gap-b { margin-bottom: var(--sp-4); }
+.pad-y { padding-block: var(--sp-3); }
+.pos { color: var(--win); } .neg { color: var(--loss); }
+
+@keyframes rise { from { transform: translateY(100%); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pulse { 50% { opacity: .35; } }
+@keyframes shimmer { to { background-position: -150% 0; } }
+/* One rule for people who ask their device for less motion. */
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* Spacing and emphasis helpers, so components never carry one-off inline styles. */
+.gap-xs { margin-top: var(--sp-2); }
+.gap-bs { margin-bottom: var(--sp-2); }
+.pad-b { padding-bottom: var(--sp-6); }
+p.flush { margin-block: 0; }
+p.flush.gap-xs { margin-top: var(--sp-2); }
+.lead { margin: 0 0 var(--sp-2); font-weight: 600; }
+.strong, .grid td.strong { font-weight: 600; }
+.end { justify-self: end; }
+.row.tight { gap: var(--sp-1); }
+.row.fields { gap: var(--sp-3); align-items: end; }
+.row.fields .grow { flex: 1; } .row.fields .grow-2 { flex: 2; }
+.row.field-head { align-items: flex-end; gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-3); }

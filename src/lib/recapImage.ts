@@ -42,10 +42,10 @@ export function recapCardModel(r: Recap): RecapCard {
   };
 }
 
-// The dark "Stadium Night" tokens from globals.css, fixed here so the picture looks the same whatever theme the
+// The dark "Stadium Night" tokens from styles/tokens.css, fixed here so the picture looks the same whatever theme the
 // person sharing it uses.
 const C = {
-  page: "#0a0d12", surface: "#141a22", ring: "rgba(255,255,255,.08)", rule: "#242d39",
+  page: "#0a0d12", surface: "#141a22", ring: "rgba(255,255,255,.09)", rule: "#242d39",
   ink: "#f4f6f8", muted: "#a9b3bf", faint: "#8893a1", win: "#2ee68a", loss: "#ff6b6f", blue: "#1560d4",
 };
 const PLAYER: Record<string, string> = { brad: "#3987e5", andrew: "#eb6834", kevin: "#1baf7a", eric: "#eda100", claude: "#e87ba4" };
@@ -59,7 +59,7 @@ export async function drawRecap(m: RecapCard): Promise<Blob> {
   const body = fam("--font-plex-sans"), display = fam("--font-plex-cond");
   const font = (weight: number, size: number, family = body) => `${weight} ${size}px ${family}`;
   // Canvas draws with whatever is loaded right now, so wait for the weights used below.
-  await Promise.all([font(600, 40), font(700, 40), font(700, 40, display)].map((f) => document.fonts.load(f).catch(() => [])));
+  await Promise.all([font(600, 40), font(600, 40, display)].map((f) => document.fonts.load(f).catch(() => [])));
 
   const canvas = document.createElement("canvas");
   canvas.width = RECAP_W; canvas.height = RECAP_H;
@@ -84,12 +84,12 @@ export async function drawRecap(m: RecapCard): Promise<Blob> {
 
   // The BAKE mark, as on the app icon: white letters on a blue tile over a green bar.
   box(L, 96, 104, 104, 23, C.blue);
-  text("BAKE", L + 52, 158, font(700, 33), "#ffffff", "center");
+  text("BAKE", L + 52, 158, font(600, 33), "#ffffff", "center");
   box(L + 28, 166, 48, 6, 3, C.win);
-  text("BAKE POOL", L + 132, 136, font(700, 28), C.faint);
-  text(m.title, L + 132, 192, font(700, 52, display), C.ink, "left", R - L - 132);
+  text("BAKE POOL", L + 132, 136, font(600, 28), C.faint);
+  text(m.title, L + 132, 192, font(600, 52, display), C.ink, "left", R - L - 132);
 
-  text(m.entry, L - 6, 426, font(700, 210, display), toneColor(m.tone));
+  text(m.entry, L - 6, 426, font(600, 210, display), toneColor(m.tone));
   text(m.sub, L, 490, font(600, 38), C.muted);
 
   let y = 530;
@@ -97,7 +97,7 @@ export async function drawRecap(m: RecapCard): Promise<Blob> {
   for (const p of m.people) {
     ctx.beginPath(); ctx.arc(L + 14, y + 37, 14, 0, Math.PI * 2); ctx.fillStyle = PLAYER[p.id] ?? C.faint; ctx.fill();
     text(p.name, L + 48, y + 51, font(600, 40), C.ink, "left", 560);
-    text(p.rec, R, y + 52, font(700, 44, display), C.ink, "right");
+    text(p.rec, R, y + 52, font(600, 44, display), C.ink, "right");
     y += 72;
     rule(y);
   }
@@ -111,7 +111,7 @@ export async function drawRecap(m: RecapCard): Promise<Blob> {
       text(s.label.toUpperCase(), x, top + 22, font(600, 23), C.faint, "left", colW);
       ctx.font = font(600, 28);
       const noteW = s.note ? ctx.measureText(s.note).width + 16 : 0;
-      const w = text(s.value, x, top + 68, font(700, 38), toneColor(s.tone), "left", Math.max(colW - noteW, colW * 0.55));
+      const w = text(s.value, x, top + 68, font(600, 38), toneColor(s.tone), "left", Math.max(colW - noteW, colW * 0.55));
       if (s.note) text(s.note, x + w + 16, top + 68, font(600, 28), C.muted, "left", colW - w - 16);
     });
   });

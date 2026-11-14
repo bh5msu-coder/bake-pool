@@ -28,7 +28,7 @@ export function Login({ error }: { error?: string | null }) {
     <main className="login">
       <div className="card">
         <h1>BAKE <em>Pool</em></h1>
-        <p className="hint" style={{ marginTop: 0 }}>Who&apos;s picking?</p>
+        <p className="hint flush">Who&apos;s picking?</p>
         <div className="who-grid">
           {(players ?? []).map((p) => (
             <button key={p.id} className="who-btn" disabled={!!busy} onClick={() => enter(p)}>
@@ -38,7 +38,7 @@ export function Login({ error }: { error?: string | null }) {
           ))}
           {!players && !msg && <p className="hint">Loading…</p>}
         </div>
-        {msg && <p className="warn err" style={{ marginTop: 12 }}>{msg}</p>}
+        {msg && <p className="warn err gap-s">{msg}</p>}
       </div>
     </main>
   );

@@ -10,6 +10,7 @@ import {
 import type { EntryRow, HistoryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
 import { EntrySheet } from "./EntrySheet";
+import { IconCheck, IconChevronRight, IconLock } from "./icons";
 import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor, teamVars } from "@/lib/teams";
 import { RecapCard } from "./Recap";
@@ -27,7 +28,7 @@ interface Section { key: string; title: string; live?: boolean; games: Game[] }
 
 /** Live now → upcoming by day (in kickoff order) → final. Without live data, one plain list. */
 function sections(games: Game[], live: LiveMap): Section[] {
-  if (!live.size) return [{ key: "all", title: `${games.length} games`, games }];
+  if (!live.size) return [{ key: "all", title: "All games", games }];
   const done = (g: Game) => !!g.result || live.get(g.num)?.state === "post";
   const now = games.filter((g) => !done(g) && live.get(g.num)?.state === "in");
   const later = games.filter((g) => !done(g) && live.get(g.num)?.state !== "in")
@@ -164,10 +165,10 @@ export function WeekTab() {
       <div className="week-layout">
         <div>
           {open && <div className="mob-only"><Status week={week} as={as} setAs={setAs} compact /></div>}
-          {final && <div className="mob-only" style={{ marginTop: 14 }}><RecapCard week={week} /></div>}
-          <section style={{ paddingTop: open ? 4 : 14 }}>
+          {final && <div className="mob-only gap-s"><RecapCard week={week} /></div>}
+          <section>
             {(open || isAdmin) && (
-              <div className="row" style={{ marginBottom: 4, flexWrap: "wrap" }}>
+              <div className="row wrap-row week-tools">
                 {open && (
                   <div className="pills" role="group" aria-label="Show">
                     {(visible ? ["all", "todo", "ties"] as Show[] : ["all", "todo"] as Show[]).map((s) => (
@@ -183,8 +184,8 @@ export function WeekTab() {
             )}
             <div className="cover-key">
               <span><u />{as === me ? "Your pick" : `${season.players.find((p) => p.id === as)?.name}'s pick`}</span>
-              {visible && <span><b className="entry-ck">✓</b>Group entry</span>}
-              {live.size > 0 && <span><i />Covering the spread</span>}
+              {visible && <span><IconCheck className="icon sm entry-ck" />Group entry</span>}
+              {(live.size > 0 || week.games.some((g) => g.result)) && <span><b className="cov-eg">−3.5</b>Green spread: covers</span>}
             </div>
             {secs.map((sec) => (
               <div key={sec.key}>
@@ -205,14 +206,14 @@ export function WeekTab() {
             )}
             {!filtered.length && <div className="empty"><b>{view === "todo" ? "All picked" : "Nothing here"}</b>{view === "todo" ? "Every game has your pick. Tap All games to review or change them." : "No 2-2 splits this week."}</div>}
           </section>
-          {!open && graded && <div className="mob-only card" style={{ marginBottom: 16 }}><WeekStandings week={week} games={proj} /></div>}
-          <div className="mob-only" style={{ marginBottom: 16 }}><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
+          {!open && graded && <div className="mob-only card gap-b"><WeekStandings week={week} games={proj} /></div>}
+          <div className="mob-only gap-b"><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
         </div>
-        <aside className="rail-col desk-only" style={{ paddingTop: 18 }}>
+        <aside className="rail-col desk-only">
           {open && <div className="card"><Status week={week} as={as} setAs={setAs} /></div>}
-          {final && <div style={{ marginBottom: 12 }}><RecapCard week={week} /></div>}
+          {final && <RecapCard week={week} />}
           {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
-          <div style={{ marginTop: 12 }}><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
+          <EntryLinesButton week={week} onOpen={() => setLines(true)} />
         </aside>
       </div>
     </main>
@@ -247,11 +248,10 @@ function WeekPicker({ onClose }: { onClose(): void }) {
           const status = isOpen(w) ? "Open" : fin ? "Final" : isGraded(w) ? "In progress" : "Locked";
           return (
             <button key={w.week} className="slice" aria-current={i === weekIdx ? "true" : undefined}
-              style={i === weekIdx ? { background: "var(--accent-soft)" } : undefined}
               onClick={() => { setWeekIdx(i); onClose(); window.scrollTo({ top: 0 }); }}>
               <span className="k">{labelOf(w)}<small>{status}</small></span>
               <span className="r">{isGraded(w) ? `Entry ${fmtRec(record(w.games, ENTRY, ids))}` : ""}</span>
-              <span className="go">›</span>
+              <span className="go"><IconChevronRight className="icon sm" /></span>
             </button>
           );
         })}
@@ -305,31 +305,31 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
   }
 
   return (
-    <section className={`status${compact ? " compact" : ""}`} style={{ paddingTop: compact ? 12 : 16 }}>
+    <section className={`status${compact ? " compact" : ""}`}>
       {!compact && <div>
         <div className="lock">
           <span className={`big${grace ? " late" : ""}`}>{(grace ? dl.toLock : dl.toDue) ?? "—"}</span>
           <span className="lab">{grace ? "grace period left" : dl.toDue ? "until picks are due" : week.deadline ? "Locked" : "No deadline set"}</span>
         </div>
         {dl.due && week.deadline && (
-          <div className="lab" style={{ marginTop: 4 }}>
+          <div className="lab">
             {grace ? `Picks were due ${fmtTime(dl.due)}. They lock at ${fmtTime(week.deadline)}.`
               : `Due ${fmtDeadline(dl.due)} · grace until ${fmtTime(week.deadline)}`}
           </div>
         )}
       </div>}
       <div>
-        <div className="row" style={{ marginBottom: 6 }}>
+        <div className="row">
           {isAdmin ? (
-            <label className="lab row" style={{ gap: 6 }}>
+            <label className="lab row">
               Picking as
-              <select value={as} onChange={(e) => setAs(e.target.value)} className="btn" style={{ minHeight: 32, padding: "0 8px" }}>
+              <select value={as} onChange={(e) => setAs(e.target.value)} className="btn sm">
                 {/* Everyone owns their picks; the admin can only pick for themself and for Claude. */}
                 {season.players.filter((p) => p.id === me || p.kind === "bot").map((p) => <option key={p.id} value={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</option>)}
               </select>
             </label>
           ) : <span className="lab">Your picks</span>}
-          {locked && <span className="tag accent" style={{ marginLeft: 6 }}>Locked</span>}
+          {locked && <span className="tag accent">Locked</span>}
           <span className="spacer" />
           <b className="num">{mine} / {week.games.length}</b>
         </div>
@@ -343,7 +343,7 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
           return (
             <div key={p.id} className={lk || (p.kind !== "human" && n === total) ? "done" : ""}
               title={lk ? `${p.name} has locked` : `${p.name}: ${n} of ${total} picked`}>
-              <i className="dot" style={cvar(p.id)} /><span>{p.name}</span><b>{lk ? "🔒" : n}</b>
+              <i className="dot" style={cvar(p.id)} /><span>{p.name}</span><b>{lk ? <IconLock className="icon sm" aria-label="Locked" /> : n}</b>
             </div>
           );
         })}
@@ -354,7 +354,7 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
       {canPreview && <button className="btn" onClick={() => setPreview(true)}>View weekly entry (admin)</button>}
       {preview && <EntryPreview week={week} onClose={() => setPreview(false)} />}
       {!final && (
-        <p className="hint" style={{ margin: 0 }}>
+        <p className="hint">
           Picks stay hidden until everyone locks{claudeLeft > 0 ? " and Claude is in" : ""}, or the deadline passes.
           {waiting.length > 0 && ` Waiting on ${waiting.join(", ")}${claudeLeft > 0 ? `; Claude has ${claudeLeft} to go` : ""}.`}
           {!waiting.length && claudeLeft > 0 && ` Claude has ${claudeLeft} to go.`}
@@ -368,7 +368,7 @@ function Status({ week, as, setAs, compact }: { week: Week; as: string; setAs(id
         </button>
       )}
       {!compact && (
-        <p className="hint" style={{ margin: 0 }}>
+        <p className="hint">
           Submitted = a human&apos;s call if one is made, else the Humans majority (3 of 4), else Claude as the 2-2 tiebreaker.
           It goes into the sheet as soon as everyone locks, or at the deadline.
         </p>
@@ -398,12 +398,12 @@ function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
       {rows === null ? <p className="hint">Loading…</p> : !rows.length ? (
         <p className="hint">Not available yet: it opens once picks are due (noon Thursday) and Claude has a pick in every game.</p>
       ) : (<>
-        <p className="hint" style={{ marginTop: 0 }}>
+        <p className="hint flush">
           Only you can see this until picks lock. {rows.length - ties - calls} by the Humans majority, {ties} by Claude on a 2-2 split
           {calls ? `, ${calls} by a human call` : ""}.
           Individual picks stay hidden.
         </p>
-        <div className="kv" style={{ marginBottom: 8 }}>
+        <div className="kv wide-lab">
           <span className="lab">Eliminator (team to lose)</span>
           <span><b>{elim ?? "No group pick yet"}</b></span><span />
         </div>
@@ -411,8 +411,8 @@ function EntryPreview({ week, onClose }: { week: Week; onClose(): void }) {
           {week.games.map((g) => {
             const r = byNum.get(g.num);
             return (
-              <div className="kv" key={g.num}>
-                <span className="lab">{g.num}. {g.away} @ {g.home} <small style={{ color: "var(--faint)" }}>{g.line}</small></span>
+              <div className="kv wide-lab" key={g.num}>
+                <span className="lab">{g.num}. {g.away} @ {g.home} <small>{g.line}</small></span>
                 <span><b>{r?.entry ?? "—"}</b></span>
                 {r?.how === "claude" ? <span className="tag signal">Claude</span> : r?.how === "human" ? <span className="tag accent">Human call</span> : <span />}
               </div>
@@ -433,7 +433,7 @@ function LockButton({ week, as }: { week: Week; as: string }) {
   if (week.locks?.includes(as)) {
     return (
       <button className="btn" onClick={() => void run("setLock", week.id!, as, false)} disabled={!week.id}>
-        🔒 {as === me ? "Your" : `${name}'s`} picks are locked · Unlock
+        <IconLock className="icon sm" />{as === me ? "Your" : `${name}'s`} picks are locked · Unlock
       </button>
     );
   }
@@ -455,7 +455,7 @@ function WeekStandings({ week, games }: { week: Week; games: Game[] }) {
     <p className="eyebrow">{labelOf(week)} standings</p>
     <div className="list">
       {rows.map((r) => (
-        <div key={r.id} className={`st${r.id === me ? " me" : ""}${r.id === ENTRY || r.id === MAJORITY ? " bench" : ""}`} style={{ gridTemplateColumns: "1fr auto 48px" }}>
+        <div key={r.id} className={`st no-rank${r.id === me ? " me" : ""}${r.id === ENTRY || r.id === MAJORITY ? " bench" : ""}`}>
           <span className="nm"><i className="dot" style={cvar(r.id)} />{r.name}</span>
           <span className="rc">{fmtRec(r.rec)}</span>
           <span className="pc">{fmtPct(r.rec)}</span>
@@ -489,7 +489,7 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
     const cls = ["team", mine && "mine", coverTeam === t && "cover", finished && coverTeam && coverTeam !== "PUSH" && coverTeam !== t && "out"].filter(Boolean).join(" ");
     return (
       <button className={cls} style={teamVars(t)} disabled={!open || !g.id} aria-pressed={mine}
-        aria-label={`${t} ${spreadFor(t, g.fav, g.spread)}${score !== null ? `, ${score} points` : ""}${mine ? ", your pick" : ""}${coverTeam === t ? (finished ? ", covered" : ", covering") : ""}`}
+        aria-label={`${t} ${spreadFor(t, g.fav, g.spread)}${score !== null ? `, ${score} points` : ""}${mine ? ", your pick" : ""}${entry === t ? ", group entry" : ""}${coverTeam === t ? (finished ? ", covered" : ", covering") : ""}`}
         onClick={async () => {
           if (mine || !g.id) return;
           const wasBlank = !g.picks[as];
@@ -497,8 +497,8 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
         }}>
         <span className="nm">
           <span className="tn">
-            {entry === t && <b className="entry-ck" title="Group entry">✓</b>}
             {isHome && <span className="at">@</span>}{t}
+            {entry === t && <IconCheck className="icon sm entry-ck" />}
           </span>
           {(rec || ats) && (
             <span className="rec" aria-label={`${rec ? `record ${rec}` : ""}${ats ? `, ${ats} against the spread` : ""}`}>
@@ -528,7 +528,7 @@ function GameRow({ game: g, open, hidden, as, live, onMore, onPicked }: {
     <article className="sb" data-num={g.num} data-blank={g.picks[as] ? undefined : "1"}>
       <button className="stat" onClick={onMore} aria-label={`Details for ${g.away} at ${g.home}`}>
         {head}
-        <small><span className={`lg ${g.league === "NFL" ? "nfl" : "cfb"}`}>{g.league}</span>{sp ? <span>{sp}</span> : null}</small>
+        <span className={`lg ${g.league === "NFL" ? "nfl" : "cfb"}`}>{g.league}</span>{sp ? <span>Humans {sp}</span> : null}
         {my && <span className={`tag res ${my === "W" ? "win" : my === "L" ? "loss" : "signal"}`}>{my === "P" ? "Push" : my === "W" ? "Win" : "Loss"}</span>}
       </button>
       <div>{team(g.away, false)}{team(g.home, true)}</div>
@@ -546,7 +546,7 @@ function PickHistory({ gameId, hidden }: { gameId: number; hidden: boolean }) {
   const name = (id: string | null) => season.players.find((p) => p.id === id)?.name ?? id ?? "";
   if (!rows?.length) return null;
   return (<>
-    <p className="eyebrow" style={{ marginTop: 18 }}>Pick history{hidden ? " (yours until the reveal)" : ""}</p>
+    <p className="eyebrow gap-t">Pick history{hidden ? " (yours until the reveal)" : ""}</p>
     <div className="history">
       {rows.slice().reverse().map((r, i) => (
         <div key={i} className="h-row">
@@ -587,13 +587,13 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
 
   return (
     <Sheet title={`${g.away} at ${g.home}`} onClose={onClose}>
-      <p style={{ fontSize: ".88rem", color: "var(--muted)", margin: "0 0 8px" }}>
+      <p className="game-meta">
         {labelOf(week)} · Game {g.num} · {g.league} · {g.line} · {g.fav} favoured
         {live?.start && live.state === "pre" ? ` · ${dayFmt.format(new Date(live.start))}, ${timeFmt.format(new Date(live.start))}` : ""}
       </p>
       {live && live.state !== "pre" && (
-        <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: "1.05rem" }}>
-          {g.away} {live.awayScore} · {g.home} {live.homeScore} <span style={{ fontWeight: 500, color: "var(--muted)", fontSize: ".9rem" }}>· {live.detail}
+        <p className="game-score">
+          {g.away} {live.awayScore} · {g.home} {live.homeScore} <span>· {live.detail}
           {live.covering && ` · ${live.covering === "PUSH" ? "push" : `${live.covering} ${live.state === "post" ? "covered" : "covering"}`}`}</span>
         </p>
       )}
@@ -603,14 +603,14 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
           return (
             <div className="kv" key={id}>
               <span className="lab"><i className="dot" style={cvar(id)} />{name}</span>
-              <span>{pick ?? <span style={{ color: "var(--faint)" }}>—</span>}{note && <span style={{ fontSize: ".8rem", color: "var(--faint)" }}> · {note}</span>}</span>
+              <span>{pick ?? <span className="none">—</span>}{note && <span className="note"> · {note}</span>}</span>
               {gr ? <span className={`tag ${gr === "W" ? "win" : gr === "L" ? "loss" : "signal"}`}>{gr === "W" ? "Win" : gr === "L" ? "Loss" : "Push"}</span> : <span />}
             </div>
           );
         })}
       </div>
       {canCall && (<>
-        <p className="eyebrow" style={{ marginTop: 18 }}>Submitted pick: human call</p>
+        <p className="eyebrow gap-t">Submitted pick: human call</p>
         <div className="pills">
           {opts.map((t) => <button key={t} className="pill" aria-pressed={g.entryOverride === t} onClick={() => run("setEntryCall", g.id!, t)}>{t}</button>)}
           {g.entryOverride && <button className="pill" onClick={() => run("setEntryCall", g.id!, null)}>Clear call</button>}
@@ -622,7 +622,7 @@ export function GameSheet({ game: g, week, live, hidden, onClose }: { game: Game
         </p>
       </>)}
       {isAdmin && g.id && (<>
-        <p className="eyebrow" style={{ marginTop: 18 }}>Result: who covered</p>
+        <p className="eyebrow gap-t">Result: who covered</p>
         <div className="pills">
           {opts.map((t) => <button key={t} className="pill" aria-pressed={g.result === t} onClick={() => run("setResult", g.id!, t)}>{t}</button>)}
           <button className="pill" aria-pressed={g.result === "PUSH"} onClick={() => run("setResult", g.id!, "PUSH")}>Push</button>

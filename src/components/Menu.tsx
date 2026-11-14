@@ -125,22 +125,22 @@ function AdminTools() {
     <details className="fold" open><summary>Lines from John&apos;s sheet</summary>
     <button className="cta ghost" onClick={check} disabled={!!busy}>{busy === "check" ? "Reading the sheet…" : "Refresh lines"}</button>
     {plan && (
-      <div className="card" style={{ marginTop: 10 }}>
-        <p style={{ margin: "0 0 8px", fontWeight: 600 }}>{plan.message}</p>
-        {problems.length > 0 && <div className="warn err" style={{ marginBottom: 8 }}>
+      <div className="card gap-s">
+        <p className="lead">{plan.message}</p>
+        {problems.length > 0 && <div className="warn err gap-bs">
           {problems.map((g) => <div key={g.num}>G{g.num} {g.away} at {g.home} ({g.line || "no line"}): {g.problem}</div>)}
         </div>}
-        {plan.changes?.map((c) => <div key={c.num} className="mono" style={{ fontSize: ".76rem" }}>G{c.num}: {c.from} → {c.to}</div>)}
+        {plan.changes?.map((c) => <div key={c.num} className="mono" style={{ fontSize: "var(--t-meta)" }}>G{c.num}: {c.from} → {c.to}</div>)}
         {(plan.action === "create" || plan.action === "conflict") && (
-          <div className="mono" style={{ fontSize: ".72rem", color: "var(--muted)", maxHeight: 180, overflowY: "auto" }}>
+          <div className="mono" style={{ fontSize: "var(--t-meta)", color: "var(--muted)", maxHeight: 180, overflowY: "auto" }}>
             {plan.games.map((g) => <div key={g.num}>{String(g.num).padStart(2, "0")} {g.league.padEnd(4)} {g.away} at {g.home} · {g.line}</div>)}
           </div>
         )}
         {(plan.action === "create" || plan.action === "update") &&
-          <button className="cta" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0} onClick={() => apply()}>
+          <button className="cta gap-s" disabled={!!busy || problems.length > 0} onClick={() => apply()}>
             {plan.action === "create" ? `Create ${plan.label}` : "Update lines"}</button>}
         {plan.action === "conflict" &&
-          <button className="cta danger" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0}
+          <button className="cta danger gap-s" disabled={!!busy || problems.length > 0}
             onClick={() => setAsk({ title: `Replace ${plan.label}?`, yes: `Replace ${plan.label}`, danger: true, run: () => apply(true),
               body: `Replaces ${plan.label}'s games with the sheet. Every pick already made for that week will be erased.` })}>Replace {plan.label}</button>}
       </div>
@@ -155,10 +155,10 @@ function AdminTools() {
         disabled={!!busy}>{busy === "import" ? "Importing…" : "Import from sheet"}</button>
       <button className="cta ghost" onClick={() => sync("export")} disabled={!!busy}>{busy === "export" ? "Exporting…" : "Export to sheet"}</button>
     </div>
-    <p className="hint" style={{ marginTop: 0 }}>Until picks lock, the open week also syncs both ways every 10 minutes: whichever side changed last wins
+    <p className="hint">Until picks lock, the open week also syncs both ways every 10 minutes: whichever side changed last wins
       (the app if both did). Locked players&apos; picks always come from the app.</p>
     {week?.id && <button className="cta ghost" onClick={pushNow} disabled={!!busy}>{busy === "push" ? "Writing…" : `Push ${labelOf(week)} to sheet now`}</button>}
-    {pushed && <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>{pushed}</div>}
+    {pushed && <div className="card" style={{ marginTop: 10, fontSize: "var(--t-sec)" }}>{pushed}</div>}
     <p className="hint">Happens automatically 5 minutes after picks lock (Thursday 2:30 PM CT). Picks, eliminator votes and results go into
       that week&apos;s rows; the sheet&apos;s own formulas are left alone.</p>
 
@@ -168,8 +168,8 @@ function AdminTools() {
       <div className="field"><label htmlFor="dl">Picks lock at (your time)</label>
         <input id="dl" type="datetime-local" defaultValue={toLocalInput(week.deadline)} key={`dl${week.id}`}
           onBlur={(e) => e.target.value && run("updateWeek", week.id!, { deadline: new Date(e.target.value).toISOString() })} /></div>
-      <div className="row" style={{ gap: 10 }}>
-        <div className="field" style={{ flex: 1 }}><label htmlFor="won">Won $</label>
+      <div className="row fields">
+        <div className="field grow"><label htmlFor="won">Won $</label>
           <input id="won" type="number" inputMode="decimal" min={0} defaultValue={week.winnings} key={`w${week.id}`}
             onBlur={(e) => run("updateWeek", week.id!, { winnings: Math.max(0, Number(e.target.value) || 0) })} /></div>
       </div>
@@ -188,20 +188,20 @@ function AdminTools() {
       <button className="cta ghost" onClick={remTest} disabled={!!busy}>{busy === "remtest" ? "Sending…" : "Send me a test"}</button>
     </div>
     {rem && (
-      <div className="card" style={{ marginTop: 10, fontSize: ".85rem" }}>
-        {!rem.plan ? <p style={{ margin: 0 }}>{rem.message ?? "No open week."}</p> : (<>
-          <p style={{ margin: "0 0 6px", fontWeight: 600 }}>
+      <div className="card" style={{ marginTop: 10, fontSize: "var(--t-sec)" }}>
+        {!rem.plan ? <p className="flush">{rem.message ?? "No open week."}</p> : (<>
+          <p className="lead">
             {rem.plan.label}: {rem.plan.recipients.length ? `${rem.plan.recipients.map((r) => `${r.name} (${r.picked}/${r.total})`).join(", ")} ${rem.plan.recipients.length === 1 ? "hasn't" : "haven't"} locked.` : "everyone has locked."}
           </p>
-          <p className="hint" style={{ margin: 0 }}>
+          <p className="hint flush">
             {rem.plan.remindedAt ? `Scheduled reminder went out ${fmtDeadline(rem.plan.remindedAt)}.`
               : `Scheduled reminder: ${fmtDeadline(remindAt(rem.plan.lock, season.graceMinutes, season.reminderLeadMinutes))} · picks due ${fmtTime(rem.plan.due)}.`}
           </p>
-          {rem.results && <p style={{ margin: "6px 0 0" }}>{rem.results.map((r) => `${r.name}: ${r.ok ? "sent" : `failed (${r.error})`}`).join(" · ")}</p>}
+          {rem.results && <p className="flush gap-xs">{rem.results.map((r) => `${r.name}: ${r.ok ? "sent" : `failed (${r.error})`}`).join(" · ")}</p>}
         </>)}
       </div>
     )}
-    <div className="field" style={{ marginTop: 10 }}><label htmlFor="remlead">Send the reminder this many minutes before picks are due</label>
+    <div className="field"><label htmlFor="remlead">Send the reminder this many minutes before picks are due</label>
       <input id="remlead" type="number" inputMode="numeric" min={0} max={1440} step={15} defaultValue={season.reminderLeadMinutes}
         onBlur={(e) => run("setSetting", "reminder_lead_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
     <p className="hint">60 = 11:00 AM CT (noon ET) when picks are due at noon CT. Goes once a week, as a phone notification, to whoever hasn&apos;t locked. Each person needs notifications turned on (Menu → Notifications).</p>
@@ -242,7 +242,7 @@ function Ledger() {
     setLabel(""); setAmount("");
   };
   return (<>
-    <p className="eyebrow" style={{ marginTop: 22 }}>Other money</p>
+    <p className="eyebrow gap-t">Other money</p>
     {season.ledger.map((e, i) => (
       <div className="kv" key={i}>
         <span className="lab">{e.amount < 0 ? "Paid" : "Won"}</span>
@@ -250,13 +250,13 @@ function Ledger() {
         <button className="link" onClick={() => run("setSetting", "ledger", season.ledger.filter((_, j) => j !== i))}>Remove</button>
       </div>
     ))}
-    <div className="row" style={{ gap: 8, alignItems: "end" }}>
-      <div className="field" style={{ flex: 2 }}><label htmlFor="lg-l">What</label>
+    <div className="row fields">
+      <div className="field grow-2"><label htmlFor="lg-l">What</label>
         <input id="lg-l" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Eliminator buy-in" /></div>
-      <div className="field" style={{ flex: 1 }}><label htmlFor="lg-a">$</label>
+      <div className="field grow"><label htmlFor="lg-a">$</label>
         <input id="lg-a" type="number" inputMode="decimal" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
     </div>
-    <div className="row" style={{ marginTop: 8 }}>
+    <div className="row gap-xs">
       <div className="pills">
         <button className="pill" aria-pressed={kind === "paid"} onClick={() => setKind("paid")}>Paid</button>
         <button className="pill" aria-pressed={kind === "won"} onClick={() => setKind("won")}>Won</button>

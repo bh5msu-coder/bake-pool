@@ -1,4 +1,4 @@
-// Fixed colour per picker (validated categorical palette, see globals.css).
+// Fixed colour per picker (validated categorical palette, see app/styles/tokens.css).
 // Colour follows the person, never their rank, so it stays put across filters and sorts.
 import type { CSSProperties } from "react";
 import { ENTRY, MAJORITY } from "./scoring";

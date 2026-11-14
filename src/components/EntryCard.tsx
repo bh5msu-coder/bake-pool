@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { phaseOf, softDeadline, timeLeft } from "@/lib/deadline";
 import { ENTRY, fmtRec, groupLocked, humans, isOpen, labelOf, record } from "@/lib/scoring";
 import { EntrySheet } from "./EntrySheet";
+import { IconChevronRight } from "./icons";
 import { defaultWeekIdx, useApp } from "./store";
 import { projected, useLive } from "./useLive";
 
@@ -39,7 +40,7 @@ export function EntryCard() {
         <span className="ec-sub">{sub}</span>
         {foot && <span className="ec-foot">{foot}</span>}
       </button>
-      <button className="ec-more" onClick={() => setLines(true)}>Entry selections ›</button>
+      <button className="ec-more" onClick={() => setLines(true)}><span>Entry selections</span><IconChevronRight className="icon sm" /></button>
       {lines && <EntrySheet week={week} live={live} onClose={() => setLines(false)} />}
     </div>
   );

@@ -4,6 +4,7 @@ import { weekRecap } from "@/lib/analytics";
 import { cvar } from "@/lib/players";
 import { drawRecap, recapCardModel, RECAP_H, RECAP_W } from "@/lib/recapImage";
 import { fmtRec, type Rec, type Week } from "@/lib/scoring";
+import { IconShare } from "./icons";
 import { useApp } from "./store";
 import { Sheet } from "./ui";
 
@@ -17,14 +18,14 @@ export function RecapCard({ week }: { week: Week }) {
   return (<>
     <section className="recap card">
       <div className="recap-head">
-        <div><p className="eyebrow" style={{ margin: 0 }}>{r.label} recap</p>
+        <div><p className="eyebrow">{r.label} recap</p>
           <div className={`recap-big ${tone(r.entry)}`}>{fmtRec(r.entry)}</div>
-          <small>Entry{r.winnings ? ` · won $${r.winnings.toLocaleString()}` : ""}</small></div>
-        <button className="btn" onClick={() => setOpen(true)}>Share</button>
+          <p className="recap-sub">Entry{r.winnings ? ` · won $${r.winnings.toLocaleString()}` : ""}</p></div>
+        <button className="btn" onClick={() => setOpen(true)}><IconShare className="icon sm" />Share</button>
       </div>
       <div className="recap-grid">
-        <div><span>Best</span><b>{r.best.map((p) => p.name).join(", ")}</b><small>{fmtRec(r.best[0].rec)}</small></div>
-        <div><span>Worst</span><b>{r.worst.map((p) => p.name).join(", ")}</b><small>{fmtRec(r.worst[0].rec)}</small></div>
+        <div><span>Best</span><b>{r.best.map((p) => p.name).join(", ")} <small>{fmtRec(r.best[0].rec)}</small></b></div>
+        <div><span>Worst</span><b>{r.worst.map((p) => p.name).join(", ")} <small>{fmtRec(r.worst[0].rec)}</small></b></div>
         <div><span>All four agreed</span><b className={tone(r.agree)}>{fmtRec(r.agree)}</b></div>
         <div><span>Claude&apos;s tie-breaks</span><b className={tone(r.ties)}>{fmtRec(r.ties)}</b></div>
         <div><span>Eliminator</span><b>{r.elim?.team ?? "—"}</b>

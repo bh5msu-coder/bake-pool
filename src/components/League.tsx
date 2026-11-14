@@ -3,6 +3,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { LeagueView } from "@/lib/leagueData";
 import { ChartCard, LineChart } from "./charts";
 import { Header, Skeleton } from "./ui";
+import { IconArrowDown, IconArrowUp } from "./icons";
 import { useApp, useSub } from "./store";
 import { usd } from "@/lib/format";
 
@@ -94,8 +95,8 @@ function Overview({ data, us }: { data: LeagueView; us?: Row }) {
 
   return (<>
     <div className="kpis">
-      <div className="kpi hero"><div className="l">{data.entry} championship rank</div><div className="v">{rankText(us)}<span style={{ fontSize: ".45em", color: "var(--faint)", fontWeight: 600 }}> of {data.entries}</span></div>
-        <div className="d">{us.total} wins{us.move ? ` · ${us.move > 0 ? "▲" : "▼"} ${Math.abs(us.move)} this week` : ""}</div></div>
+      <div className="kpi hero"><div className="l">{data.entry} championship rank</div><div className="v">{rankText(us)}<span className="of"> of {data.entries}</span></div>
+        <div className="d">{us.total} wins{us.move ? ` · ${us.move > 0 ? "up" : "down"} ${Math.abs(us.move)} this week` : ""}</div></div>
       <div className="kpi"><div className="l">Behind the leader</div><div className="v">{behindLead > 0 ? behindLead : "Leading"}</div><div className="d">leader has {data.champ.leaderTotal}</div></div>
       <div className="kpi"><div className="l">Behind 4th (paid)</div><div className={`v ${behindCut <= 0 ? "pos" : ""}`}>{behindCut > 0 ? behindCut : "In the money"}</div><div className="d">money line is {data.champ.cutoff} wins</div></div>
       <div className="kpi"><div className="l">Won so far</div><div className="v">{usd(us.won)}</div><div className="d">weekly + championship</div></div>
@@ -104,8 +105,8 @@ function Overview({ data, us }: { data: LeagueView; us?: Row }) {
 
     <ChartCard className="s5" title="Chance to finish in the money" sub={`Championship pays the top ${data.champ.places.length}: ${data.champ.places.map((n) => usd(n)).join(" / ")}`}
       table={<table className="grid"><thead><tr><th>Entry</th><th>Now</th><th>In the money</th><th>Win it</th><th>Exp. $</th><th>Final wins</th></tr></thead>
-        <tbody>{top.map((r) => <tr key={r.entry} style={r.entry === data.entry ? { fontWeight: 700 } : undefined}><td>{r.entry}</td><td>{rankText(r)}</td><td>{pct(r.odds.pMoney)}</td><td>{pct(r.odds.pFirst)}</td><td>{usd(r.odds.expPayout)}</td><td>{r.odds.p10}–{r.odds.p90}</td></tr>)}</tbody></table>}>
-      <div className="row" style={{ alignItems: "flex-end", gap: 18, flexWrap: "wrap", marginBottom: 12 }}>
+        <tbody>{top.map((r) => <tr key={r.entry} style={r.entry === data.entry ? { fontWeight: 600 } : undefined}><td>{r.entry}</td><td>{rankText(r)}</td><td>{pct(r.odds.pMoney)}</td><td>{pct(r.odds.pFirst)}</td><td>{usd(r.odds.expPayout)}</td><td>{r.odds.p10}–{r.odds.p90}</td></tr>)}</tbody></table>}>
+      <div className="row field-head">
         <div><div className="bigstat xl">{pct(o.pMoney)}</div><div>{data.entry} finishes top {data.champ.places.length}</div></div>
         <div><div className="bigstat">{pct(o.pFirst)}</div><div>wins it all</div></div>
         <div><div className="bigstat">{usd(o.expPayout)}</div><div>expected payout</div></div>
@@ -113,7 +114,7 @@ function Overview({ data, us }: { data: LeagueView; us?: Row }) {
       </div>
       <div className="bars">
         {shown.map((r) => (
-          <div className="b" key={r.entry} style={r.entry === data.entry ? { fontWeight: 700 } : undefined}>
+          <div className="b" key={r.entry} style={r.entry === data.entry ? { fontWeight: 600 } : undefined}>
             <span>{r.entry}<span className="sub">{rankText(r)} · {r.total} W</span></span>
             <span className="track"><span className="fill" style={{ display: "block", width: `${r.odds.pMoney * 100}%`, ["--c" as string]: r.entry === data.entry ? "var(--ink)" : "var(--accent)" } as CSSProperties} /></span>
             <span className="v">{pct(r.odds.pMoney)}<span className="sub">win {pct(r.odds.pFirst)}</span></span>
@@ -162,9 +163,10 @@ function Board({ data }: { data: LeagueView }) {
     k === "rank" ? r.rank : k === "total" ? r.total : k === "won" ? r.won : k === "money" ? r.odds.pMoney : k === "move" ? r.move : r.weekly[k] ?? -1;
   const rows = [...data.rows].sort((a, b) => (val(a, sort.key) - val(b, sort.key)) * sort.dir || a.rank - b.rank);
   const th = (k: string, label: string, defDir: 1 | -1 = -1) => (
-    <th key={k} className="sortable" onClick={() => setSort((s) => ({ key: k, dir: s.key === k ? (-s.dir as 1 | -1) : defDir }))}
-      aria-sort={sort.key === k ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
-      {label}{sort.key === k ? (sort.dir === 1 ? " ▴" : " ▾") : ""}
+    <th key={k} className="sortable" aria-sort={sort.key === k ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
+      <button className="sortbtn" onClick={() => setSort((s) => ({ key: k, dir: s.key === k ? (-s.dir as 1 | -1) : defDir }))}>
+        {label}{sort.key === k && (sort.dir === 1 ? <IconArrowUp className="icon sm" /> : <IconArrowDown className="icon sm" />)}
+      </button>
     </th>
   );
   const us = data.rows.find((r) => r.entry === data.entry);
@@ -174,7 +176,7 @@ function Board({ data }: { data: LeagueView }) {
       <td className="sticky-2">{r.entry}</td>
       <td><b>{r.total}</b></td>
       <td>{data.champ.leaderTotal - r.total || "—"}</td>
-      <td className={r.move > 0 ? "pos" : r.move < 0 ? "neg" : ""}>{r.move > 0 ? `▲${r.move}` : r.move < 0 ? `▼${-r.move}` : "·"}</td>
+      <td className={r.move > 0 ? "pos" : r.move < 0 ? "neg" : ""}>{r.move > 0 ? <><IconArrowUp className="icon sm" aria-label="Up" />{r.move}</> : r.move < 0 ? <><IconArrowDown className="icon sm" aria-label="Down" />{-r.move}</> : "·"}</td>
       {periods.map((p) => <td key={p}>{r.weekly[p] ?? "·"}</td>)}
       <td>{r.won ? usd(r.won) : "·"}</td>
       <td>{pct(r.odds.pMoney)}</td>
@@ -183,7 +185,7 @@ function Board({ data }: { data: LeagueView }) {
   return (
     <div className="chart-card s12">
       <div className="chart-head"><div><h3>Championship leaderboard</h3><p>Tap a column to sort. {data.entry} is pinned at the top and highlighted.</p></div></div>
-      <div className="tablewrap">
+      <div className="tablewrap" tabIndex={0} role="region" aria-label="Standings table">
         <table className="grid board">
           <thead><tr>
             {th("rank", "Rank", 1)}<th className="sticky-2">Entry</th>{th("total", "Wins")}<th>Back</th>{th("move", "Δ")}
@@ -208,7 +210,7 @@ function MoneyElim({ data }: { data: LeagueView }) {
       <div className="chart-head"><div><h3>Money leaders</h3><p>Everything won so far: weekly payouts, elimination and championship</p></div></div>
       <div className="bars">
         {data.money.map((m) => (
-          <div className="b" key={m.entry} style={m.entry === data.entry ? { fontWeight: 700 } : undefined}>
+          <div className="b" key={m.entry} style={m.entry === data.entry ? { fontWeight: 600 } : undefined}>
             <span>{m.entry}</span>
             <span className="track"><span className="fill" style={{ display: "block", width: `${(m.total / max) * 100}%`, ["--c" as string]: m.entry === data.entry ? "var(--ink)" : "var(--accent)" } as CSSProperties} /></span>
             <span className="v">{usd(m.total)}</span>
@@ -219,16 +221,16 @@ function MoneyElim({ data }: { data: LeagueView }) {
     </div>
     <div className="chart-card s5">
       <div className="chart-head"><div><h3>Elimination</h3><p>Pot {usd(e.pot)} · pays {e.places.map((n) => usd(n)).join(" / ")}</p></div></div>
-      <div className="kpis" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+      <div className="kpis two">
         <div className="kpi"><div className="l">Still alive</div><div className="v">{e.alive}</div><div className="d">of {e.entries} entries</div></div>
         <div className="kpi"><div className="l">Perfect</div><div className="v">{e.noLoss}</div><div className="d">no losses</div></div>
         <div className="kpi"><div className="l">One loss</div><div className="v">{e.oneLoss}</div><div className="d">one more ends it</div></div>
         <div className="kpi"><div className="l">Eliminated</div><div className="v">{e.eliminated}</div><div className="d">&nbsp;</div></div>
       </div>
       {e.us && (
-        <div className="card" style={{ marginTop: 12 }}>
+        <div className="card gap-s">
           <b>{data.entry}: {e.us.alive ? "alive" : "eliminated"}</b> · {e.us.losses} loss{e.us.losses === 1 ? "" : "es"}{e.us.rebuy ? " · bought back" : ""}
-          <div className="burned" style={{ marginTop: 8 }}>{e.us.picks.filter(Boolean).map((p, i) => <span key={i} style={{ textDecoration: "none" }}>W{i + 1} {p}</span>)}</div>
+          <div className="burned kept gap-xs">{e.us.picks.filter(Boolean).map((p, i) => <span key={i}>W{i + 1} {p}</span>)}</div>
         </div>
       )}
     </div>

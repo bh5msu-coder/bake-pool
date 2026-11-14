@@ -98,7 +98,7 @@ export function StatsTab() {
           {sub === "fun" && <Fun games={games} who={who} scope={scope} />}
         </div>
       )}
-      <p className="hint" style={{ paddingBottom: 24 }}>
+      <p className="hint pad-b">
         2024-25 is Brad (“Bard”) and Andrew (“Andy”) only; Kevin and Eric join in 2025-26, when the submitted entry starts.
         Records are rebuilt game by game from each season&apos;s sheet. Claude&apos;s picks aren&apos;t counted anywhere on this page.
         At −110 you need 52.4% to break even.
@@ -141,9 +141,9 @@ function Overview({ games, who, scope }: P) {
           const p$ = profit(x.r);
           return (
             <div className="lb" key={x.id}>
-              <span className="rk" style={{ color: "var(--faint)", fontSize: ".8rem" }}>{x.id === SUBMITTED.id ? "" : i + 1}</span>
+              <span className="rk" style={{ color: "var(--faint)", fontSize: "var(--t-sec)" }}>{x.id === SUBMITTED.id ? "" : i + 1}</span>
               <span className="nm"><i className="dot" style={cvar(x.id)} /><span>{x.name}<small>{x.yrs.length > 1 ? `${x.yrs.length} seasons` : x.yrs[0]} · {n(x.r)} picks{thin(x.r)}</small></span></span>
-              <span className="num" style={{ fontWeight: 600 }}>{fmtRec(x.r)}</span>
+              <span className="num strong">{fmtRec(x.r)}</span>
               <span className="num">{fmtPct(x.r)}</span>
               <span className={`num hide-s ${edge >= 0 ? "pos" : "neg"}`}>{edge > 0 ? "+" : ""}{edge} pts</span>
               <span className={`num ${p$ < 0 ? "neg" : "pos"}`}>{usd(p$)}</span>
@@ -219,20 +219,20 @@ function Splits({ games, who, scope }: P) {
 /** Horizontal share bars (0–100%) with a reference marker. */
 function ShareBars({ title, items, rate, rateLabel }: { title: string; items: { id: string; name: string; v: number; n: number }[]; rate: number; rateLabel: string }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ font: "600 .8rem var(--body)", color: "var(--muted)", margin: "4px 0 6px" }}>{title}</div>
+    <div className="gap-b">
+      <div style={{ font: "500 var(--t-sec) var(--body)", color: "var(--muted)", margin: "4px 0 6px" }}>{title}</div>
       <div className="bars">
         {items.map((it) => (
           <div className="b" key={it.id} title={`${it.name}: ${Math.round(it.v * 100)}% of ${it.n}`}>
             <span>{it.name}</span>
             <span className="track">
               <span style={{ position: "absolute", left: `${rate * 100}%`, top: -4, bottom: -4, borderLeft: "1px dashed var(--muted)" }} aria-hidden />
-              <span className="fill" style={{ display: "block", width: `${it.v * 100}%`, ["--c" as string]: `var(--p-${it.id})` } as CSSProperties} />
+              <span className="fill" style={{ width: `${it.v * 100}%`, ["--c" as string]: `var(--p-${it.id})` } as CSSProperties} />
             </span>
             <span className="v">{Math.round(it.v * 100)}%</span>
           </div>
         ))}
-        <div className="b" aria-hidden style={{ minHeight: 0 }}><span /><span style={{ position: "relative", fontSize: ".72rem", color: "var(--faint)" }}><span style={{ position: "absolute", left: `${rate * 100}%`, transform: "translateX(-50%)", whiteSpace: "nowrap" }}>{rateLabel}</span></span><span /></div>
+        <div className="b" aria-hidden style={{ minHeight: 0 }}><span /><span style={{ position: "relative", fontSize: "var(--t-meta)", color: "var(--faint)" }}><span style={{ position: "absolute", left: `${rate * 100}%`, transform: "translateX(-50%)", whiteSpace: "nowrap" }}>{rateLabel}</span></span><span /></div>
       </div>
     </div>
   );
@@ -264,7 +264,7 @@ function Teams({ games, scope }: { games: SG[]; scope: string }) {
   return (<>
     <div className="chart-card s6">
       <div className="chart-head"><div><h3>Ride or die</h3><p>{nameOf(id)}&apos;s record backing each team · at least {MIN} picks · {scope}</p></div></div>
-      <div className="pills" style={{ marginBottom: 10 }}>
+      <div className="pills gap-bs">
         {people.map((p) => <button key={p.id} className="pill" aria-pressed={id === p.id} onClick={() => setWho(p.id)}><i className="dot" style={cvar(p.id)} /> {p.name}</button>)}
       </div>
       <div className="tlist">
@@ -282,7 +282,7 @@ function Teams({ games, scope }: { games: SG[]; scope: string }) {
 
     <div className="chart-card s12">
       <div className="chart-head"><div><h3>Cover kings and cover busts</h3><p>Every team on the sheet, whoever picked them · at least 10 games · {scope}</p></div></div>
-      <div className="dash" style={{ paddingBlock: 0 }}>
+      <div className="dash flush-y">
         <div className="tlist s6"><TeamList title="Covered the most" list={cov.best} /></div>
         <div className="tlist s6"><TeamList title="Covered the least" list={cov.worst} /></div>
       </div>
@@ -331,7 +331,7 @@ function Fun({ games, who, scope }: P) {
 
     <div className="chart-card s6">
       <div className="chart-head"><div><h3>Streaks</h3><p>Covers or misses in a row, game by game</p></div></div>
-      <div className="tablewrap"><table className="grid">
+      <div className="tablewrap" tabIndex={0} role="region" aria-label="Table"><table className="grid">
         <thead><tr><th>Picker</th><th>Hottest</th><th>Coldest</th><th>Now</th></tr></thead>
         <tbody>{st.map((x) => (
           <tr key={x.id}>
