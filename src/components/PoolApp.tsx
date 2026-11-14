@@ -7,14 +7,13 @@ import { nextDeadline } from "@/lib/deadline";
 import type { Season } from "@/lib/scoring";
 import { browserClient } from "@/lib/supabase/client";
 import { ElimTab } from "./Elim";
-import { ExploreTab } from "./Explore";
 import { LeagueTab } from "./League";
 import { Login } from "./Login";
 import { Menu } from "./Menu";
 import { PoolTab } from "./Pool";
 import { StatsTab } from "./Stats";
 import { AppProvider, useApp } from "./store";
-import { SideNav, TabBar } from "./ui";
+import { SideNav, Skeleton, TabBar } from "./ui";
 import { WeekTab } from "./Week";
 
 const noop = async () => {};
@@ -43,12 +42,13 @@ function Screens() {
   return (<>
     <SideNav />
     <div className="shell">
-      {tab === "week" && <WeekTab />}
-      {tab === "pool" && <PoolTab />}
-      {tab === "stats" && <StatsTab />}
-      {tab === "league" && <LeagueTab />}
-      {tab === "elim" && <ElimTab />}
-      {tab === "explore" && <ExploreTab />}
+      <div className="screen" key={tab}>
+        {tab === "week" && <WeekTab />}
+        {tab === "pool" && <PoolTab />}
+        {tab === "elim" && <ElimTab />}
+        {tab === "league" && <LeagueTab />}
+        {tab === "stats" && <StatsTab />}
+      </div>
     </div>
     <TabBar />
     {menu && <Menu />}
@@ -110,13 +110,14 @@ export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: stri
     return (w?.games ?? []).map((g) => ({ num: g.num, entry: entryPick(g, ids) ?? "", how: majority(g, ids) ? "majority" : "claude" }));
   }, [sb, season]);
 
-  if (session === undefined) return <div className="empty">Loading…</div>;
+  const boot = <div className="boot"><div className="bar-ph" /><div className="wrap"><Skeleton hero rows={6} /></div></div>;
+  if (session === undefined) return boot;
   if (!demo && !session) return <Login error={loginError} />;
   if (error) return (
     <main className="login"><div className="card"><p className="warn err">{error}</p>
       <button className="cta ghost" style={{ marginTop: 12 }} onClick={signOut}>Sign out</button></div></main>
   );
-  if (!season || !me) return <div className="empty">Loading the pool…</div>;
+  if (!season || !me) return boot;
 
   return (
     <AppProvider initial={season} me={me} demo={demo} mutations={mutations} previewEntry={preview} previewElim={previewE} history={history} reload={load} signOut={signOut}>

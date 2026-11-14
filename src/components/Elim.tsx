@@ -2,7 +2,7 @@
 import { elimSummary, elimTeam, humans, isOpen, labelOf, revealed, usedElimTeams, type Week } from "@/lib/scoring";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import { spreadFor, teamVars } from "@/lib/teams";
-import { Header } from "./ui";
+import { Header, WeekNav } from "./ui";
 import { useApp } from "./store";
 
 /** NFL teams on the week's slate, biggest underdogs first: the likeliest to lose. */
@@ -14,17 +14,12 @@ function candidates(w: Week) {
 }
 
 export function ElimTab() {
-  const { season, me, isAdmin, run, weekIdx, setWeekIdx } = useApp();
+  const { season, me, isAdmin, run, weekIdx } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const week = season.weeks[weekIdx];
   const sum = elimSummary(season);
 
-  const nav = (
-    <div className="wknav">
-      <button className="iconbtn" disabled={weekIdx <= 0} onClick={() => setWeekIdx(weekIdx - 1)} aria-label="Previous week">‹</button>
-      <button className="iconbtn" disabled={weekIdx >= season.weeks.length - 1} onClick={() => setWeekIdx(weekIdx + 1)} aria-label="Next week">›</button>
-    </div>
-  );
+  const nav = <WeekNav />;
   if (!week) return (<><Header title="Eliminator" right={nav} /><main className="wrap"><div className="empty"><b>No weeks yet</b></div></main></>);
 
   const open = isOpen(week);
@@ -76,7 +71,7 @@ export function ElimTab() {
 
       <section>
         <p className="eyebrow">Votes</p>
-        <div className="progress">
+        <div className="progress votes">
           {humans(season.players).map((p) => (
             <div key={p.id} className={voted(p.id) ? "done" : ""}><i className="dot" style={cvar(p.id)} /><span>{p.name}</span>
               <b>{week.elim.picks[p.id] ?? (voted(p.id) ? "Voted ✓" : "—")}</b></div>

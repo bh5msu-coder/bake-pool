@@ -8,15 +8,14 @@ import {
 } from "@/lib/scoring";
 import { ChartCard, DiffHeatmap, DiffTable, Heatmap, HeatTable, LineChart, WinBars } from "./charts";
 import { Header } from "./ui";
-import { emptyFilter, useApp, type ExploreFilter } from "./store";
-
-const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+import { emptyFilter, useApp, useSub, type ExploreFilter } from "./store";
+import { usd } from "@/lib/format";
 
 type Sub = "standings" | "compare" | "matchups" | "breakdowns";
 
 export function PoolTab() {
   const { season, me } = useApp();
-  const [sub, setSub] = useState<Sub>("standings");
+  const [sub, setSub] = useSub<Sub>("pool");
   const ids = humans(season.players).map((p) => p.id);
   const done = season.weeks.flatMap((w) => w.games).filter((g) => g.result);
   const gradedWeeks = season.weeks.filter((w) => w.games.some((g) => g.result));
@@ -46,7 +45,7 @@ export function PoolTab() {
   return (<>
     <Header title="Pool" sub={`${done.length} games graded · through ${shortLabel(lastWeek)}`} />
     <main className="wrap">
-      <div className="subtabs" role="tablist" aria-label="Pool views">
+      <div className="subtabs scroll" role="tablist" aria-label="Pool views">
         {([["standings", "Standings"], ["compare", "Compare"], ["matchups", "Matchups"], ["breakdowns", "Breakdowns"]] as [Sub, string][]).map(([k, l]) => (
           <button key={k} role="tab" aria-selected={sub === k} onClick={() => setSub(k)}>{l}</button>
         ))}
@@ -214,13 +213,14 @@ function MoneyAndWeeks() {
 }
 
 function Breakdown() {
-  const { season, me, setTab, setFilter } = useApp();
+  const { season, me, setTab, setSub, setFilter } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const done = season.weeks.flatMap((w) => w.games).filter((g) => g.result);
   const [who, setWho] = useState(me);
   const open = (f: Partial<ExploreFilter>) => {
     setFilter({ ...emptyFilter(who), ...f, picker: who });
-    setTab("explore");
+    setSub("stats", "games");
+    setTab("stats");
     window.scrollTo({ top: 0 });
   };
   const rec = (pred: (g: Game) => boolean) => record(done.filter(pred), who, ids);

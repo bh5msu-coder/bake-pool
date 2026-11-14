@@ -1,8 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
-import { band, BANDS, ENTRY, shortLabel, fmtPct, fmtRec, grade, humans, pickOf, record, side, split, type Game, type Week } from "@/lib/scoring";
+import { band, BANDS, ENTRY, shortLabel, fmtPct, fmtRec, grade, humans, pickOf, record, revealed, side, split, type Game, type Week } from "@/lib/scoring";
 import { cvar } from "@/lib/players";
-import { Header, Sheet } from "./ui";
+import { Sheet } from "./ui";
 import { GameSheet } from "./Week";
 import { emptyFilter, useApp, type ExploreFilter } from "./store";
 
@@ -15,7 +15,8 @@ const FACETS: { k: SetKey; lab: string; values(weeks: Week[]): (string | number)
   { k: "split", lab: "Split", values: () => ["4-0", "3-1", "2-2"] },
 ];
 
-export function ExploreTab() {
+/** Every game this season with filters. Lives inside Stats → Games. */
+export function ExploreView() {
   const { season, filter: F, setFilter } = useApp();
   const ids = humans(season.players).map((p) => p.id);
   const [facet, setFacet] = useState<SetKey | "picker" | null>(null);
@@ -48,9 +49,6 @@ export function ExploreTab() {
   const live = detail && season.weeks.find((w) => w.week === detail.w.week);
 
   return (<>
-    <Header title="Explore" sub={`${all.length} games on file`}
-      right={active ? <button className="link" onClick={() => setFilter(emptyFilter(F.picker))}>Clear filters</button> : undefined} />
-    <main className="wrap">
       <div className="explore-layout">
         <aside className="filters desk-only" aria-label="Filters">
           <div>
@@ -85,7 +83,7 @@ export function ExploreTab() {
           ))}
         </aside>
         <div>
-          <div className="rail mob-only" style={{ paddingBlock: 10 }}>
+          <div className="rail mob-only pad-y">
             <button className="pill" aria-pressed onClick={() => setFacet("picker")}>
               <i className="dot" style={cvar(F.picker)} />{pickerName}{F.result !== "any" && ` · ${F.result === "W" ? "wins" : "losses"}`}
             </button>
@@ -99,6 +97,7 @@ export function ExploreTab() {
             <span>{games.length} games</span>
             <span>{pickerName} {fmtRec(record(games, F.picker, ids))} · {fmtPct(record(games, F.picker, ids))}</span>
             {F.picker !== ENTRY && <span className="q">Entry {fmtRec(record(games, ENTRY, ids))}</span>}
+            {active > 0 && <button className="link tally-clear" onClick={() => setFilter(emptyFilter(F.picker))}>Clear filters</button>}
           </div>
           <p className="hint" style={{ marginTop: 8 }}>&quot;Side&quot; and wins/losses follow {pickerName}&apos;s pick. Each row shows every picker&apos;s result:</p>
           <div className="legend" style={{ marginTop: 6 }}>
@@ -122,7 +121,6 @@ export function ExploreTab() {
           </div>
         </div>
       </div>
-    </main>
 
     {facet === "picker" && (
       <Sheet title="Whose picks" onClose={() => setFacet(null)}>
@@ -154,6 +152,6 @@ export function ExploreTab() {
         </Sheet>
       );
     })()}
-    {live && detail && <GameSheet game={live.games.find((g) => g.num === detail.g.num)!} week={live} onClose={() => setDetail(null)} />}
+    {live && detail && <GameSheet game={live.games.find((g) => g.num === detail.g.num)!} week={live} hidden={!revealed(live, season.players)} onClose={() => setDetail(null)} />}
   </>);
 }

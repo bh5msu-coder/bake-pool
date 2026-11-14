@@ -1,53 +1,55 @@
-/* BAKE Pool design tokens.
-   Warm-neutral paper, ink type, one navy accent for "you / selected", and a fixed
-   colour per player (validated categorical palette, light + dark). One sans face;
-   tabular figures only where numbers line up. */
+/* BAKE Pool design tokens: "Stadium Night".
+   Dark-first: near-black page, raised slate cards, and four bright roles used sparingly:
+   blue = you / action, green = win / live, red = loss, amber = heads-up. Each player keeps a
+   fixed colour. Light theme is the alternate (html[data-theme="light"], set before first paint). */
 :root {
-  --page: #f3f2ee; --surface: #fcfcfb; --sunk: #eceae4; --hover: #f1f0eb;
-  --ink: #0b0b0b; --muted: #4a4946; --faint: #6b6963; --rule: #e3e2db; --axis: #c3c2b7;
-  /* scoreboard band: header + desktop sidebar, same in both themes */
-  --band: #0f1419; --band-2: #1a222b; --band-ink: #ffffff; --band-muted: rgba(255,255,255,.66); --band-line: rgba(255,255,255,.12);
-  --band-accent: #6da7ec;
-  --ring: rgba(11, 11, 11, .10);
-  --accent: #184f95; --accent-ink: #ffffff; --accent-soft: #e4eefb;
-  --signal: #8a5a00; --signal-soft: #fdf0d5;
-  /* Pool Console additions: outline-control border (3:1), avatar initials, band records, league marks */
-  --control-line: #8b897f; --avatar-ink: #0b0b0b; --band-up: #39d98a; --band-down: #ff7b7b;
-  --league-nfl: #184f95; --league-cfb: #8a5a00;
-  --shadow-card: 0 1px 2px rgba(11,11,11,.06);
-  --win: #006300; --win-fill: #0ca30c; --win-soft: #e2f3e2;
-  --loss: #b02a2a; --loss-fill: #d03b3b; --loss-soft: #fbe6e6;
+  --page: #0a0d12; --surface: #141a22; --sunk: #1b232d; --hover: #212b37;
+  --ink: #f4f6f8; --muted: #a9b3bf; --faint: #8893a1; --rule: #242d39; --axis: #3a4554;
+  /* scoreboard band: header + sidebar */
+  --band: #0a0d12; --band-2: #171e27; --band-ink: #ffffff; --band-muted: rgba(255,255,255,.68); --band-line: rgba(255,255,255,.10);
+  --band-accent: #4d9bff;
+  --ring: rgba(255, 255, 255, .08);
+  --accent: #4d9bff; --accent-ink: #06101d; --accent-soft: #12263f;
+  --signal: #ffb020; --signal-soft: #33260a;
+  --control-line: #5d6877; --avatar-ink: #0b0b0b; --band-up: #2ee68a; --band-down: #ff6b6f;
+  --league-nfl: #4d9bff; --league-cfb: #ffb020;
+  --shadow-card: none; --shadow-pop: 0 12px 32px rgba(0,0,0,.5);
+  --win: #2ee68a; --win-fill: #1fc974; --win-soft: #0f2a1d; --win-ink: #04140b;
+  --loss: #ff6b6f; --loss-fill: #e5484d; --loss-soft: #331518;
   /* players: categorical slots 1-5, fixed order (never by rank) */
   --p-brad: #3987e5; --p-andrew: #eb6834; --p-kevin: #1baf7a; --p-eric: #eda100; --p-claude: #e87ba4;
-  --p-entry: #0b0b0b; --p-majority: #898781;
-  /* league gap chart: categorical slots 7 (violet) and 6 (green) */
-  --p-leader: #6250d6; --p-cutoff: #008300;
-  /* diverging (win % around .500): blue <-> red, grey midpoint */
-  --div-neg: #d03b3b; --div-mid: #f0efec; --div-pos: #2a78d6;
+  --p-entry: #f4f6f8; --p-majority: #8893a1;
+  --p-leader: #9d93ff; --p-cutoff: #2ee68a;
+  /* diverging (win % around .500): blue <-> red, slate midpoint. Heatmaps run cold (blue) to hot (red). */
+  --div-neg: #ef5b60; --div-mid: #2a3340; --div-pos: #3d8bf2;
+  --heat-hot: var(--div-neg); --heat-cold: var(--div-pos);
+  --team-mix: 62%; --team-lift: #fff; --team-check: #0b0b0b;
   --body: var(--font-plex-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --display: var(--body);
-  --mono: var(--body);
-  --tabs-h: 64px;
-  --radius: 14px; --radius-sm: 6px; --radius-md: 10px; --radius-pill: 999px;
-  --chip-h: 28px; --avatar: 24px; --tap-min: 44px;
-  color-scheme: light;
+  --display: var(--font-plex-cond), var(--font-plex-sans), system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --tabs-h: 66px; --head-h: 57px;
+  --radius: 16px; --radius-sm: 6px; --radius-md: 10px; --radius-pill: 999px;
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 48px;
+  --chip-h: 30px; --avatar: 24px; --tap-min: 44px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page: #0d0d0d; --surface: #1a1a19; --sunk: #242422; --hover: #22221f;
-    --ink: #f0efec; --muted: #c3c2b7; --faint: #9a988f; --rule: #2c2c2a; --axis: #383835;
-    --ring: rgba(255, 255, 255, .10);
-    --accent: #6da7ec; --accent-ink: #0d0d0d; --accent-soft: #15253a;
-    --signal: #fab219; --signal-soft: #2e2410;
-    --control-line: #6e6c64; --league-nfl: #6da7ec; --league-cfb: #fab219; --shadow-card: none;
-    --win: #2fbf2f; --win-fill: #0ca30c; --win-soft: #12261a;
-    --loss: #ef7373; --loss-fill: #d03b3b; --loss-soft: #2c1617;
-    --p-brad: #3987e5; --p-andrew: #d95926; --p-kevin: #199e70; --p-eric: #c98500; --p-claude: #d55181;
-    --p-entry: #f0efec; --p-majority: #898781;
-    --p-leader: #9085e9; --p-cutoff: #0ca30c;
-    --div-neg: #e66767; --div-mid: #383835; --div-pos: #3987e5;
-    color-scheme: dark;
-  }
+:root[data-theme="light"] {
+  --page: #f1f3f6; --surface: #ffffff; --sunk: #e8ecf1; --hover: #eef1f5;
+  --ink: #0b0f14; --muted: #46505c; --faint: #636d7a; --rule: #dde2e9; --axis: #bcc4ce;
+  --band: #0a0d12; --band-2: #171e27;
+  --ring: rgba(11, 15, 20, .10);
+  --accent: #1560d4; --accent-ink: #ffffff; --accent-soft: #e1ecfc;
+  --signal: #8a5a00; --signal-soft: #fdf0d5;
+  --control-line: #858e9a; --league-nfl: #1560d4; --league-cfb: #8a5a00;
+  --shadow-card: 0 1px 2px rgba(11,15,20,.06); --shadow-pop: 0 12px 32px rgba(11,15,20,.18);
+  --win: #006b2d; --win-fill: #0ca350; --win-soft: #def5e6; --win-ink: #ffffff;
+  --loss: #b3262b; --loss-fill: #d63a3f; --loss-soft: #fbe6e7;
+  --p-entry: #0b0f14; --p-majority: #858e9a;
+  --p-leader: #6250d6; --p-cutoff: #008300;
+  --div-neg: #d03b3b; --div-mid: #eef0f3; --div-pos: #2a78d6;
+  --team-mix: 100%; --team-check: #fff;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -84,7 +86,7 @@ header.top .link { color: var(--band-accent); }
   color: var(--band-ink); font-variant-numeric: tabular-nums;
 }
 .summary .q { color: var(--band-muted); font-weight: 500; }
-.summary .late { color: #fab219; font-weight: 600; }
+.summary .late { color: var(--signal); font-weight: 600; }
 .status .big.late { color: var(--signal); }
 .summary .sep { width: 1px; height: 14px; background: var(--band-line); }
 .bar { display: flex; align-items: center; gap: 10px; min-height: 56px; }
@@ -120,7 +122,7 @@ header.top .link { color: var(--band-accent); }
 .iconbtn:hover:not(:disabled) { background: var(--hover); }
 .iconbtn:disabled { opacity: .35; }
 .avatar {
-  width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--who, var(--accent)); color: #fff;
+  width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--who, var(--accent)); color: var(--avatar-ink);
   font: 700 .9rem var(--body);
 }
 .strip { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 0 16px 10px; }
@@ -201,28 +203,9 @@ section + section { border-top: 1px solid var(--rule); }
 
 /* ---------- game card ---------- */
 .games { display: grid; gap: 8px; }
-.game { background: var(--surface); border: 1px solid var(--ring); border-radius: var(--radius); box-shadow: var(--shadow-card); }
-.game .meta { display: flex; align-items: center; gap: 8px; padding: 8px 10px 0 12px; font: 500 .74rem var(--body); color: var(--faint); }
-.game .meta .more { margin-left: auto; background: none; border: 0; color: var(--faint); font: 700 1rem var(--body); min-width: 36px; min-height: 28px; border-radius: 8px; }
-.game .meta .more:hover { background: var(--hover); }
-.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px 8px 8px; }
-.side {
-  text-align: left; min-height: 56px; border-radius: 9px; border: 1px solid var(--rule); background: var(--surface);
-  padding: 7px 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 5px; position: relative;
-}
-.side:hover:not(:disabled):not(.mine) { background: var(--hover); }
-.side .tn { font: 600 .95rem/1.2 var(--body); display: flex; align-items: baseline; gap: 6px; }
-.side .tn .sp { font: 500 .78rem var(--body); color: var(--faint); font-variant-numeric: tabular-nums; margin-left: auto; }
-.side.mine { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
-.side.covered::after { content: "✓ covered"; position: absolute; right: 8px; bottom: 7px; font: 600 .68rem var(--body); color: var(--win); }
-.side.covering::after { content: "▲ covering"; position: absolute; right: 8px; bottom: 7px; font: 600 .68rem var(--body); color: var(--accent); }
-.side .score { font-variant-numeric: tabular-nums; margin-left: 6px; }
 .tag.live { background: var(--loss-soft); color: var(--loss); display: inline-flex; align-items: center; gap: 5px; }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--loss-fill); display: inline-block; animation: pulse 1.6s ease-in-out infinite; margin-right: 2px; }
 @keyframes pulse { 50% { opacity: .35; } }
-.game .meta .kick { color: var(--faint); font-size: .72rem; }
-.side:disabled { opacity: 1; }
-.side .who { display: flex; flex-wrap: wrap; gap: 4px; min-height: var(--avatar); }
 .chip {
   font: 700 .6875rem/var(--avatar) var(--body); min-width: var(--avatar); height: var(--avatar); padding: 0 4px; text-align: center;
   border-radius: var(--radius-pill); background: var(--c, var(--sunk)); color: var(--avatar-ink); flex: none;
@@ -333,11 +316,15 @@ section + section { border-top: 1px solid var(--rule); }
 
 /* ---------- dashboard (mobile: one column) ---------- */
 .dash { display: grid; gap: 12px; padding-block: 16px; }
-.dash .chart-card + .chart-card { margin-top: 0; }
 
-.subtabs { display: flex; gap: 4px; background: var(--sunk); border-radius: 10px; padding: 3px; margin-top: 14px; }
-.subtabs button { flex: 1; border: 0; background: transparent; border-radius: 8px; min-height: 36px; font: 600 .86rem var(--body); color: var(--muted); }
-.subtabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.subtabs { display: flex; gap: 4px; background: var(--sunk); border-radius: 12px; padding: 4px; margin-top: 14px; }
+.subtabs button { flex: 1; border: 0; background: transparent; border-radius: 9px; min-height: 40px; padding: 0 12px; font: 600 .86rem var(--body); color: var(--muted); white-space: nowrap; }
+.subtabs button[aria-selected="true"], .subtabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+/* More views than fit on a phone: the row scrolls sideways instead of squeezing. */
+.subtabs.scroll { overflow-x: auto; scrollbar-width: none; }
+.subtabs.scroll::-webkit-scrollbar { display: none; }
+.subtabs.scroll button { flex: 1 0 auto; }
+.subtabs.flush { margin-top: 0; }
 
 /* ---------- stat tiles ---------- */
 .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -389,8 +376,6 @@ section + section { border-top: 1px solid var(--rule); }
 .heat .hc.empty { background: var(--sunk); color: var(--faint); }
 .heat .hc:hover, .heat .hc:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .scale { display: flex; align-items: center; gap: 8px; font: 500 .72rem var(--body); color: var(--faint); margin-top: 10px; }
-/* Heatmaps run cold (blue, worse) to hot (red, better). */
-:root { --heat-hot: var(--div-neg); --heat-cold: var(--div-pos); }
 .scale i { height: 8px; width: 140px; border-radius: 4px; background: linear-gradient(90deg, var(--heat-cold), var(--div-mid), var(--heat-hot)); }
 .bars .b { display: grid; grid-template-columns: 110px 1fr 64px; gap: 10px; align-items: center; min-height: 32px; font-size: .85rem; }
 .bars .track { height: 16px; position: relative; }
@@ -443,7 +428,7 @@ section + section { border-top: 1px solid var(--rule); }
 
 /* ---------- explore ---------- */
 .tally {
-  position: sticky; top: calc(57px + env(safe-area-inset-top, 0px)); z-index: 10; background: var(--page);
+  position: sticky; top: calc(var(--head-h) + env(safe-area-inset-top, 0px)); z-index: 10; background: var(--page);
   border-bottom: 1px solid var(--rule); font: 600 .85rem var(--body); padding: 9px 16px; margin-inline: -16px;
   display: flex; flex-wrap: wrap; gap: 3px 14px; font-variant-numeric: tabular-nums;
 }
@@ -490,14 +475,16 @@ nav.tabs {
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--rule);
   padding: 4px max(8px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
 }
-nav.tabs .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; }
+nav.tabs .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
 nav.tabs button {
-  min-height: 54px; border: 0; background: transparent; border-radius: 10px; color: var(--faint);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font: 600 .78rem var(--body);
+  min-height: 56px; border: 0; background: transparent; border-radius: 12px; color: var(--faint);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 600 .72rem var(--body); letter-spacing: .01em;
 }
-nav.tabs button svg { width: 22px; height: 22px; }
-nav.tabs button[aria-selected="true"] { color: var(--accent); }
-nav.tabs button span { display: none; }
+nav.tabs button .ic { display: grid; place-items: center; width: 56px; height: 30px; border-radius: var(--radius-pill); transition: background .18s var(--ease), color .18s var(--ease); }
+nav.tabs button svg { width: 23px; height: 23px; }
+/* The screen you're on: a bright pill behind the icon and a bold label. */
+nav.tabs button[aria-current="page"] { color: var(--ink); font-weight: 700; }
+nav.tabs button[aria-current="page"] .ic { background: var(--accent); color: var(--accent-ink); }
 
 /* ---------- desktop shell ---------- */
 .side-nav { display: none; }
@@ -512,7 +499,7 @@ nav.tabs button span { display: none; }
     background: var(--band); color: var(--band-ink); padding: 20px 14px;
   }
   .side-nav .brand { font: 800 1.25rem var(--body); letter-spacing: -.02em; padding: 4px 10px 18px; display: flex; align-items: center; gap: 10px; }
-  .side-nav .brand i { width: 28px; height: 28px; border-radius: 8px; background: #2a78d6; display: grid; place-items: center; color: #fff; font: 800 .8rem var(--body); font-style: normal; }
+  .side-nav .brand i { width: 28px; height: 28px; border-radius: 8px; background: var(--band-accent); display: grid; place-items: center; color: #06101d; font: 800 .8rem var(--body); font-style: normal; }
   .side-nav .item {
     display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; background: transparent;
     border-radius: 10px; color: var(--band-muted); font: 500 .95rem var(--body); text-align: left;
@@ -537,13 +524,13 @@ nav.tabs button span { display: none; }
   .side-nav .entry-card .ec-lab { font: 700 .66rem var(--body); letter-spacing: .09em; text-transform: uppercase; color: var(--band-accent); }
   .side-nav .entry-card .ec-wk { font: 600 .88rem var(--body); color: var(--band-ink); }
   .side-nav .entry-card .ec-big { font: 800 1.75rem/1.15 var(--body); font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin-top: 2px; }
-  .side-nav .entry-card .ec-big.late { color: #fab219; }
+  .side-nav .entry-card .ec-big.late { color: #ffb020; }
   .side-nav .entry-card .ec-sub { font: 500 .8rem var(--body); color: var(--band-muted); display: flex; align-items: center; gap: 6px; }
   .side-nav .entry-card .ec-foot { font: 500 .72rem var(--body); color: var(--band-muted); opacity: .85; margin-top: 3px; }
   .side-nav .season { margin-top: 22px; padding: 14px 12px; border-top: 1px solid var(--band-line); display: grid; gap: 10px; }
   .side-nav .season div { display: flex; justify-content: space-between; font-size: .85rem; color: var(--band-muted); }
   .side-nav .season b { color: var(--band-ink); font-variant-numeric: tabular-nums; }
-  .side-nav .season b.neg { color: #ff8a8a; } .side-nav .season b.pos { color: #6fdc8c; }
+  .side-nav .season b.neg { color: var(--band-down); } .side-nav .season b.pos { color: var(--band-up); }
   .side-nav .me { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 0; background: transparent; width: 100%; text-align: left; color: var(--band-ink); }
   .side-nav .me:hover { background: var(--band-2); }
   .side-nav .me span { font: 500 .9rem var(--body); }
@@ -611,12 +598,11 @@ nav.tabs button span { display: none; }
 .recap-grid b { font: 700 1rem var(--body); font-variant-numeric: tabular-nums; }
 .recap-people { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: .84rem; }
 .recap-people .dot { margin-right: 5px; }
-/* Dark mode: many team colours are near-black navy; lift them so the stripe, tint and check stay visible. */
-@media (prefers-color-scheme: dark) {
-  .sb .team { --team-lit: color-mix(in srgb, var(--team, var(--accent)) 62%, #fff); box-shadow: inset -5px 0 0 var(--team-lit); }
-  .sb .team.mine { background: color-mix(in srgb, var(--team-lit) 18%, var(--surface)); --row: color-mix(in srgb, var(--team-lit) 18%, var(--surface)); }
-  .sb .team.mine .tn::after { background: var(--team-lit); color: #0b0b0b; }
-}
+/* Many team colours are near-black navy; on the dark theme they are lifted so the stripe, tint and check stay visible. */
+.sb .team { --team-lit: color-mix(in srgb, var(--team, var(--accent)) var(--team-mix), var(--team-lift)); box-shadow: inset -5px 0 0 var(--team-lit); }
+.sb .team:not([style*="--team"]) { box-shadow: none; }
+.sb .team.mine { background: color-mix(in srgb, var(--team-lit) 20%, var(--surface)); --row: color-mix(in srgb, var(--team-lit) 20%, var(--surface)); }
+.sb .team.mine .tn::after { background: var(--team-lit); color: var(--team-check); }
 .heat .hc.rec2 { display: flex; flex-direction: column; justify-content: center; gap: 1px; min-height: 42px; line-height: 1.1; }
 .heat .hc.rec2 b { font-weight: 700; font-size: .8rem; }
 .heat .hc.rec2 small { font-size: .66rem; font-weight: 500; opacity: .85; }

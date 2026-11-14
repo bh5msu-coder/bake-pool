@@ -1,8 +1,8 @@
 "use client";
 // Stats tab: every graded game since 2024-25 (the old sheets) plus this season. Human picks and the
 // submitted entry only; Claude never appears here.
-import { useMemo, useState, type CSSProperties } from "react";
-import hist from "@/lib/history.json";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { usd as money } from "@/lib/format";
 import { cvar } from "@/lib/players";
 import { fmtPct, fmtRec, pct, type Rec } from "@/lib/scoring";
 import {
@@ -11,23 +11,40 @@ import {
   type HistoryFile, type SG, type TeamRec,
 } from "@/lib/stats";
 import { ChartCard, Heatmap, HeatTable, LineChart, WinBars } from "./charts";
-import { useApp } from "./store";
-import { Header } from "./ui";
+import { ExploreView } from "./Explore";
+import { useApp, useSub } from "./store";
+import { Header, Skeleton } from "./ui";
 
-type Sub = "overview" | "splits" | "teams" | "fun";
+type Sub = "overview" | "splits" | "teams" | "fun" | "games";
 type Lg = "all" | "NFL" | "NCAA";
 
-const usd = (n: number) => `${n < 0 ? "−" : "+"}$${Math.abs(n).toLocaleString("en-US")}`;
+const usd = (n: number) => money(n, { plus: true });
 const n = (r: Rec) => r.w + r.l;
 const thin = (r: Rec) => (n(r) < SMALL ? " · small sample" : "");
 const nameOf = (id: string) => [...PEOPLE, SUBMITTED].find((p) => p.id === id)?.name ?? id;
 const BE = { at: BREAKEVEN, label: "52.4%" };
 
+// The old seasons' file is big (about 195 KB), so it loads only when Stats is first opened, then stays in memory.
+let histMemo: HistoryFile | null = null;
+function useHistory() {
+  const [hist, setHist] = useState<HistoryFile | null>(histMemo);
+  useEffect(() => {
+    if (histMemo) return;
+    let stop = false;
+    void import("@/lib/history.json").then((m) => { histMemo = m.default as HistoryFile; if (!stop) setHist(histMemo); });
+    return () => { stop = true; };
+  }, []);
+  return hist;
+}
+
+const SUB_TABS: [Sub, string][] = [["overview", "Overview"], ["splits", "Splits"], ["teams", "Teams"], ["fun", "Fun"], ["games", "Games"]];
+
 export function StatsTab() {
   const { season } = useApp();
-  const everything = useMemo(() => allGames(hist as HistoryFile, season), [season]);
+  const hist = useHistory();
+  const everything = useMemo(() => (hist ? allGames(hist, season) : []), [hist, season]);
   const seasons = seasonsOf(everything);
-  const [sub, setSub] = useState<Sub>("overview");
+  const [sub, setSub] = useSub<Sub>("stats");
   const [sea, setSea] = useState<string>("all");
   const [lg, setLg] = useState<Lg>("all");
 
@@ -38,14 +55,31 @@ export function StatsTab() {
   const who = [...PEOPLE, SUBMITTED].filter((p) => games.some((g) => g.picks[p.id]));
   const scope = `${sea === "all" ? "All seasons" : sea} · ${lg === "all" ? "NFL + CFB" : lg === "NFL" ? "NFL" : "CFB"}`;
 
+  const tabs = (
+    <div className="subtabs scroll" role="tablist" aria-label="Stats views">
+      {SUB_TABS.map(([k, l]) => <button key={k} role="tab" aria-selected={sub === k} onClick={() => setSub(k)}>{l}</button>)}
+    </div>
+  );
+
+  // "Games" is this season's game-by-game explorer (it used to be its own tab).
+  if (sub === "games") {
+    const count = season.weeks.reduce((a, w) => a + w.games.length, 0);
+    return (<>
+      <Header title="Stats" sub={`${count} games this season`} />
+      <main className="wrap">{tabs}<ExploreView /></main>
+    </>);
+  }
+  if (!hist) {
+    return (<>
+      <Header title="Stats" sub="All-time stats" />
+      <main className="wrap">{tabs}<Skeleton hero rows={5} /></main>
+    </>);
+  }
+
   return (<>
     <Header title="Stats" sub={`${everything.length.toLocaleString()} games since 2024-25`} />
     <main className="wrap">
-      <div className="subtabs" role="tablist" aria-label="Stats views">
-        {([["overview", "Overview"], ["splits", "Splits"], ["teams", "Teams"], ["fun", "Fun"]] as [Sub, string][]).map(([k, l]) => (
-          <button key={k} role="tab" aria-selected={sub === k} onClick={() => setSub(k)}>{l}</button>
-        ))}
-      </div>
+      {tabs}
       <div className="filters">
         <div className="grp" role="group" aria-label="Season"><span>Season</span><div className="pills">
           {["all", ...seasons].map((s) => <button key={s} className="pill" aria-pressed={sea === s} onClick={() => setSea(s)}>{s === "all" ? "All" : s}</button>)}
@@ -297,7 +331,7 @@ function Fun({ games, who, scope }: P) {
 
     <div className="chart-card s6">
       <div className="chart-head"><div><h3>Streaks</h3><p>Covers or misses in a row, game by game</p></div></div>
-      <table className="grid">
+      <div className="tablewrap"><table className="grid">
         <thead><tr><th>Picker</th><th>Hottest</th><th>Coldest</th><th>Now</th></tr></thead>
         <tbody>{st.map((x) => (
           <tr key={x.id}>
@@ -307,7 +341,7 @@ function Fun({ games, who, scope }: P) {
             <td className={x.s.current?.kind === "W" ? "pos" : "neg"}>{x.s.current ? `${x.s.current.len}${x.s.current.kind}` : "—"}</td>
           </tr>
         ))}</tbody>
-      </table>
+      </table></div>
     </div>
 
     {cons.n > 0 && (<>

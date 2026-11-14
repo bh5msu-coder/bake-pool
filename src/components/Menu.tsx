@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { fmtDeadline, fmtTime } from "@/lib/deadline";
+import { colorOf } from "@/lib/players";
 import { labelOf } from "@/lib/scoring";
 import { remindAt } from "@/lib/emailReminders";
 import { Notifications } from "./Notifications";
-import { Sheet } from "./ui";
+import { ConfirmSheet, Sheet } from "./ui";
 import { useApp } from "./store";
 
 type ReminderPlan = {
@@ -39,13 +40,41 @@ export function Menu() {
   const p = season.players.find((x) => x.id === me);
   return (
     <Sheet title="Menu" onClose={() => setMenu(false)}>
-      <div className="kv"><span className="lab">Signed in</span><span>{p?.name ?? me}{demo && " (demo)"}</span>
-        <button className="link" onClick={signOut}>Sign out</button></div>
+      <div className="me-row">
+        <span className="avatar" style={{ "--who": colorOf(me) } as CSSProperties}>{p?.initial ?? "?"}</span>
+        <span className="who"><b>{p?.name ?? me}{demo && " (demo)"}</b><small>{isAdmin ? "Pool admin" : "Signed in"}</small></span>
+        <button className="btn" onClick={signOut}>Sign out</button>
+      </div>
+      <ThemePicker />
       <Notifications />
-      {isAdmin && <AdminTools />}
+      {isAdmin && <><p className="eyebrow gap-t">Admin tools</p><AdminTools /></>}
       <p className="hint">Tip: on iPhone, tap Share → Add to Home Screen to use this like an app.</p>
     </Sheet>
   );
+}
+
+type Theme = "dark" | "light" | "system";
+
+/** Dark is the default look. The choice is remembered on this device. */
+function ThemePicker() {
+  const [theme, setTheme] = useState<Theme>("dark");
+  useEffect(() => {
+    try { setTheme((localStorage.getItem("bake-theme") as Theme | null) ?? "dark"); } catch { /* private mode */ }
+  }, []);
+  const pick = (t: Theme) => {
+    setTheme(t);
+    try { localStorage.setItem("bake-theme", t); } catch { /* private mode */ }
+    const light = t === "light" || (t === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
+    document.documentElement.dataset.theme = light ? "light" : "dark";
+  };
+  return (<>
+    <p className="eyebrow gap-t">Appearance</p>
+    <div className="subtabs flush" role="group" aria-label="Appearance">
+      {([["dark", "Dark"], ["light", "Light"], ["system", "Match phone"]] as [Theme, string][]).map(([k, l]) => (
+        <button key={k} aria-pressed={theme === k} onClick={() => pick(k)}>{l}</button>
+      ))}
+    </div>
+  </>);
 }
 
 function AdminTools() {
@@ -56,6 +85,7 @@ function AdminTools() {
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [pushed, setPushed] = useState<string | null>(null);
   const [rem, setRem] = useState<{ plan: ReminderPlan | null; results?: SendResult[]; message?: string } | null>(null);
+  const [ask, setAsk] = useState<{ title: string; body: string; yes: string; danger?: boolean; run(): void } | null>(null);
 
   async function act(label: string, fn: () => Promise<void>) {
     if (demo) return toast("Not available in demo mode.", true);
@@ -64,7 +94,6 @@ function AdminTools() {
   }
   const check = () => act("check", async () => setPlan((await post<{ plan: Plan }>("/api/lines/sync")).plan));
   const apply = (replace = false) => act("apply", async () => {
-    if (replace && !confirm(`Replace ${plan!.label}'s games with the sheet? Every pick already made for that week will be erased.`)) return;
     await post("/api/lines/sync", { apply: true, replace });
     toast(plan!.action === "create" ? `${plan!.label} created` : "Lines updated");
     setPlan(null);
@@ -76,7 +105,6 @@ function AdminTools() {
   });
 
   const sync = (mode: "import" | "export") => act(mode, async () => {
-    if (mode === "import" && !confirm("Take every pick that's in the sheet for the open week? Where the sheet and the app differ, the sheet's pick replaces the app's (locked players excepted).")) return;
     const r = await post<{ message: string; skipped: string[] }>("/api/sheet/sync", { mode });
     setPushed(r.message + (r.skipped.length ? ` Skipped: ${r.skipped.join("; ")}.` : ""));
     await reload();
@@ -88,14 +116,13 @@ function AdminTools() {
     const x = r.results[0];
     toast(x?.ok ? "Test reminder sent to your phone." : `Couldn't send: ${x?.error ?? "unknown error"}`, !x?.ok);
   });
-  const remSend = () => act("remsend", async () => {
-    if (!confirm(`Send a phone reminder to everyone who hasn't locked ${rem?.plan?.label ?? "this week"} right now?`)) return;
-    setRem(await post("/api/reminders", { send: true }));
-  });
+  const remSendNow = () => act("remsend", async () => setRem(await post("/api/reminders", { send: true })));
+  const remSend = () => setAsk({ title: "Send the reminder now?", yes: "Send reminder", run: remSendNow,
+    body: `Sends a phone notification right now to everyone who hasn't locked ${rem?.plan?.label ?? "this week"}.` });
 
   const problems = plan?.games.filter((g) => g.problem) ?? [];
   return (<>
-    <p className="eyebrow" style={{ marginTop: 20 }}>Lines from John&apos;s sheet</p>
+    <details className="fold" open><summary>Lines from John&apos;s sheet</summary>
     <button className="cta ghost" onClick={check} disabled={!!busy}>{busy === "check" ? "Reading the sheet…" : "Refresh lines"}</button>
     {plan && (
       <div className="card" style={{ marginTop: 10 }}>
@@ -113,15 +140,20 @@ function AdminTools() {
           <button className="cta" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0} onClick={() => apply()}>
             {plan.action === "create" ? `Create ${plan.label}` : "Update lines"}</button>}
         {plan.action === "conflict" &&
-          <button className="cta danger" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0} onClick={() => apply(true)}>Replace {plan.label}</button>}
+          <button className="cta danger" style={{ marginTop: 10 }} disabled={!!busy || problems.length > 0}
+            onClick={() => setAsk({ title: `Replace ${plan.label}?`, yes: `Replace ${plan.label}`, danger: true, run: () => apply(true),
+              body: `Replaces ${plan.label}'s games with the sheet. Every pick already made for that week will be erased.` })}>Replace {plan.label}</button>}
       </div>
     )}
     <p className="hint">The app also checks the Converter tab every 30 minutes, so a new week shows up on its own once John posts the lines. New weeks are due Thursday at noon CT and lock at 2:30 PM CT.</p>
 
-    <p className="eyebrow" style={{ marginTop: 22 }}>Picks ↔ Google Sheet</p>
-    <div className="row" style={{ gap: 8, marginBottom: 8 }}>
-      <button className="cta ghost" style={{ flex: 1 }} onClick={() => sync("import")} disabled={!!busy}>{busy === "import" ? "Importing…" : "Import from sheet"}</button>
-      <button className="cta ghost" style={{ flex: 1 }} onClick={() => sync("export")} disabled={!!busy}>{busy === "export" ? "Exporting…" : "Export to sheet"}</button>
+    </details>
+    <details className="fold"><summary>Picks ↔ Google Sheet</summary>
+    <div className="stack two">
+      <button className="cta ghost" onClick={() => (demo ? sync("import") : setAsk({ title: "Import from the sheet?", yes: "Import picks", run: () => sync("import"),
+        body: "Takes every pick that's in the sheet for the open week. Where the sheet and the app differ, the sheet's pick replaces the app's (locked players excepted)." }))}
+        disabled={!!busy}>{busy === "import" ? "Importing…" : "Import from sheet"}</button>
+      <button className="cta ghost" onClick={() => sync("export")} disabled={!!busy}>{busy === "export" ? "Exporting…" : "Export to sheet"}</button>
     </div>
     <p className="hint" style={{ marginTop: 0 }}>Until picks lock, the open week also syncs both ways every 10 minutes: whichever side changed last wins
       (the app if both did). Locked players&apos; picks always come from the app.</p>
@@ -130,8 +162,9 @@ function AdminTools() {
     <p className="hint">Happens automatically 5 minutes after picks lock (Thursday 2:30 PM CT). Picks, eliminator votes and results go into
       that week&apos;s rows; the sheet&apos;s own formulas are left alone.</p>
 
+    </details>
+    <details className="fold"><summary>{week ? `${labelOf(week)} settings` : "Week settings"}</summary>
     {week?.id && (<>
-      <p className="eyebrow" style={{ marginTop: 22 }}>{labelOf(week)} settings</p>
       <div className="field"><label htmlFor="dl">Picks lock at (your time)</label>
         <input id="dl" type="datetime-local" defaultValue={toLocalInput(week.deadline)} key={`dl${week.id}`}
           onBlur={(e) => e.target.value && run("updateWeek", week.id!, { deadline: new Date(e.target.value).toISOString() })} /></div>
@@ -142,13 +175,14 @@ function AdminTools() {
       </div>
     </>)}
 
-    <div className="field" style={{ marginTop: 22 }}><label htmlFor="grace">Grace period (minutes before the lock that picks are due)</label>
+    <div className="field"><label htmlFor="grace">Grace period (minutes before the lock that picks are due)</label>
       <input id="grace" type="number" inputMode="numeric" min={0} max={1440} step={15} defaultValue={season.graceMinutes}
         onBlur={(e) => run("setSetting", "grace_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
     <p className="hint">150 = due at noon, locked at 2:30 PM. Anyone can still pick during the grace period.</p>
 
-    <p className="eyebrow" style={{ marginTop: 22 }}>Pick reminders</p>
-    <div className="row" style={{ gap: 8 }}>
+    </details>
+    <details className="fold"><summary>Pick reminders</summary>
+    <div className="stack">
       <button className="cta ghost" onClick={remPreview} disabled={!!busy}>{busy === "rem" ? "Checking…" : "Who'd get one?"}</button>
       <button className="cta ghost" onClick={remSend} disabled={!!busy || !rem?.plan?.recipients.length}>{busy === "remsend" ? "Sending…" : "Send now"}</button>
       <button className="cta ghost" onClick={remTest} disabled={!!busy}>{busy === "remtest" ? "Sending…" : "Send me a test"}</button>
@@ -172,12 +206,15 @@ function AdminTools() {
         onBlur={(e) => run("setSetting", "reminder_lead_minutes", Math.min(1440, Math.max(0, Math.round(Number(e.target.value) || 0))))} /></div>
     <p className="hint">60 = 11:00 AM CT (noon ET) when picks are due at noon CT. Goes once a week, as a phone notification, to whoever hasn&apos;t locked. Each person needs notifications turned on (Menu → Notifications).</p>
 
-    <div className="field" style={{ marginTop: 22 }}><label htmlFor="sfee">Season entry $ (paid up front)</label>
+    </details>
+    <details className="fold"><summary>Money</summary>
+    <div className="field"><label htmlFor="sfee">Season entry $ (paid up front)</label>
       <input id="sfee" type="number" inputMode="decimal" min={0} defaultValue={season.seasonFee}
         onBlur={(e) => run("setSetting", "season_fee", Math.max(0, Number(e.target.value) || 0))} /></div>
     <Ledger />
 
-    <p className="eyebrow" style={{ marginTop: 22 }}>Sign-in emails</p>
+    </details>
+    <details className="fold"><summary>Sign-in emails</summary>
     {season.players.filter((p) => p.kind === "human").map((p) => (
       <div className="field" key={p.id}><label htmlFor={`em-${p.id}`}>{p.name}</label>
         <input id={`em-${p.id}`} type="email" autoComplete="off" placeholder="name@example.com" value={emails[p.id] ?? ""}
@@ -187,6 +224,8 @@ function AdminTools() {
     ))}
     <p className="hint">Sign-in is just tapping your name; each email ties a name to its account. Saved emails aren&apos;t shown here;
       type one to replace it.</p>
+    </details>
+    {ask && <ConfirmSheet title={ask.title} body={ask.body} yes={ask.yes} danger={ask.danger} onYes={ask.run} onClose={() => setAsk(null)} />}
   </>);
 }
 

@@ -19,7 +19,7 @@ export function Login({ error }: { error?: string | null }) {
   async function enter(p: Who) {
     setBusy(p.id); setMsg(null);
     const res = await fetch("/api/enter", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ player: p.id }) });
-    if (res.ok) { window.location.href = "/"; return; }
+    if (res.ok) { window.location.reload(); return; } // stay on the screen the link pointed at
     const j = await res.json().catch(() => ({}));
     setBusy(null); setMsg(j.error ?? "Couldn't sign in. Try again.");
   }
@@ -27,7 +27,7 @@ export function Login({ error }: { error?: string | null }) {
   return (
     <main className="login">
       <div className="card">
-        <h1>BAKE Pool</h1>
+        <h1>BAKE <em>Pool</em></h1>
         <p className="hint" style={{ marginTop: 0 }}>Who&apos;s picking?</p>
         <div className="who-grid">
           {(players ?? []).map((p) => (

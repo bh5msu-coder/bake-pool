@@ -2,13 +2,13 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { LeagueView } from "@/lib/leagueData";
 import { ChartCard, LineChart } from "./charts";
-import { Header } from "./ui";
-import { useApp } from "./store";
+import { Header, Skeleton } from "./ui";
+import { useApp, useSub } from "./store";
+import { usd } from "@/lib/format";
 
 type Sub = "overview" | "board" | "money";
 type Row = LeagueView["rows"][number];
 
-const usd = (n: number) => `${n < 0 ? "-" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
 const pct = (p: number) => (p >= 0.995 ? ">99%" : p > 0 && p < 0.005 ? "<1%" : `${Math.round(p * 100)}%`);
 const rankText = (r: { rank: number; tied: boolean }) => `${r.tied ? "T" : ""}${r.rank}`;
 const periodShort = (p: string) => (/^\d+$/.test(p) ? `W${p}` : p);
@@ -39,14 +39,15 @@ function useLeague(demo: boolean) {
 export function LeagueTab() {
   const { demo } = useApp();
   const { data, error } = useLeague(demo);
-  const [sub, setSub] = useState<Sub>("overview");
+  const [sub, setSub] = useSub<Sub>("league");
 
   if (!data) {
     return (<>
       <Header title="The Pool" sub="League standings" />
-      <main className="wrap"><div className="empty">
-        {error ? <><b>Couldn&apos;t load The Pool</b>{error}</> : <><b>Loading the league…</b>Reading The Pool&apos;s sheet and running the season simulation.</>}
-      </div></main>
+      <main className="wrap">
+        {error ? <div className="empty"><b>Couldn&apos;t load The Pool</b>{error}</div>
+          : <><p className="hint">Reading The Pool&apos;s sheet and running the season simulation…</p><Skeleton hero rows={6} /></>}
+      </main>
     </>);
   }
 
@@ -101,7 +102,7 @@ function Overview({ data, us }: { data: LeagueView; us?: Row }) {
       <div className="kpi"><div className="l">Elimination</div><div className="v">{us.elim ? (us.elim.alive ? "Alive" : "Out") : "—"}</div><div className="d">{us.elim ? `${us.elim.losses} loss${us.elim.losses === 1 ? "" : "es"} · ${data.elim.alive} of ${data.elim.entries} alive` : ""}</div></div>
     </div>
 
-    <ChartCard className="s5" title="Chance to finish in the money" sub={`Championship pays the top ${data.champ.places.length}: ${data.champ.places.map(usd).join(" / ")}`}
+    <ChartCard className="s5" title="Chance to finish in the money" sub={`Championship pays the top ${data.champ.places.length}: ${data.champ.places.map((n) => usd(n)).join(" / ")}`}
       table={<table className="grid"><thead><tr><th>Entry</th><th>Now</th><th>In the money</th><th>Win it</th><th>Exp. $</th><th>Final wins</th></tr></thead>
         <tbody>{top.map((r) => <tr key={r.entry} style={r.entry === data.entry ? { fontWeight: 700 } : undefined}><td>{r.entry}</td><td>{rankText(r)}</td><td>{pct(r.odds.pMoney)}</td><td>{pct(r.odds.pFirst)}</td><td>{usd(r.odds.expPayout)}</td><td>{r.odds.p10}–{r.odds.p90}</td></tr>)}</tbody></table>}>
       <div className="row" style={{ alignItems: "flex-end", gap: 18, flexWrap: "wrap", marginBottom: 12 }}>
@@ -217,7 +218,7 @@ function MoneyElim({ data }: { data: LeagueView }) {
       </div>
     </div>
     <div className="chart-card s5">
-      <div className="chart-head"><div><h3>Elimination</h3><p>Pot {usd(e.pot)} · pays {e.places.map(usd).join(" / ")}</p></div></div>
+      <div className="chart-head"><div><h3>Elimination</h3><p>Pot {usd(e.pot)} · pays {e.places.map((n) => usd(n)).join(" / ")}</p></div></div>
       <div className="kpis" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
         <div className="kpi"><div className="l">Still alive</div><div className="v">{e.alive}</div><div className="d">of {e.entries} entries</div></div>
         <div className="kpi"><div className="l">Perfect</div><div className="v">{e.noLoss}</div><div className="d">no losses</div></div>

@@ -13,7 +13,7 @@ import { EntrySheet } from "./EntrySheet";
 import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor, teamVars } from "@/lib/teams";
 import { RecapCard } from "./Recap";
-import { Header, Sheet } from "./ui";
+import { Header, Sheet, WeekNav } from "./ui";
 import { useApp } from "./store";
 
 type Show = "all" | "todo" | "ties";
@@ -47,7 +47,7 @@ function sections(games: Game[], live: LiveMap): Section[] {
 }
 
 export function WeekTab() {
-  const { season, me, isAdmin, demo, weekIdx, setWeekIdx, reload } = useApp();
+  const { season, me, isAdmin, demo, weekIdx, reload, toast } = useApp();
   const week = season.weeks[weekIdx];
   const { live } = useLive(week, demo);
   const [as, setAs] = useState(me);
@@ -78,8 +78,10 @@ export function WeekTab() {
     if (!final_ || !week?.id || demo || pushedFor.current === week.id) return;
     pushedFor.current = week.id;
     void reload();
-    void fetch("/api/sheet/lock-push", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ weekId: week.id }) });
-  }, [final_, week?.id, demo, reload]);
+    fetch("/api/sheet/lock-push", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ weekId: week.id }) })
+      .then((r) => { if (!r.ok) throw new Error(); })
+      .catch(() => toast("Picks are locked, but writing them to the sheet failed. It will retry on its own.", true));
+  }, [final_, week?.id, demo, reload, toast]);
 
   // After a new pick, scroll to the next game you haven't picked (in screen order, wrapping to the top).
   const jumpFrom = (num: number) => window.setTimeout(() => {
@@ -98,12 +100,7 @@ export function WeekTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekKey, weekOpen, as]);
 
-  const nav = (
-    <div className="wknav">
-      <button className="iconbtn" disabled={weekIdx <= 0} onClick={() => setWeekIdx(weekIdx - 1)} aria-label="Previous week">‹</button>
-      <button className="iconbtn" disabled={weekIdx >= season.weeks.length - 1} onClick={() => setWeekIdx(weekIdx + 1)} aria-label="Next week">›</button>
-    </div>
-  );
+  const nav = <WeekNav />;
 
   if (!week) {
     return (<>
