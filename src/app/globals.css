@@ -607,6 +607,12 @@ nav.tabs button[aria-current="page"] .ic { background: var(--accent); color: var
 .recap-grid b { font: 700 1rem var(--body); font-variant-numeric: tabular-nums; }
 .recap-people { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: .84rem; }
 .recap-people .dot { margin-right: 5px; }
+.recap-preview {
+  display: grid; place-items: center; width: auto; max-width: 100%; height: auto; max-height: 56dvh; aspect-ratio: 4 / 5;
+  margin: 4px auto 14px; border-radius: var(--radius-md); background: var(--sunk); color: var(--muted);
+  font: var(--caption); text-align: center; padding: 0;
+}
+div.recap-preview { height: 56dvh; padding: 16px; }
 /* Many team colours are near-black navy; on the dark theme they are lifted so the stripe, tint and check stay visible. */
 .sb .team { --team-lit: color-mix(in srgb, var(--team, var(--accent)) var(--team-mix), var(--team-lift)); box-shadow: inset -5px 0 0 var(--team-lit); }
 .sb .team:not([style*="--team"]) { box-shadow: none; }

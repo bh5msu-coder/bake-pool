@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.0 — 2026-11-14 · Recap image for the group chat
+- **Share on a finished week's recap now makes a picture.** It opens a preview with two choices: **Share image**
+  (straight into Messages or any app on a phone; on a computer it saves the PNG) and **Share text** (the text
+  version, as before).
+- The picture shows the week's entry record and winnings, every picker's record, best and worst, the 4-0 / 3-1 /
+  tie-break splits, the eliminator result, and one line with the season record and winnings so far.
+- It always uses the dark Stadium Night look, so it reads the same in the chat whichever theme you use.
+
 ## 0.17.1 — 2026-11-14 · Overlap fixes from a full-site check
 - **Week board:** the live game clock ("2nd 15:00", "End of 3rd") no longer runs out of its box into the team next to
   it. It wraps onto two lines inside a slightly wider column.

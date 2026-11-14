@@ -172,6 +172,7 @@ export function weekRecap(s: Season, weekNum: number) {
   const lives = elimSummary(s);
   const upTo = s.weeks.filter((x) => x.week <= weekNum).flatMap((x) => x.games).filter((g) => g.result);
   const season = record(upTo, ENTRY, ids);
+  const seasonWon = s.weeks.filter((x) => x.week <= weekNum).reduce((t, x) => t + x.winnings, 0);
   const label = labelOf(w);
   const text = [
     `BAKE Pool · ${label}: Entry ${fmtRec(entry)}${w.winnings ? ` · won $${w.winnings}` : ""}`,
@@ -180,5 +181,5 @@ export function weekRecap(s: Season, weekNum: number) {
     elimRow?.team ? `Eliminator: ${elimRow.team} ${elimRow.outcome === "survived" ? "lost, we survived" : elimRow.outcome === "died" ? "won, life lost" : "pending"} · ${lives.livesLeft} ${lives.livesLeft === 1 ? "life" : "lives"} left` : "",
     `Season entry: ${fmtRec(season)} (${fmtPct(season)})`,
   ].filter(Boolean).join("\n");
-  return { label, entry, winnings: w.winnings, people, best, worst, agree: by("4-0"), three: by("3-1"), ties: by("2-2"), elim: elimRow, livesLeft: lives.livesLeft, season, text };
+  return { label, entry, winnings: w.winnings, people, best, worst, agree: by("4-0"), three: by("3-1"), ties: by("2-2"), elim: elimRow, livesLeft: lives.livesLeft, season, seasonWon, text };
 }
