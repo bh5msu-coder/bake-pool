@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.17.1 — 2026-11-14 · Overlap fixes from a full-site check
+- **Week board:** the live game clock ("2nd 15:00", "End of 3rd") no longer runs out of its box into the team next to
+  it. It wraps onto two lines inside a slightly wider column.
+- The "your pick" check mark stays on the same line as the team name instead of dropping below it.
+- Big numbers on Pool, Stats, League and the weekly recap have room above and below, so they no longer touch their
+  label or caption. A value that can't fit its tile shortens with "…" instead of spilling out.
+- Compare and Breakdown charts: column headings wrap inside their own column.
+- Stats leaderboard: names, captions and the money column keep to their own columns on phones and small laptops.
+- Small laptops (about 1024 to 1320 wide): tiles sit four across under the headline tile and cards stack full width,
+  instead of being squeezed into narrow slivers beside the sidebar.
+- Checked every screen and sub-view at phone, tablet, small-laptop and desktop widths for text running into other
+  text, anything spilling out of its box, and sideways page scrolling.
+
 ## 0.17.0 — 2026-11-14 · Stadium Night: new look, real links, live updates
 **Look**
 - Dark-first "Stadium Night" theme: near-black page, bright blue for you and for actions, green for wins and live

@@ -209,3 +209,40 @@ span.avatar { display: inline-grid; place-items: center; flex: none; }
 /* room for the live dot halo so it never touches the text beside it */
 .live-dot { margin-inline: 3px 7px; }
 .sb .stat .clock .live-dot { margin-inline: 3px 4px; }
+
+/* ---------- overlap fixes (site audit, 0.17.1) ---------- */
+/* Live clock ("2nd 15:00") was wider than its column and ran into the team box: it now wraps onto two lines. */
+.sb { grid-template-columns: 84px minmax(0, 1fr); }
+.sb .stat { overflow: hidden; padding: 8px 5px 8px 9px; }
+.sb .stat .clock { white-space: normal; align-items: flex-start; line-height: 1.2; font-size: .76rem; }
+.sb .stat .clock .live-dot { margin: 4px 3px 0 3px; }
+.sb .stat > * { max-width: 100%; }
+/* Big numbers had no breathing room above and below, so they touched their label and caption. */
+.kpi .v { line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi.hero .v { font-size: clamp(2.6rem, 11vw, 3.6rem); line-height: 1.08; margin-block: 6px 4px; }
+.bigrec .r span { margin-bottom: 6px; }
+.bigrec.in-strip .r span { margin-bottom: 0; }
+.bigstat { font: 700 1.5rem/1.2 var(--display); font-variant-numeric: tabular-nums; }
+.bigstat.xl { font-size: 3rem; line-height: 1.1; }
+.bigstat + div { color: var(--muted); font-size: .82rem; margin-top: 2px; }
+/* Heatmap column headers wrap inside their column instead of running over the next one. */
+.heat .hd { white-space: normal; line-height: 1.15; padding-inline: 1px; }
+/* All-time leaderboard: a long name and its caption stay in their own column. */
+.lb .nm > span { display: block; min-width: 0; overflow: hidden; }
+.lb .nm small { white-space: normal; overflow-wrap: break-word; }
+.lb.hd span { white-space: nowrap; }
+@media (max-width: 520px) { .lb { grid-template-columns: 18px minmax(0, 1fr) auto 46px 66px; gap: 8px; } }
+@media (min-width: 1024px) { .kpi.hero .v { font-size: clamp(2.2rem, 3.4vw, 3.4rem); } }
+/* The "your pick" check stays attached to the end of the team name instead of dropping to a line of its own. */
+.sb .team.mine .tn::after { display: inline; width: auto; height: auto; padding: 2px 5px; border-radius: var(--radius-pill); white-space: nowrap; vertical-align: 2px; }
+.recap-big { line-height: 1.15; }
+.titlebtn { padding-right: 6px; }
+/* Small laptops (sidebar + a narrow page): tiles go four across under the headline tile, and side-by-side cards
+   stack full width, so names, money and leaderboard rows are never squeezed into slivers. */
+@media (min-width: 1024px) and (max-width: 1320px) {
+  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .kpis .hero { grid-column: 1 / -1; }
+  .dash .s3, .dash .s4, .dash .s5, .dash .s6, .dash .s7, .dash .s8 { grid-column: span 12; }
+}
+/* Very narrow phones: a team caption shortens with "…" rather than running into the record. */
+.tlist .t .n small { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

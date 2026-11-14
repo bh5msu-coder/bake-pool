@@ -106,10 +106,10 @@ function Overview({ data, us }: { data: LeagueView; us?: Row }) {
       table={<table className="grid"><thead><tr><th>Entry</th><th>Now</th><th>In the money</th><th>Win it</th><th>Exp. $</th><th>Final wins</th></tr></thead>
         <tbody>{top.map((r) => <tr key={r.entry} style={r.entry === data.entry ? { fontWeight: 700 } : undefined}><td>{r.entry}</td><td>{rankText(r)}</td><td>{pct(r.odds.pMoney)}</td><td>{pct(r.odds.pFirst)}</td><td>{usd(r.odds.expPayout)}</td><td>{r.odds.p10}–{r.odds.p90}</td></tr>)}</tbody></table>}>
       <div className="row" style={{ alignItems: "flex-end", gap: 18, flexWrap: "wrap", marginBottom: 12 }}>
-        <div><div style={{ font: "800 3rem/1 var(--body)", letterSpacing: "-.02em" }}>{pct(o.pMoney)}</div><div className="lab" style={{ color: "var(--muted)", fontSize: ".85rem" }}>{data.entry} finishes top {data.champ.places.length}</div></div>
-        <div><div style={{ font: "700 1.5rem/1 var(--body)" }}>{pct(o.pFirst)}</div><div style={{ color: "var(--muted)", fontSize: ".8rem" }}>wins it all</div></div>
-        <div><div style={{ font: "700 1.5rem/1 var(--body)" }}>{usd(o.expPayout)}</div><div style={{ color: "var(--muted)", fontSize: ".8rem" }}>expected payout</div></div>
-        <div><div style={{ font: "700 1.5rem/1 var(--body)" }}>{o.p50}</div><div style={{ color: "var(--muted)", fontSize: ".8rem" }}>projected wins ({o.p10}–{o.p90})</div></div>
+        <div><div className="bigstat xl">{pct(o.pMoney)}</div><div>{data.entry} finishes top {data.champ.places.length}</div></div>
+        <div><div className="bigstat">{pct(o.pFirst)}</div><div>wins it all</div></div>
+        <div><div className="bigstat">{usd(o.expPayout)}</div><div>expected payout</div></div>
+        <div><div className="bigstat">{o.p50}</div><div>projected wins ({o.p10}–{o.p90})</div></div>
       </div>
       <div className="bars">
         {shown.map((r) => (
