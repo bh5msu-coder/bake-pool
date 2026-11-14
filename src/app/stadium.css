@@ -206,3 +206,6 @@ span.avatar { display: inline-grid; place-items: center; flex: none; }
 /* phones: the Live label shrinks to its dot so the week arrows keep their room */
 @media (max-width: 767px) { .conn { font-size: 0; gap: 0; } }
 .fold > .cta { width: calc(100% - 28px); }
+/* room for the live dot halo so it never touches the text beside it */
+.live-dot { margin-inline: 3px 7px; }
+.sb .stat .clock .live-dot { margin-inline: 3px 4px; }
