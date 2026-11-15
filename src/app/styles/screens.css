@@ -253,3 +253,126 @@ div.recap-preview { height: 56dvh; padding: var(--sp-4); }
 .count { min-width: 24px; text-align: center; }
 .cand .o, .xg .mu { display: block; }
 .burned.kept span { text-decoration: none; }
+
+/* ---------- three-act week ---------- */
+.acts { margin-block: var(--sp-3); }
+.acts button:disabled { color: var(--faint); opacity: .6; cursor: default; }
+
+/* Act 1: the Slip. One line per game, a side each, the game's details in the middle. */
+.slip, .lv, .rows { padding: 0; overflow: hidden; }
+.slip { margin-top: var(--sp-3); }
+.slip .slot { display: flex; justify-content: space-between; margin: 0; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); font: var(--label); letter-spacing: var(--label-track); text-transform: uppercase; color: var(--faint); }
+.pk { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.pk { border-bottom: 1px solid var(--rule); }
+.pk-list { display: grid; margin-bottom: -1px; }
+@media (min-width: 1024px) { .pk-list { grid-template-columns: 1fr 1fr; } .pk-list .pk:nth-child(odd) { border-right: 1px solid var(--rule); } }
+.pk-side {
+  --team-lit: color-mix(in srgb, var(--team) var(--team-mix), var(--team-lift));
+  position: relative; display: grid; align-content: center; gap: 2px; min-height: 56px; padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-6);
+  background: transparent; border: 0; text-align: left; min-width: 0; transition: background var(--dur-2) var(--ease);
+}
+.pk-side::before { content: ""; position: absolute; left: var(--sp-3); top: var(--sp-3); bottom: var(--sp-3); width: 4px; border-radius: 2px; background: var(--team-lit, var(--axis)); }
+.pk-side .nm { font: 500 var(--t-sec)/1.3 var(--body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-side .at { color: var(--faint); font-weight: 400; margin-right: var(--sp-1); }
+.pk-side .ln { font: 600 var(--t-h3)/1 var(--display); font-variant-numeric: tabular-nums; color: var(--muted); display: flex; align-items: baseline; gap: var(--sp-2); }
+.pk-side .ln small { font: 400 var(--t-meta)/1 var(--body); color: var(--faint); }
+.pk-side:hover:not(:disabled):not([aria-pressed="true"]) { background: var(--hover); }
+.pk-side:disabled { cursor: default; opacity: 1; }
+.pk-side[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.pk-side[aria-pressed="true"] .ln { color: var(--ink); }
+.pk.set .pk-side:not([aria-pressed="true"]) .nm, .pk.set .pk-side:not([aria-pressed="true"]) .ln { color: var(--faint); }
+.pk-side:focus-visible, .pk-more:focus-visible { outline-offset: -2px; }
+.pk-more { width: var(--h-sm); border: 0; border-inline: 1px solid var(--rule); background: transparent; color: var(--faint); display: grid; place-items: center; padding: 0; }
+.pk-more:hover { background: var(--hover); color: var(--ink); }
+.slip-dock {
+  position: fixed; left: 0; right: 0; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  background: var(--surface); border-top: 1px solid var(--ring); box-shadow: var(--shadow-pop);
+  padding: var(--sp-3) calc(var(--sp-4) + env(safe-area-inset-right, 0px)) var(--sp-3) calc(var(--sp-4) + env(safe-area-inset-left, 0px)); display: grid; gap: var(--sp-2);
+}
+.slip-dock .r { display: flex; align-items: baseline; gap: var(--sp-2); font-size: var(--t-sec); color: var(--muted); }
+.slip-dock .r b { font: 600 var(--t-h2)/1 var(--display); color: var(--ink); }
+@media (min-width: 768px) and (max-width: 1023px) { .slip-dock { left: 84px; bottom: 0; padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 1023px) {
+  .wrap.has-dock { padding-bottom: 160px; }
+  /* The dock carries the count, the meter and the lock button on phones. */
+  .wrap.has-dock .done-bar, .wrap.has-dock .status.compact .meter, .wrap.has-dock .status.compact > .cta { display: none; }
+}
+.slip-list { padding: var(--sp-4); }
+.slip-list ul { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; border-top: 1px dashed var(--axis); border-bottom: 1px dashed var(--axis); }
+.slip-list li { display: flex; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) 0; font-size: var(--t-sec); }
+.slip-list li + li { border-top: 1px solid var(--rule); }
+.slip-list li b { font: 600 var(--t-body)/1.3 var(--display); font-variant-numeric: tabular-nums; }
+
+/* Act 2: live. A card per game in play with a meter against the spread, then compact rows. */
+.lv { overflow: hidden; }
+.lv .meta {
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: var(--h-md); padding: var(--sp-2) var(--sp-4); border: 0; border-bottom: 1px solid var(--rule);
+  background: transparent; text-align: left; font: var(--label); letter-spacing: var(--label-track); text-transform: uppercase; color: var(--faint);
+}
+.lv .meta:hover { background: var(--hover); }
+.lv .meta:focus-visible { outline-offset: -2px; }
+.lv .meta .res { margin-left: auto; }
+.lv .t {
+  --team-lit: color-mix(in srgb, var(--team) var(--team-mix), var(--team-lift));
+  position: relative; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-8); min-height: var(--h-md);
+}
+.lv .t::before { content: ""; position: absolute; left: var(--sp-4); top: var(--sp-3); bottom: var(--sp-3); width: 4px; border-radius: 2px; background: var(--team-lit, var(--axis)); }
+.lv .t + .t { border-top: 1px solid var(--rule); }
+.lv .t.ours { background: var(--accent-soft); }
+.lv .t .nm { font: 600 var(--t-body)/1.3 var(--body); min-width: 0; overflow-wrap: anywhere; }
+.lv .t .at { color: var(--faint); font-weight: 400; margin-right: var(--sp-1); }
+.lv .t .who { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.lv .t .sc { margin-left: auto; font: 600 var(--t-h2)/1 var(--display); font-variant-numeric: tabular-nums; min-width: 32px; text-align: right; }
+.lv .t .ln { font: 600 var(--t-h3)/1 var(--display); font-variant-numeric: tabular-nums; color: var(--muted); min-width: 48px; text-align: right; }
+.cover { padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--rule); display: grid; gap: var(--sp-2); }
+.cover .track { height: 8px; border-radius: var(--r-pill); background: var(--sunk); position: relative; }
+.cover .track::after { content: ""; position: absolute; left: calc(50% - 1px); top: -4px; bottom: -4px; width: 2px; background: var(--muted); }
+.cover .track i { position: absolute; top: 0; bottom: 0; border-radius: var(--r-pill); min-width: 4px; }
+.cover .track i.pos { left: 50%; background: var(--win); }
+.cover .track i.neg { right: 50%; background: var(--loss); }
+.cover .r { display: flex; justify-content: space-between; gap: var(--sp-3); font-size: var(--t-sec); color: var(--muted); }
+.cover .r b { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.cover .r b.up { color: var(--win); } .cover .r b.down { color: var(--loss); }
+.rows { overflow: hidden; }
+.frow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px var(--sp-3); width: 100%; min-height: var(--h-md); padding: var(--sp-2) var(--sp-4); border: 0; background: transparent; text-align: left; font-size: var(--t-sec); }
+.frow + .frow { border-top: 1px solid var(--rule); }
+.frow:hover { background: var(--hover); }
+.frow:focus-visible { outline-offset: -2px; }
+.frow .mu { grid-column: 1; min-width: 0; }
+.frow small { grid-column: 1; grid-row: 2; }
+.frow .tag, .frow .when { grid-column: 2; grid-row: 1 / span 2; }
+.frow .mu b { font: 600 var(--t-body)/1 var(--display); font-variant-numeric: tabular-nums; }
+.frow small { font-size: var(--t-meta); color: var(--faint); }
+.frow .when { color: var(--muted); white-space: nowrap; }
+.empty.tight { padding-block: var(--sp-6); }
+
+/* The board: a row per game, a column per picker; each cell has an away slot over a home slot. */
+.board-card { padding: var(--sp-4); margin-top: var(--sp-4); }
+.bb { width: 100%; border-collapse: collapse; font-size: var(--t-sec); }
+.bb th, .bb td { padding: var(--sp-1); text-align: center; border-bottom: 1px solid var(--rule); }
+.bb thead th { font: var(--label); letter-spacing: var(--label-track); text-transform: uppercase; color: var(--faint); padding-block: var(--sp-2); white-space: nowrap; }
+.bb thead th .dot { margin-right: var(--sp-1); }
+.bb thead th:first-child, .bb tbody th, .bb tfoot th { text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.bb tbody th { padding: 0; font-weight: 400; }
+.bb tbody th button { display: grid; gap: 2px; width: 100%; min-height: var(--h-md); padding: var(--sp-1) var(--sp-2) var(--sp-1) 0; border: 0; background: transparent; text-align: left; font: 400 var(--t-sec)/1.3 var(--body); white-space: nowrap; }
+.bb tbody th button > span { display: flex; align-items: baseline; gap: var(--sp-1); min-width: 0; }
+.bb tbody th .tn { overflow: hidden; text-overflow: ellipsis; }
+.bb tbody th button:hover { color: var(--accent); }
+.bb tbody th b { font: 600 var(--t-sec)/1 var(--display); color: var(--muted); font-variant-numeric: tabular-nums; }
+.bb tbody th .at { color: var(--faint); margin-right: var(--sp-1); }
+.bb .me { background: var(--accent-soft); }
+.bcell { display: inline-grid; gap: 2px; width: 28px; vertical-align: middle; }
+.bcell i { display: block; height: 12px; border-radius: 4px; background: var(--sunk); }
+.bcell i.on { background: var(--muted); } .bcell i.w { background: var(--win); } .bcell i.l { background: var(--loss); } .bcell i.p { background: var(--signal); }
+.bb tfoot th { font: var(--label); letter-spacing: var(--label-track); text-transform: uppercase; color: var(--faint); border-bottom: 0; }
+.bb tfoot td { font: 600 var(--t-body)/1 var(--display); font-variant-numeric: tabular-nums; border-bottom: 0; padding-block: var(--sp-3); white-space: nowrap; }
+.bb tfoot td.up { color: var(--win); } .bb tfoot td.down { color: var(--loss); }
+.bb .short { display: none; }
+@media (max-width: 767px) {
+  .bb .long, .bb thead th .dot { display: none; }
+  .bb .short { display: inline; }
+  .bb tfoot td { font-size: var(--t-sec); }
+  .bb td, .bb thead th { padding-inline: 2px; }
+  .bcell { width: 24px; }
+  .bb tbody th button { max-width: 148px; }
+}

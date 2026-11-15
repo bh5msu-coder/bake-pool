@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.21.0 — 2026-11-14 · Three-act week
+The Week screen now changes shape with the week. A **Picks · Live · Recap** switch at the top shows which act you
+are in; the week chooses it for you, and you can tap to look at another.
+- **Picks (before lock): the Slip.** One line per game: tap the away side on the left or the home side on the right.
+  Each side shows the spread and the team's record. The three dots in the middle open the game's details. About
+  three times as many games fit on a phone screen.
+- **A running count stays on screen.** On phones and tablets a bar above the tab bar shows how many you have
+  picked, the time left, and a **Next unpicked game** button. When all are picked it becomes **Lock my picks**.
+  On desktop a "Your slip" card lists every pick so far.
+- **Live (games on).** Games being played come first, closest to the spread at the top. Each shows the score and a
+  meter for how far the entry is covering or behind ("Covering by 2.5"). Until picks are revealed the meter follows
+  your own pick. Finished and upcoming games sit below as compact rows.
+- **Recap (final).** The recap card, then a new **board**: a row per game and a column for the entry and each
+  picker. The top slot is the away team, the bottom slot the home team; green covered, red did not.
+- The full game cards with everyone's chips are still there under **Picks** once the week is locked, and they
+  replace the Slip as soon as everyone's picks are revealed.
+- Nothing about scoring, locking or the entry rules changed.
+
 ## 0.20.0 — 2026-11-14 · Scoreboard, sharpened (stage 2)
 - **The rest of the app follows the same rules.** Pool, Eliminator, The Pool league, Stats, Explore, the charts,
   the Menu and the sign-in screen now take every gap, size and weight from the shared set. The last one-off

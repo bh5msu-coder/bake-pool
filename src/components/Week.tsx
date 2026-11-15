@@ -11,6 +11,7 @@ import type { EntryRow, HistoryRow } from "@/lib/data";
 import type { LiveGame } from "@/lib/scores";
 import { EntrySheet } from "./EntrySheet";
 import { IconCheck, IconChevronRight, IconLock } from "./icons";
+import { ActSwitch, Board, clock, LiveAct, Slip, SlipDock, SlipList, type Act, type Section } from "./WeekActs";
 import { projected, useLive, type LiveMap } from "./useLive";
 import { spreadFor, teamVars } from "@/lib/teams";
 import { RecapCard } from "./Recap";
@@ -18,13 +19,10 @@ import { Header, Sheet, WeekNav } from "./ui";
 import { useApp } from "./store";
 
 type Show = "all" | "todo" | "ties";
-/** ESPN writes "15:00 - 3rd"; a scoreboard reads better as "3rd 15:00". */
-const clock = (d: string) => { const m = /^(.+?) - (.+)$/.exec(d); return m ? `${m[2]} ${m[1]}` : d; };
 
 const dayFmt = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric" });
 const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
 
-interface Section { key: string; title: string; live?: boolean; games: Game[] }
 
 /** Live now → upcoming by day (in kickoff order) → final. Without live data, one plain list. */
 function sections(games: Game[], live: LiveMap): Section[] {
@@ -58,6 +56,8 @@ export function WeekTab() {
   const [detail, setDetail] = useState<Game | null>(null);
   const [picker, setPicker] = useState(false);
   const [lines, setLines] = useState(false);
+  // The week picks its own act (Picks, Live or Recap); this is the one you switched to by hand, if any.
+  const [actPick, setActPick] = useState<Act | null>(null);
   const ids = humans(season.players).map((p) => p.id);
   const blanks = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
   const pickShow = (s: Show) => { if (s === "todo") setTodo(new Set(blanks)); setShow(s); };
@@ -86,7 +86,7 @@ export function WeekTab() {
 
   // After a new pick, scroll to the next game you haven't picked (in screen order, wrapping to the top).
   const jumpFrom = (num: number) => window.setTimeout(() => {
-    const rows = [...document.querySelectorAll<HTMLElement>("article.sb[data-num]")];
+    const rows = [...document.querySelectorAll<HTMLElement>("[data-num]")];
     const at = rows.findIndex((el) => el.dataset.num === String(num));
     const next = [...rows.slice(at + 1), ...rows.slice(0, Math.max(0, at))].find((el) => el.dataset.blank === "1");
     // That was the last one: bring up the lock button instead.
@@ -98,6 +98,7 @@ export function WeekTab() {
     const left = (week?.games ?? []).filter((g) => !g.picks[as]).map((g) => g.num);
     setTodo(new Set(left));
     setShow(weekOpen && left.length ? "todo" : "all");
+    setActPick(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekKey, weekOpen, as]);
 
@@ -125,6 +126,14 @@ export function WeekTab() {
   const playing = week.games.filter((g) => !g.result && live.get(g.num)?.state === "in").length;
   const proj = projected(week, live);
   const shown = detail && week.games.find((g) => g.id === detail.id && g.num === detail.num);
+
+  // Three acts: the Slip while picks are open, the live view while games are on, the recap once every game is final.
+  const started = week.games.some((g) => { const st = live.get(g.num)?.state; return st === "in" || st === "post"; });
+  const can: Record<Act, boolean> = { picks: true, live: !final && live.size > 0 && (!open || started), recap: final };
+  const act: Act = actPick && can[actPick] ? actPick : open ? "picks" : final ? "recap" : can.live ? "live" : "picks";
+  // The compact slip is for choosing; once everyone's picks are showing, the full cards take over.
+  const useSlip = open && !visible;
+  const asHuman = humans(season.players).some((p) => p.id === as);
 
   const dl = deadlines(week, season.graceMinutes);
   const mine = week.games.filter((g) => g.picks[as]).length;
@@ -161,12 +170,20 @@ export function WeekTab() {
   return (<>
     <Header title={labelOf(week)} sub={sub} right={nav} score={bigRec("in-bar")} onTitle={() => setPicker(true)}
       strip={open ? summary : <>{bigRec("in-strip")}{summary}</>} />
-    <main className="wrap">
+    <main className={`wrap${act === "picks" && useSlip ? " has-dock" : ""}`}>
       <div className="week-layout">
         <div>
-          {open && <div className="mob-only"><Status week={week} as={as} setAs={setAs} compact /></div>}
-          {final && <div className="mob-only gap-s"><RecapCard week={week} /></div>}
-          <section>
+          {(can.live || can.recap) && <ActSwitch act={act} can={can} onChange={setActPick} />}
+          {act === "picks" && open && <div className="mob-only"><Status week={week} as={as} setAs={setAs} compact /></div>}
+          {act === "recap" && (<>
+            <div className="mob-only gap-s"><RecapCard week={week} /></div>
+            <Board week={week} games={proj} onMore={setDetail} />
+          </>)}
+          {act === "live" && (<>
+            <LiveAct week={week} live={live} visible={visible} onMore={setDetail} />
+            {visible && <Board week={week} games={proj} onMore={setDetail} />}
+          </>)}
+          {act === "picks" && <section>
             {(open || isAdmin) && (
               <div className="row wrap-row week-tools">
                 {open && (
@@ -182,12 +199,13 @@ export function WeekTab() {
                 )}
               </div>
             )}
-            <div className="cover-key">
+            {!useSlip && <div className="cover-key">
               <span><u />{as === me ? "Your pick" : `${season.players.find((p) => p.id === as)?.name}'s pick`}</span>
               {visible && <span><IconCheck className="icon sm entry-ck" />Group entry</span>}
               {(live.size > 0 || week.games.some((g) => g.result)) && <span><b className="cov-eg">−3.5</b>Green spread: covers</span>}
-            </div>
-            {secs.map((sec) => (
+            </div>}
+            {useSlip && <Slip secs={secs} as={as} canPick={canPick} live={live} onMore={setDetail} onPicked={jumpFrom} />}
+            {!useSlip && secs.map((sec) => (
               <div key={sec.key}>
                 <h2 className={`sec-h${sec.live ? " live" : ""}`}>
                   {sec.live && <span className="live-dot" />}{sec.title}<span className="n">{sec.games.length}</span>
@@ -205,18 +223,24 @@ export function WeekTab() {
               </div>
             )}
             {!filtered.length && <div className="empty"><b>{view === "todo" ? "All picked" : "Nothing here"}</b>{view === "todo" ? "Every game has your pick. Tap All games to review or change them." : "No 2-2 splits this week."}</div>}
-          </section>
+          </section>}
           {!open && graded && <div className="mob-only card gap-b"><WeekStandings week={week} games={proj} /></div>}
           <div className="mob-only gap-b"><EntryLinesButton week={week} onOpen={() => setLines(true)} /></div>
         </div>
         <aside className="rail-col desk-only">
           {open && <div className="card"><Status week={week} as={as} setAs={setAs} /></div>}
+          {useSlip && <SlipList week={week} as={as} />}
           {final && <RecapCard week={week} />}
           {!open && <div className="card"><WeekStandings week={week} games={proj} /></div>}
           <EntryLinesButton week={week} onOpen={() => setLines(true)} />
         </aside>
       </div>
     </main>
+    {act === "picks" && useSlip && asHuman && (
+      <SlipDock picked={mine} total={week.games.length}
+        due={dl.phase === "grace" ? `locks in ${dl.toLock}` : dl.toDue ? `due in ${dl.toDue}` : null}
+        action={groupLocked(week, season.players) ? undefined : <LockButton week={week} as={as} />} />
+    )}
     {shown && <GameSheet game={shown} week={week} hidden={!visible} live={live.get(shown.num)} onClose={() => setDetail(null)} />}
     {picker && <WeekPicker onClose={() => setPicker(false)} />}
     {lines && <EntrySheet week={week} live={live} onClose={() => setLines(false)} />}

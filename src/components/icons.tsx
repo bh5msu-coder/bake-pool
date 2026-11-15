@@ -26,4 +26,5 @@ export const IconChevronDown = icon(<path d="M6 9.5l6 6 6-6" />);
 export const IconArrowUp = icon(<path d="M12 19V5M6 11l6-6 6 6" />);
 export const IconArrowDown = icon(<path d="M12 5v14M6 13l6 6 6-6" />);
 export const IconShare = icon(<path d="M12 15V4M8 8l4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />);
+export const IconMore = icon(<><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>);
 export const IconClose = icon(<path d="M6 6l12 12M18 6L6 18" />);
