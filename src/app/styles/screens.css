@@ -55,7 +55,7 @@
 /* The picker's own choice: soft blue row, and their chip wears a blue ring. */
 .sb .team.mine { background: var(--accent-soft); --row: var(--accent-soft); }
 .sb .team .nm { grid-area: nm; font: 600 var(--t-body)/1.3 var(--body); min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-1); }
-.sb .team .nm .tn { overflow-wrap: anywhere; min-width: 0; }
+.sb .team .nm .tn { overflow-wrap: break-word; min-width: 0; }
 .sb .team .nm .at { color: var(--faint); font-weight: 400; margin-right: var(--sp-1); }
 .entry-ck { color: var(--muted); margin-left: var(--sp-2); vertical-align: -3px; }
 .sb .team .rec { display: inline-flex; align-items: baseline; gap: var(--sp-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -167,7 +167,7 @@ div.recap-preview { height: 56dvh; padding: var(--sp-4); }
 .cand .t { font: 600 var(--t-body)/1.3 var(--body); }
 .cand .o { font-size: var(--t-sec); color: var(--muted); }
 .cand > * { min-width: 0; }
-.cand .t, .cand .o { overflow-wrap: anywhere; }
+.cand .t, .cand .o { overflow-wrap: break-word; }
 .burned { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .burned span { font-size: var(--t-sec); padding: var(--sp-1) var(--sp-2); border-radius: var(--r-sm); background: var(--sunk); color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
 
