@@ -5,7 +5,7 @@ import { coverMargin, coverText } from "@/lib/cover";
 import { chipClass, colorOf, cvar } from "@/lib/players";
 import { ENTRY, entryPick, fmtRec, grade, humans, labelOf, record, split, type Game, type Week } from "@/lib/scoring";
 import type { LiveGame } from "@/lib/scores";
-import { spreadFor, teamVars } from "@/lib/teams";
+import { shortName, spreadFor, teamVars } from "@/lib/teams";
 import { IconMore } from "./icons";
 import { useApp } from "./store";
 import type { LiveMap } from "./useLive";
@@ -15,6 +15,13 @@ export interface Section { key: string; title: string; live?: boolean; games: Ga
 
 /** ESPN writes "15:00 - 3rd"; a scoreboard reads better as "3rd 15:00". */
 export const clock = (d: string) => { const m = /^(.+?) - (.+)$/.exec(d); return m ? `${m[2]} ${m[1]}` : d; };
+/** The team's name, swapped for its short spelling on phone-width screens. Screen readers always get the full name. */
+function TeamName({ team }: { team: string }) {
+  const short = shortName(team);
+  if (short === team) return <>{team}</>;
+  return <><span className="nm-full">{team}</span><span className="nm-short" aria-label={team}>{short}</span></>;
+}
+
 const kickFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
 
 /** Picks · Live · Recap. The week chooses one on its own; this lets you look at the others. */
@@ -116,7 +123,7 @@ export function LiveAct({ week, live, visible, onMore }: { week: Week; live: Liv
 
   const teamRow = (g: Game, l: LiveGame, t: string, isHome: boolean) => (
     <div className={`t${sideOf(g) === t ? " ours" : ""}`} style={teamVars(t)}>
-      <span className="nm">{isHome && <span className="at">@</span>}{t}</span>
+      <span className="nm">{isHome && <span className="at">@</span>}<TeamName team={t} /></span>
       {visible && (
         <span className="who">{season.players.filter((p) => g.picks[p.id] === t).map((p) => (
           <span key={p.id} className={`chip${chipClass(p.id)}${p.id === me ? " me" : ""}`} style={{ background: colorOf(p.id) }} title={p.name}>{p.initial}</span>
@@ -211,8 +218,8 @@ export function Board({ week, games, onMore }: { week: Week; games: Game[]; onMo
             {games.map((g) => (
               <tr key={g.num}>
                 <th scope="row"><button onClick={() => onMore(g)} aria-label={`Details for ${g.away} at ${g.home}`}>
-                  <span><span className="tn">{g.away}</span><b>{spreadFor(g.away, g.fav, g.spread)}</b></span>
-                  <span><span className="tn"><span className="at">@</span>{g.home}</span><b>{spreadFor(g.home, g.fav, g.spread)}</b></span>
+                  <span><span className="tn"><TeamName team={g.away} /></span><b>{spreadFor(g.away, g.fav, g.spread)}</b></span>
+                  <span><span className="tn"><span className="at">@</span><TeamName team={g.home} /></span><b>{spreadFor(g.home, g.fav, g.spread)}</b></span>
                 </button></th>
                 {cols.map((c) => {
                   const pick = pickOf(g, c.id), r = grade(pick ?? undefined, g.result);

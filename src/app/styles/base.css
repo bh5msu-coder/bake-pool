@@ -61,3 +61,6 @@ p.flush.gap-xs { margin-top: var(--sp-2); }
 .row.fields { gap: var(--sp-3); align-items: end; }
 .row.fields .grow { flex: 1; } .row.fields .grow-2 { flex: 2; }
 .row.field-head { align-items: flex-end; gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+/* Long team names switch to their short spelling on phones (see shortName in lib/teams.ts). */
+.nm-short { display: none; }
+@media (max-width: 479px) { .nm-full { display: none; } .nm-short { display: inline; } }

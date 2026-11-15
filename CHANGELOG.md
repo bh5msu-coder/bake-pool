@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.21.1 — 2026-11-14 · Team names stay whole
+- **Live cards no longer split a name mid-word** ("Kentuck / y"). The team name has its own line, the picker chips
+  sit under it, and the score and spread keep their own columns.
+- **Short names on phones.** On the Live cards and the recap board, the longest names use a short spelling on
+  narrow screens: "Jax", "Philly", "Miss St", "Okla St" and so on. Wider screens show the full name.
+
 ## 0.21.0 — 2026-11-14 · Three-act week
 The Week screen now changes shape with the week. A **Picks · Live · Recap** switch at the top shows which act you
 are in; the week chooses it for you, and you can tap to look at another.
