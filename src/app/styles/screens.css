@@ -204,7 +204,10 @@ div.recap-preview { height: 56dvh; padding: var(--sp-4); }
 .login h1 { font: 600 var(--t-d2)/1 var(--display); text-transform: uppercase; margin: 0 0 var(--sp-1); }
 .login h1 em { font-style: normal; color: var(--accent); }
 .intro { position: fixed; inset: 0; z-index: 50; padding: 0; border: 0; background: #0a0d12; cursor: pointer; transition: opacity var(--dur-3) var(--ease); }
-.intro.out { opacity: 0; pointer-events: none; }
+/* Invisible and click-through until the clip is really playing, and again while it fades out. */
+.intro.waiting, .intro.leaving { opacity: 0; pointer-events: none; }
+.intro.waiting { transition: none; }
+.intro video::-webkit-media-controls, .intro video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
 .intro video { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* The clip is portrait: on a wide screen show all of it, centred, instead of cropping to a strip. */
 @media (min-aspect-ratio: 1/1) { .intro video { object-fit: contain; } }
