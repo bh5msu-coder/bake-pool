@@ -8,6 +8,7 @@ import type { Season } from "@/lib/scoring";
 import { browserClient } from "@/lib/supabase/client";
 import { ElimTab } from "./Elim";
 import { LeagueTab } from "./League";
+import { Intro } from "./Intro";
 import { Login } from "./Login";
 import { Menu } from "./Menu";
 import { PoolTab } from "./Pool";
@@ -76,7 +77,12 @@ function Screens() {
   </>);
 }
 
-export function PoolApp({ demo, loginError }: { demo: boolean; loginError?: string | null }) {
+/** The app, with the opening clip over whatever screen it lands on (loading, sign-in or the pool). */
+export function PoolApp(props: { demo: boolean; loginError?: string | null }) {
+  return <><Intro /><PoolScreens {...props} /></>;
+}
+
+function PoolScreens({ demo, loginError }: { demo: boolean; loginError?: string | null }) {
   const sb = useMemo(() => (demo ? null : browserClient()), [demo]);
   const [session, setSession] = useState<Session | null | undefined>(demo ? null : undefined);
   const [season, setSeason] = useState<Season | null>(null);

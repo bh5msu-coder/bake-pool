@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, type CSSProperties } from "react";
 import { colorOf } from "@/lib/players";
-import { Intro } from "./Intro";
+import { InstallApp } from "./InstallApp";
 
 type Who = { id: string; name: string; initial: string };
 
@@ -27,7 +27,6 @@ export function Login({ error }: { error?: string | null }) {
 
   return (
     <main className="login">
-      <Intro />
       <div className="card">
         <h1>BAKE <em>Pool</em></h1>
         <p className="hint flush">Who&apos;s picking?</p>
@@ -41,6 +40,7 @@ export function Login({ error }: { error?: string | null }) {
           {!players && !msg && <p className="hint">Loading…</p>}
         </div>
         {msg && <p className="warn err gap-s">{msg}</p>}
+        <InstallApp />
       </div>
     </main>
   );

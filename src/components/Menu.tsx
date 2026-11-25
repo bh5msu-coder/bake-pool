@@ -4,6 +4,7 @@ import { fmtDeadline, fmtTime } from "@/lib/deadline";
 import { colorOf } from "@/lib/players";
 import { labelOf } from "@/lib/scoring";
 import { remindAt } from "@/lib/emailReminders";
+import { InstallApp } from "./InstallApp";
 import { Notifications } from "./Notifications";
 import { ConfirmSheet, Sheet } from "./ui";
 import { useApp } from "./store";
@@ -48,7 +49,7 @@ export function Menu() {
       <ThemePicker />
       <Notifications />
       {isAdmin && <><p className="eyebrow gap-t">Admin tools</p><AdminTools /></>}
-      <p className="hint">Tip: on iPhone, tap Share → Add to Home Screen to use this like an app.</p>
+      <InstallApp />
     </Sheet>
   );
 }
