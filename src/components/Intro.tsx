@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 
 const SEEN = "bake.intro.v1";
 
-/** Two-second clip over the login screen. Plays once per device; a tap skips it. Never blocks sign-in:
- *  the login renders underneath, and the clip removes itself on end, on error, or after a hard timeout. */
+/** Two-second clip shown each time the app is opened (once per browser session), signed in or not. A tap skips
+ *  it. Never blocks anything: the app loads underneath, and the clip removes itself on end, on error, or after a
+ *  hard timeout. */
 export function Intro() {
   const [show, setShow] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(SEEN)) return;
-      localStorage.setItem(SEEN, "1");
-    } catch { return; } // no storage (private mode): skip it instead of replaying on every visit
+      if (sessionStorage.getItem(SEEN)) return; // a reload or a sign-in redirect: don't play it twice
+      sessionStorage.setItem(SEEN, "1");
+    } catch { return; } // no storage: skip it instead of replaying on every reload
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
     setShow(true);
